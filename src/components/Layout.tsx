@@ -128,13 +128,6 @@ export const Layout: React.FC<LayoutProps> = ({
     );
   };
 
-  const syncDotColor =
-    syncStatus.state === 'error' || syncStatus.error
-      ? '#e11d48'
-      : syncStatus.state === 'synced-cloud' || syncStatus.state === 'synced-lan'
-      ? '#14b8a6'
-      : '#f59e0b';
-
   const navigateFromMore = (tab: NavTab) => {
     setMoreOpen(false);
     setActiveTab(tab);
@@ -274,14 +267,6 @@ export const Layout: React.FC<LayoutProps> = ({
         <div className="flex items-center gap-2.5">
           {activeTab === 'home' && <AppLogo className="w-7 h-7 rounded-lg shadow-xs shrink-0" />}
           <span className="font-bold text-lg tracking-tight">{TAB_TITLES[activeTab]}</span>
-          <button
-            type="button"
-            onClick={() => setActiveTab('settings')}
-            className="w-2.5 h-2.5 rounded-full shrink-0"
-            style={{ backgroundColor: syncDotColor }}
-            aria-label="Sync status"
-            title={syncStatus.error || syncStatus.state}
-          />
         </div>
 
         <button
