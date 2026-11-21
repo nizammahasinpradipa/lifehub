@@ -59,8 +59,9 @@ export const TasksView: React.FC = () => {
   // PRD: Completing last subtask asks before completing parent
   const [parentCompletePromptId, setParentCompletePromptId] = useState<string | null>(null);
 
-  // Add project inline state
+  // Add project & filter drawer state
   const [showAddProject, setShowAddProject] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectColor, setNewProjectColor] = useState(PROJECT_COLORS[0]);
 
@@ -187,8 +188,8 @@ export const TasksView: React.FC = () => {
     : null;
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="hidden md:flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
           <p className="text-xs text-zinc-500 mt-0.5">
@@ -256,23 +257,23 @@ export const TasksView: React.FC = () => {
         </button>
       </form>
 
-      {/* Filter Views & Projects/Tags Strip */}
+      {/* Clean Single-Row Filter Strip */}
       <div className="space-y-2.5">
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
           {(
             [
               { id: 'today', label: 'Today' },
               { id: 'upcoming', label: 'Upcoming' },
               { id: 'overdue', label: `Overdue${overdueCount > 0 ? ` (${overdueCount})` : ''}` },
-              { id: 'all', label: 'All Open' },
-              { id: 'completed', label: 'Completed' },
+              { id: 'all', label: 'All' },
+              { id: 'completed', label: 'Done' },
             ] as const
           ).map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setFilter(item.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer shrink-0 ${
                 filter === item.id
                   ? 'bg-teal-600 text-white dark:bg-teal-400 dark:text-zinc-950'
                   : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
@@ -281,10 +282,25 @@ export const TasksView: React.FC = () => {
               {item.label}
             </button>
           ))}
+
+          {(activeProjects.length > 0 || activeTags.length > 0) && (
+            <button
+              type="button"
+              onClick={() => setShowFilters((s) => !s)}
+              className={`md:hidden px-3 py-1.5 rounded-xl text-xs font-medium border shrink-0 cursor-pointer ${
+                selectedProjectId || selectedTagId || showFilters
+                  ? 'border-teal-600 text-teal-700 dark:text-teal-300 bg-teal-600/10'
+                  : 'text-zinc-500'
+              }`}
+              style={{ borderColor: selectedProjectId || selectedTagId || showFilters ? undefined : 'var(--border-subtle)' }}
+            >
+              Projects{selectedProjectId || selectedTagId ? ' •' : ''}
+            </button>
+          )}
         </div>
 
         {(activeProjects.length > 0 || activeTags.length > 0) && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className={`${showFilters || selectedProjectId || selectedTagId ? 'flex' : 'hidden md:flex'} flex-wrap items-center gap-1.5`}>
             {activeProjects.map((p) => {
               const active = selectedProjectId === p.id;
               return (
@@ -323,6 +339,15 @@ export const TasksView: React.FC = () => {
                 </button>
               );
             })}
+
+            <button
+              type="button"
+              onClick={() => setShowAddProject((s) => !s)}
+              className="md:hidden inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs text-teal-700 dark:text-teal-400"
+            >
+              <Plus className="w-3 h-3" />
+              Project
+            </button>
           </div>
         )}
       </div>

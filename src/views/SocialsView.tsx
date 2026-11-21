@@ -224,27 +224,27 @@ export const SocialsView: React.FC = () => {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="hidden md:block">
           <h1 className="text-2xl font-bold tracking-tight">Socials</h1>
           <p className="text-xs text-zinc-500 mt-0.5">
             Store your social media &amp; contact links once — copy individual links or project-ready snippets in one tap.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           {activeSocialLinks.length > 0 && (
             <button
               type="button"
               onClick={() => setShowExportPanel((s) => !s)}
-              className={`btn-secondary !min-h-[40px] !text-xs ${
+              className={`btn-secondary !min-h-[38px] !text-xs ${
                 showExportPanel ? '!border-teal-600 text-teal-700 dark:text-teal-300' : ''
               }`}
             >
               <Code2 className="w-3.5 h-3.5" />
-              Project Copy Kit
+              Copy Kit
             </button>
           )}
-          <button type="button" onClick={() => openAddModal('github')} className="btn-primary !min-h-[40px] !text-xs">
+          <button type="button" onClick={() => openAddModal('github')} className="btn-primary !min-h-[38px] !text-xs">
             <Plus className="w-4 h-4" />
             Add Link
           </button>
@@ -349,7 +349,7 @@ export const SocialsView: React.FC = () => {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
           {(
             [
               { id: 'all', label: 'All' },
@@ -364,7 +364,7 @@ export const SocialsView: React.FC = () => {
               key={f.id}
               type="button"
               onClick={() => setCategoryFilter(f.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition-colors ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition-colors shrink-0 ${
                 categoryFilter === f.id
                   ? 'bg-teal-600 text-white dark:bg-teal-400 dark:text-zinc-950'
                   : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'

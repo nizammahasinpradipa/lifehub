@@ -98,6 +98,7 @@ const LifeHubShell: React.FC = () => {
       onQuickAdd={() => openQuickAdd()}
       onOpenSearch={() => setSearchOpen(true)}
       onOpenAI={() => setAiOpen(true)}
+      onOpenReceipt={() => setReceiptOpen(true)}
     >
       {activeTab === 'home' && (
         <HomeView

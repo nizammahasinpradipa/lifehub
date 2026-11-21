@@ -483,21 +483,21 @@ export const EmailView: React.FC = () => {
       {(accessToken || messages.length > 0) && (
         <>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
-            <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl self-start" style={{ backgroundColor: 'var(--bg-subtle)' }}>
+            <div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto no-scrollbar max-w-full" style={{ backgroundColor: 'var(--bg-subtle)' }}>
               {(
                 [
                   { id: 'INBOX', label: 'Inbox' },
                   { id: 'UNREAD', label: 'Unread' },
                   { id: 'STARRED', label: 'Starred' },
                   { id: 'SENT', label: 'Sent' },
-                  { id: 'ALL', label: 'All Mail' },
+                  { id: 'ALL', label: 'All' },
                 ] as Array<{ id: GmailFolder; label: string }>
               ).map((f) => (
                 <button
                   key={f.id}
                   type="button"
                   onClick={() => setFolder(f.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors shrink-0 ${
                     folder === f.id
                       ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300'
                       : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'

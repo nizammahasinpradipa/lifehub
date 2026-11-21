@@ -151,7 +151,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <div>
+      <div className="hidden md:block">
         <h1 className="text-2xl font-bold tracking-tight">Settings &amp; Sync</h1>
         <p className="text-xs text-zinc-500 mt-0.5">
           Manage local persistence, PC ↔ Android syncing, appearance, reminders, and backups.

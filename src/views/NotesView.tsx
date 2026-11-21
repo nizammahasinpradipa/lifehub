@@ -154,9 +154,9 @@ export const NotesView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="hidden md:flex sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Notes &amp; Journal</h1>
           <p className="text-xs text-zinc-500 mt-0.5">
@@ -177,29 +177,41 @@ export const NotesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Sub-Tabs */}
-      <div className="flex items-center gap-1 p-1 rounded-xl self-start w-fit" style={{ backgroundColor: 'var(--bg-subtle)' }}>
-        {(
-          [
-            { id: 'journal', label: 'Daily Journal', Icon: BookOpen },
-            { id: 'notes', label: `Notes (${activeNotes.filter((n) => n.type === 'note').length})`, Icon: FileText },
-            { id: 'mood', label: 'Mood (30d)', Icon: TrendingUp },
-          ] as const
-        ).map(({ id, label, Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setSubTab(id)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-              subTab === id
-                ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300'
-                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
-            }`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
+      {/* Sub-Tabs (full-width clean segmented bar on Android) */}
+      <div className="flex items-center justify-between gap-2">
+        <div
+          className="grid grid-cols-3 sm:flex items-center gap-1 p-1 rounded-xl flex-1 sm:flex-none"
+          style={{ backgroundColor: 'var(--bg-subtle)' }}
+        >
+          {(
+            [
+              { id: 'journal', label: 'Journal', Icon: BookOpen },
+              { id: 'notes', label: 'Notes', Icon: FileText },
+              { id: 'mood', label: 'Mood', Icon: TrendingUp },
+            ] as const
+          ).map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setSubTab(id)}
+              className={`inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                subTab === id
+                  ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300'
+                  : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {subTab === 'notes' && (
+          <button type="button" onClick={handleCreateNote} className="md:hidden btn-primary !min-h-[38px] !px-3 !text-xs shrink-0">
+            <Plus className="w-4 h-4" />
+            New
           </button>
-        ))}
+        )}
       </div>
 
       {/* SUB-TAB 1: DAILY JOURNAL (N2, N3) */}

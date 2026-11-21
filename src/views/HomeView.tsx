@@ -130,12 +130,12 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
   return (
     <div className="space-y-6">
       {/* Greeting & Quick AI Entry */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
             {formatFullDate(today)}
           </p>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight mt-0.5">
             {getGreeting(data.user.timezone)}
             {data.user.display_name && data.user.display_name !== 'Owner'
               ? `, ${data.user.display_name}`
@@ -146,17 +146,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
         <button
           type="button"
           onClick={onOpenAI}
-          className="btn-secondary !justify-start sm:!justify-center text-left"
+          className="btn-secondary !justify-start sm:!justify-center text-left !min-h-[42px]"
         >
           <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
-          <span className="truncate text-zinc-500 dark:text-zinc-400 font-normal">
-            Type &ldquo;spent 50k on lunch with GoPay&rdquo;...
+          <span className="truncate text-zinc-500 dark:text-zinc-400 font-normal text-xs sm:text-sm">
+            Try &ldquo;spent 50k on lunch with GoPay&rdquo;...
           </span>
         </button>
       </div>
 
-      {/* Fast Capture Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      {/* Desktop Fast Capture Strip (mobile uses the clean floating + button) */}
+      <div className="hidden md:grid md:grid-cols-4 gap-2.5">
         <button
           type="button"
           onClick={() => onQuickAdd('task')}
