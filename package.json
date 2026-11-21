@@ -1,0 +1,31 @@
+{
+  "name": "lifehub",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "LifeHub — All-in-One Personal Tasks, IDR Expense Tracker, Notes & Daily Journal for PC and Android",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host",
+    "start": "node server.mjs",
+    "start:all": "npm run build && node server.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.1",
+    "tesseract.js": "^6.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.9",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.9",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0"
+  }
+}
