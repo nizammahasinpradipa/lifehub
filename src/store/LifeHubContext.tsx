@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type {
+  AutoLockMode,
   Budget,
   Category,
   CategoryKind,
@@ -12,6 +13,8 @@ import type {
   Priority,
   Project,
   Recurrence,
+  RemoteAuthMeta,
+  SecurityConfig,
   SupabaseConfig,
   SyncStatus,
   Tag,
@@ -25,6 +28,7 @@ import type {
 } from '../types/models';
 import { createInitialData, createSampleData, DEFAULT_USER_ID, uid } from '../lib/defaults';
 import {
+  fetchLanAuthStatus,
   fetchLanData,
   fetchServerInfo,
   getClientId,
@@ -37,9 +41,23 @@ import {
   pullCloudSnapshot,
   pushCloudSnapshot,
   pushLanData,
+  recoverLanAuth,
   saveLocalData,
   saveSupabaseConfig,
 } from '../lib/storage';
+import {
+  clearFailedAttempts,
+  clearSessionAuthToken,
+  constantTimeEqual,
+  deriveAuthBundle,
+  generateRecoveryKey,
+  generateSalt,
+  getLockoutStatus,
+  getSessionAuthToken,
+  hashRecoveryKey,
+  recordFailedAttempt,
+  saveSessionAuthToken,
+} from '../lib/security';
 import { addDaysToDateString, getLocalDateString, getLocalMonthString, isoToLocalDate, isoToLocalTimeInput, localDateTimeToUtcIso } from '../lib/dates';
 import { findDueReminders, fireTaskReminder, requestNotificationPermission } from '../lib/reminders';
 
@@ -58,6 +76,10 @@ export interface NavigationTarget {
 interface LifeHubContextValue {
   data: LifeHubData;
   hydrated: boolean;
+  authReady: boolean;
+  isUnlocked: boolean;
+  needsAuthSetup: boolean;
+  authHint: string;
   syncStatus: SyncStatus;
   lanUrls: string[];
   toasts: ToastItem[];
@@ -68,6 +90,23 @@ interface LifeHubContextValue {
   clearFocusTarget: () => void;
   notify: (message: string, tone?: ToastItem['tone']) => void;
   dismissToast: (id: string) => void;
+
+  // Verification & Privacy Lock
+  setupPasscode: (passcode: string, hint: string, ownerName?: string) => { recoveryKey: string };
+  finishSetupUnlock: () => void;
+  verifyPasscode: (passcode: string) => Promise<{ ok: boolean; error?: string; cooldownMs?: number }>;
+  recoverWithKey: (
+    recoveryKey: string,
+    newPasscode: string,
+    hint: string
+  ) => Promise<{ ok: boolean; error?: string; newRecoveryKey?: string }>;
+  changePasscode: (
+    currentPasscode: string,
+    newPasscode: string,
+    hint: string
+  ) => { ok: boolean; error?: string; newRecoveryKey?: string };
+  setAutoLockMode: (mode: AutoLockMode) => void;
+  lockNow: () => void;
 
   // Derived active lists (filtered out deleted_at)
   activeProjects: Project[];
@@ -170,6 +209,9 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const initialSnap = useMemo(() => loadLocalSyncSnapshot(), []);
   const [data, setData] = useState<LifeHubData>(initialSnap.data);
   const [hydrated, setHydrated] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [remoteAuthMeta, setRemoteAuthMeta] = useState<RemoteAuthMeta | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [focusTarget, setFocusTarget] = useState<NavigationTarget | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -191,6 +233,9 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const lastUpdatedRef = useRef<string>(initialSnap.updatedAt || new Date().toISOString());
   const pushTimerRef = useRef<number | null>(null);
   const lanConnectedRef = useRef<boolean>(false);
+  const apiTokenRef = useRef<string | null>(null);
+  const remoteAuthRef = useRef<RemoteAuthMeta | null>(null);
+  remoteAuthRef.current = remoteAuthMeta;
   const cloudUserRef = useRef<{ id: string; email: string } | null>(null);
   cloudUserRef.current = cloudUser;
 
@@ -240,7 +285,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       let syncError: string | null = null;
 
       if (lanConnectedRef.current) {
-        const ok = await pushLanData(dataRef.current, lastUpdatedRef.current);
+        const ok = await pushLanData(dataRef.current, lastUpdatedRef.current, apiTokenRef.current);
         if (ok) {
           syncedAny = true;
           syncMode = 'synced-lan';
@@ -287,7 +332,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     let mode: SyncStatus['state'] = 'saved';
 
     // 1. LAN Server
-    const lan = await fetchLanData();
+    const lan = await fetchLanData(apiTokenRef.current);
     if (lan.ok) {
       lanConnectedRef.current = true;
       mode = 'synced-lan';
@@ -296,7 +341,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
         changed = true;
       } else {
         // Seed empty LAN DB with our local data
-        await pushLanData(merged, lastUpdatedRef.current);
+        await pushLanData(merged, lastUpdatedRef.current, apiTokenRef.current);
       }
     }
 
@@ -320,7 +365,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setData(merged);
       await saveLocalData(merged, now);
       if (lanConnectedRef.current) {
-        await pushLanData(merged, now);
+        await pushLanData(merged, now, apiTokenRef.current);
       }
     }
 
@@ -332,7 +377,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   }, []);
 
-  // Initial hydration: IndexedDB -> LAN server -> Cloud
+  // Initial hydration: IndexedDB -> Auth Gate Check -> LAN/Cloud (only when unlocked!)
   useEffect(() => {
     let active = true;
     (async () => {
@@ -342,10 +387,15 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setData(best.data);
       if (best.updatedAt) lastUpdatedRef.current = best.updatedAt;
 
-      const info = await fetchServerInfo();
-      if (active && info.ok) {
+      const [info, authMeta] = await Promise.all([fetchServerInfo(), fetchLanAuthStatus()]);
+      if (!active) return;
+      if (info.ok) {
         lanConnectedRef.current = true;
         setLanUrls(info.lanUrls);
+      }
+      if (authMeta) {
+        remoteAuthRef.current = authMeta;
+        setRemoteAuthMeta(authMeta);
       }
 
       const client = getSupabaseClient();
@@ -360,8 +410,31 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      await pullRemoteAndMerge();
-      if (active) setHydrated(true);
+      // Determine active verification lock (remote LAN lock takes precedence over empty local device)
+      const effectiveVerifyHash = authMeta?.locked
+        ? authMeta.verify_hash
+        : best.data.security?.enabled
+        ? best.data.security.verify_hash
+        : '';
+
+      if (effectiveVerifyHash) {
+        const session = getSessionAuthToken();
+        if (session && constantTimeEqual(session.verifyHash, effectiveVerifyHash)) {
+          apiTokenRef.current = session.apiToken;
+          setIsUnlocked(true);
+          await pullRemoteAndMerge();
+        } else {
+          setIsUnlocked(false);
+        }
+      } else {
+        // First-time user: require setting up verification passcode before viewing dashboard
+        setIsUnlocked(false);
+      }
+
+      if (active) {
+        setAuthReady(true);
+        setHydrated(true);
+      }
     })();
 
     return () => {
@@ -369,12 +442,13 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, [pullRemoteAndMerge]);
 
-  // Real-time SSE listener for LAN sync (PC <-> Android instant updates)
+  // Real-time SSE listener for LAN sync (only active when unlocked)
   useEffect(() => {
-    if (!hydrated || !lanConnectedRef.current) return;
+    if (!hydrated || !isUnlocked || !lanConnectedRef.current) return;
     let es: EventSource | null = null;
     try {
-      es = new EventSource('/api/events');
+      const tokenParam = apiTokenRef.current ? `?token=${encodeURIComponent(apiTokenRef.current)}` : '';
+      es = new EventSource(`/api/events${tokenParam}`);
       es.onmessage = (evt) => {
         try {
           const msg = JSON.parse(evt.data);
@@ -386,10 +460,9 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       };
     } catch {
-      // SSE optional (dev server uses polling fallback)
+      // SSE optional
     }
 
-    // Gentle fallback poll every 5s when tab is visible
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible' && lanConnectedRef.current) {
         void pullRemoteAndMerge();
@@ -400,18 +473,60 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (es) es.close();
       window.clearInterval(interval);
     };
-  }, [hydrated, pullRemoteAndMerge]);
+  }, [hydrated, isUnlocked, pullRemoteAndMerge]);
+
+  // Idle Auto-Lock Timer
+  const lockNow = useCallback(() => {
+    apiTokenRef.current = null;
+    clearSessionAuthToken();
+    setIsUnlocked(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isUnlocked) return;
+    const mode = data.security?.auto_lock || 'on-close';
+    if (mode === 'on-close') return;
+    const minutes = mode === '5m' ? 5 : mode === '15m' ? 15 : 30;
+    const ms = minutes * 60_000;
+
+    let timer = window.setTimeout(() => {
+      lockNow();
+    }, ms);
+
+    const resetTimer = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        lockNow();
+      }, ms);
+    };
+
+    const events = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }));
+    return () => {
+      window.clearTimeout(timer);
+      events.forEach((ev) => window.removeEventListener(ev, resetTimer));
+    };
+  }, [isUnlocked, data.security?.auto_lock, lockNow]);
 
   // Flush save before page hide / close so edits are never lost
   useEffect(() => {
     const flush = () => {
+      if (!isUnlocked) return;
       void saveLocalData(dataRef.current, lastUpdatedRef.current);
-      if (lanConnectedRef.current && navigator.sendBeacon) {
-        const blob = new Blob(
-          [JSON.stringify({ data: dataRef.current, updatedAt: lastUpdatedRef.current, clientId: getClientId() })],
-          { type: 'application/json' }
-        );
-        navigator.sendBeacon('/api/sync', blob);
+      if (lanConnectedRef.current && apiTokenRef.current) {
+        void fetch('/api/sync', {
+          method: 'POST',
+          keepalive: true,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-LifeHub-Auth': apiTokenRef.current,
+          },
+          body: JSON.stringify({
+            data: dataRef.current,
+            updatedAt: lastUpdatedRef.current,
+            clientId: getClientId(),
+          }),
+        }).catch(() => {});
       }
     };
     const onVis = () => {
@@ -423,7 +538,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       window.removeEventListener('beforeunload', flush);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, []);
+  }, [isUnlocked]);
 
   // Reminder polling every 30s (PRD: fire within 1 minute of set time)
   useEffect(() => {
@@ -1221,15 +1336,245 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const loadSampleDataset = useCallback(() => {
     const sample = createSampleData();
-    commit(() => sample);
+    commit((prev) => ({ ...sample, security: prev.security }));
     notify('Loaded sample data', 'success');
   }, [commit, notify]);
 
   const resetAllData = useCallback(() => {
     const fresh = createInitialData();
-    commit(() => fresh);
+    commit((prev) => ({ ...fresh, security: prev.security }));
     notify('Workspace reset to clean state', 'neutral');
   }, [commit, notify]);
+
+  // ======================== VERIFICATION & PRIVACY LOCK ========================
+  const needsAuthSetup = useMemo(() => {
+    if (remoteAuthMeta?.locked) return false;
+    return !(data.security && data.security.enabled);
+  }, [remoteAuthMeta, data.security]);
+
+  const authHint = useMemo(() => {
+    if (remoteAuthMeta?.locked) return remoteAuthMeta.hint || '';
+    return data.security?.hint || '';
+  }, [remoteAuthMeta, data.security]);
+
+  const setupPasscode: LifeHubContextValue['setupPasscode'] = useCallback(
+    (passcode, hint, ownerName) => {
+      const salt = generateSalt();
+      const recoveryKey = generateRecoveryKey();
+      const { verifyHash, apiToken, apiTokenHash } = deriveAuthBundle(passcode, salt);
+      const recoveryHash = hashRecoveryKey(recoveryKey, salt);
+      const now = new Date().toISOString();
+
+      const security: SecurityConfig = {
+        enabled: true,
+        salt,
+        verify_hash: verifyHash,
+        recovery_hash: recoveryHash,
+        api_token_hash: apiTokenHash,
+        hint: hint.trim(),
+        auto_lock: 'on-close',
+        updated_at: now,
+      };
+
+      apiTokenRef.current = apiToken;
+      saveSessionAuthToken(apiToken, verifyHash);
+      clearFailedAttempts();
+
+      commit((prev) => ({
+        ...prev,
+        user: ownerName?.trim() ? { ...prev.user, display_name: ownerName.trim(), updated_at: now } : prev.user,
+        security,
+      }));
+
+      setRemoteAuthMeta({
+        locked: true,
+        hasData: true,
+        salt,
+        verify_hash: verifyHash,
+        recovery_hash: recoveryHash,
+        hint: security.hint,
+      });
+
+      return { recoveryKey };
+    },
+    [commit]
+  );
+
+  const finishSetupUnlock = useCallback(() => {
+    setIsUnlocked(true);
+    void pullRemoteAndMerge();
+  }, [pullRemoteAndMerge]);
+
+  const verifyPasscode: LifeHubContextValue['verifyPasscode'] = useCallback(
+    async (passcode) => {
+      const lockout = getLockoutStatus();
+      if (lockout.cooldownMs > 0) {
+        return {
+          ok: false,
+          error: `Too many attempts. Try again in ${Math.ceil(lockout.cooldownMs / 1000)}s.`,
+          cooldownMs: lockout.cooldownMs,
+        };
+      }
+
+      const activeSalt = remoteAuthRef.current?.locked
+        ? remoteAuthRef.current.salt
+        : dataRef.current.security?.salt || '';
+      const expectedHash = remoteAuthRef.current?.locked
+        ? remoteAuthRef.current.verify_hash
+        : dataRef.current.security?.verify_hash || '';
+
+      if (!activeSalt || !expectedHash) {
+        return { ok: false, error: 'Verification lock is not configured.' };
+      }
+
+      const { verifyHash, apiToken } = deriveAuthBundle(passcode, activeSalt);
+      if (!constantTimeEqual(verifyHash, expectedHash)) {
+        const fail = recordFailedAttempt();
+        if (fail.cooldownMs > 0) {
+          return {
+            ok: false,
+            error: `Incorrect passcode. Locked for ${Math.ceil(fail.cooldownMs / 1000)}s.`,
+            cooldownMs: fail.cooldownMs,
+          };
+        }
+        return {
+          ok: false,
+          error: `Incorrect passcode (${fail.remainingAttempts} ${fail.remainingAttempts === 1 ? 'try' : 'tries'} left).`,
+        };
+      }
+
+      clearFailedAttempts();
+      apiTokenRef.current = apiToken;
+      saveSessionAuthToken(apiToken, verifyHash);
+      setIsUnlocked(true);
+      await pullRemoteAndMerge();
+      return { ok: true };
+    },
+    [pullRemoteAndMerge]
+  );
+
+  const recoverWithKey: LifeHubContextValue['recoverWithKey'] = useCallback(
+    async (recoveryKey, newPasscode, hint) => {
+      const activeSalt = remoteAuthRef.current?.locked
+        ? remoteAuthRef.current.salt
+        : dataRef.current.security?.salt || '';
+      const expectedRecoveryHash = remoteAuthRef.current?.locked
+        ? remoteAuthRef.current.recovery_hash
+        : dataRef.current.security?.recovery_hash || '';
+
+      if (!activeSalt || !expectedRecoveryHash) {
+        return { ok: false, error: 'No recovery key configured.' };
+      }
+
+      const providedHash = hashRecoveryKey(recoveryKey, activeSalt);
+      if (!constantTimeEqual(providedHash, expectedRecoveryHash)) {
+        return { ok: false, error: 'Invalid recovery key. Check all characters (e.g. LH-XXXX-XXXX-XXXX).' };
+      }
+
+      const newSalt = generateSalt();
+      const newRecoveryKey = generateRecoveryKey();
+      const { verifyHash, apiToken, apiTokenHash } = deriveAuthBundle(newPasscode, newSalt);
+      const newRecoveryHash = hashRecoveryKey(newRecoveryKey, newSalt);
+      const now = new Date().toISOString();
+
+      const newSecurity: SecurityConfig = {
+        enabled: true,
+        salt: newSalt,
+        verify_hash: verifyHash,
+        recovery_hash: newRecoveryHash,
+        api_token_hash: apiTokenHash,
+        hint: hint.trim(),
+        auto_lock: dataRef.current.security?.auto_lock || 'on-close',
+        updated_at: now,
+      };
+
+      if (lanConnectedRef.current && remoteAuthRef.current?.locked) {
+        const ok = await recoverLanAuth(providedHash, newSecurity);
+        if (!ok) {
+          return { ok: false, error: 'Server rejected recovery key.' };
+        }
+      }
+
+      clearFailedAttempts();
+      apiTokenRef.current = apiToken;
+      saveSessionAuthToken(apiToken, verifyHash);
+
+      commit((prev) => ({ ...prev, security: newSecurity }));
+      setRemoteAuthMeta({
+        locked: true,
+        hasData: true,
+        salt: newSalt,
+        verify_hash: verifyHash,
+        recovery_hash: newRecoveryHash,
+        hint: newSecurity.hint,
+      });
+
+      return { ok: true, newRecoveryKey };
+    },
+    [commit]
+  );
+
+  const changePasscode: LifeHubContextValue['changePasscode'] = useCallback(
+    (currentPasscode, newPasscode, hint) => {
+      const sec = dataRef.current.security;
+      if (!sec || !sec.enabled) {
+        return { ok: false, error: 'No passcode currently set.' };
+      }
+      const currentBundle = deriveAuthBundle(currentPasscode, sec.salt);
+      if (!constantTimeEqual(currentBundle.verifyHash, sec.verify_hash)) {
+        return { ok: false, error: 'Current passcode is incorrect.' };
+      }
+      const newSalt = generateSalt();
+      const newRecoveryKey = generateRecoveryKey();
+      const { verifyHash, apiToken, apiTokenHash } = deriveAuthBundle(newPasscode, newSalt);
+      const newRecoveryHash = hashRecoveryKey(newRecoveryKey, newSalt);
+      const now = new Date().toISOString();
+
+      const nextSecurity: SecurityConfig = {
+        ...sec,
+        salt: newSalt,
+        verify_hash: verifyHash,
+        recovery_hash: newRecoveryHash,
+        api_token_hash: apiTokenHash,
+        hint: hint.trim(),
+        updated_at: now,
+      };
+
+      // Push using the OLD apiToken first? Server accepts update because apiTokenRef still holds old token during push,
+      // then switch apiTokenRef to new token right after.
+      const prevToken = apiTokenRef.current;
+      commit((prev) => ({ ...prev, security: nextSecurity }));
+      if (lanConnectedRef.current) {
+        void pushLanData({ ...dataRef.current, security: nextSecurity }, now, prevToken);
+      }
+
+      apiTokenRef.current = apiToken;
+      saveSessionAuthToken(apiToken, verifyHash);
+      setRemoteAuthMeta({
+        locked: true,
+        hasData: true,
+        salt: newSalt,
+        verify_hash: verifyHash,
+        recovery_hash: newRecoveryHash,
+        hint: nextSecurity.hint,
+      });
+      notify('Passcode updated', 'success');
+      return { ok: true, newRecoveryKey };
+    },
+    [commit, notify]
+  );
+
+  const setAutoLockMode: LifeHubContextValue['setAutoLockMode'] = useCallback(
+    (mode) => {
+      const now = new Date().toISOString();
+      commit((prev) => ({
+        ...prev,
+        security: prev.security ? { ...prev.security, auto_lock: mode, updated_at: now } : prev.security,
+      }));
+      notify('Auto-lock preference updated', 'success');
+    },
+    [commit, notify]
+  );
 
   // ======================== SUPABASE CLOUD AUTH ========================
   const saveCloudConfig = useCallback((cfg: SupabaseConfig | null) => {
@@ -1278,6 +1623,10 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const value: LifeHubContextValue = {
     data,
     hydrated,
+    authReady,
+    isUnlocked,
+    needsAuthSetup,
+    authHint,
     syncStatus,
     lanUrls,
     toasts,
@@ -1288,6 +1637,13 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     clearFocusTarget,
     notify,
     dismissToast,
+    setupPasscode,
+    finishSetupUnlock,
+    verifyPasscode,
+    recoverWithKey,
+    changePasscode,
+    setAutoLockMode,
+    lockNow,
     activeProjects,
     activeTasks,
     activeWallets,

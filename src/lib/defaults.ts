@@ -113,6 +113,7 @@ export function createInitialData(): LifeHubData {
       default_category_id: 'cat_food',
       notifications_enabled: false,
     },
+    security: null,
   };
 }
 

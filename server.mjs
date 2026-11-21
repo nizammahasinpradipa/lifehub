@@ -2,6 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import crypto from 'node:crypto';
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
@@ -34,10 +35,50 @@ function ensureDbFile() {
   if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(
       DB_FILE,
-      JSON.stringify({ version: 1, updatedAt: null, data: null }, null, 2),
+      JSON.stringify({ version: 1, updatedAt: null, auth: null, data: null }, null, 2),
       'utf-8'
     );
   }
+}
+
+function readDbRecord() {
+  ensureDbFile();
+  try {
+    const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    return {
+      version: 1,
+      updatedAt: parsed?.updatedAt || null,
+      auth: parsed?.auth || parsed?.data?.security || null,
+      data: parsed?.data || null,
+    };
+  } catch {
+    return { version: 1, updatedAt: null, auth: null, data: null };
+  }
+}
+
+function writeDbRecord(record) {
+  ensureDbFile();
+  const tmpFile = `${DB_FILE}.tmp`;
+  fs.writeFileSync(tmpFile, JSON.stringify(record, null, 2), 'utf-8');
+  fs.renameSync(tmpFile, DB_FILE);
+}
+
+function hashServerToken(token) {
+  return crypto.createHash('sha256').update(`server-token:${token}`).digest('hex');
+}
+
+function isAuthorized(req, reqUrl, record) {
+  const auth = record.auth;
+  if (!auth || !auth.enabled || !auth.api_token_hash) return true;
+  const headerToken = req.headers['x-lifehub-auth'];
+  const queryToken = reqUrl.searchParams.get('token');
+  const provided = typeof headerToken === 'string' ? headerToken : queryToken || '';
+  if (!provided) return false;
+  const providedHash = hashServerToken(provided);
+  const a = Buffer.from(providedHash, 'utf-8');
+  const b = Buffer.from(String(auth.api_token_hash), 'utf-8');
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
 function broadcastUpdate(updatedAt, clientId) {
@@ -70,10 +111,9 @@ const server = http.createServer((req, res) => {
   const reqUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const pathname = reqUrl.pathname;
 
-  // CORS for LAN/Capacitor access
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-LifeHub-Auth');
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
     res.end();
@@ -94,7 +134,74 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Public auth status: returns ONLY lock metadata — NEVER returns tasks, expenses, or notes
+  if (pathname === '/api/auth/status' && req.method === 'GET') {
+    const record = readDbRecord();
+    const auth = record.auth;
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-store');
+    res.statusCode = 200;
+    res.end(
+      JSON.stringify({
+        locked: Boolean(auth && auth.enabled),
+        hasData: Boolean(record.data),
+        salt: auth?.enabled ? auth.salt : '',
+        verify_hash: auth?.enabled ? auth.verify_hash : '',
+        recovery_hash: auth?.enabled ? auth.recovery_hash : '',
+        hint: auth?.enabled ? auth.hint || '' : '',
+      })
+    );
+    return;
+  }
+
+  // Recovery key reset endpoint for LAN devices
+  if (pathname === '/api/auth/recover' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk.toString('utf-8');
+    });
+    req.on('end', () => {
+      res.setHeader('Content-Type', 'application/json');
+      try {
+        const { recoveryHash, newAuth } = JSON.parse(body);
+        const record = readDbRecord();
+        if (!record.auth || !record.auth.recovery_hash) {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: 'No recovery lock configured' }));
+          return;
+        }
+        const a = Buffer.from(String(recoveryHash || ''), 'utf-8');
+        const b = Buffer.from(String(record.auth.recovery_hash), 'utf-8');
+        if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+          res.statusCode = 403;
+          res.end(JSON.stringify({ error: 'Invalid recovery key' }));
+          return;
+        }
+        const nextRecord = {
+          ...record,
+          auth: newAuth,
+          data: record.data ? { ...record.data, security: newAuth } : record.data,
+          updatedAt: new Date().toISOString(),
+        };
+        writeDbRecord(nextRecord);
+        res.statusCode = 200;
+        res.end(JSON.stringify({ ok: true }));
+      } catch {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: 'Invalid request' }));
+      }
+    });
+    return;
+  }
+
   if (pathname === '/api/events') {
+    const record = readDbRecord();
+    if (!isAuthorized(req, reqUrl, record)) {
+      res.statusCode = 401;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Verification required' }));
+      return;
+    }
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -111,17 +218,17 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/sync') {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'no-store');
+    const existing = readDbRecord();
+
+    if (!isAuthorized(req, reqUrl, existing)) {
+      res.statusCode = 401;
+      res.end(JSON.stringify({ error: 'Verification required' }));
+      return;
+    }
 
     if (req.method === 'GET') {
-      try {
-        ensureDbFile();
-        const raw = fs.readFileSync(DB_FILE, 'utf-8');
-        res.statusCode = 200;
-        res.end(raw);
-      } catch (err) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: err?.message || 'Read failed' }));
-      }
+      res.statusCode = 200;
+      res.end(JSON.stringify({ version: 1, updatedAt: existing.updatedAt, data: existing.data }));
       return;
     }
 
@@ -133,15 +240,14 @@ const server = http.createServer((req, res) => {
       req.on('end', () => {
         try {
           const payload = JSON.parse(body);
-          ensureDbFile();
+          const nextAuth = payload.data?.security || existing.auth || null;
           const record = {
             version: 1,
             updatedAt: payload.updatedAt || new Date().toISOString(),
+            auth: nextAuth,
             data: payload.data,
           };
-          const tmpFile = `${DB_FILE}.tmp`;
-          fs.writeFileSync(tmpFile, JSON.stringify(record, null, 2), 'utf-8');
-          fs.renameSync(tmpFile, DB_FILE);
+          writeDbRecord(record);
           broadcastUpdate(record.updatedAt, payload.clientId || null);
           res.statusCode = 200;
           res.end(JSON.stringify({ ok: true, updatedAt: record.updatedAt }));

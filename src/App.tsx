@@ -6,6 +6,7 @@ import { SearchModal } from './components/SearchModal';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { ReceiptScanModal } from './components/ReceiptScanModal';
 import { ToastContainer } from './components/Toast';
+import { AuthGate } from './components/AuthGate';
 import { HomeView } from './views/HomeView';
 import { TasksView } from './views/TasksView';
 import { SpendingView } from './views/SpendingView';
@@ -18,7 +19,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const LifeHubShell: React.FC = () => {
-  const { activeTab } = useLifeHub();
+  const { activeTab, authReady, isUnlocked } = useLifeHub();
 
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddTab, setQuickAddTab] = useState<QuickAddTab>('task');
@@ -32,8 +33,9 @@ const LifeHubShell: React.FC = () => {
     setQuickAddOpen(true);
   };
 
-  // Global keyboard shortcuts (Ctrl/Cmd+K for Search, Escape to close)
+  // Global keyboard shortcuts (disabled while locked so nothing opens behind the gate)
   useEffect(() => {
+    if (!isUnlocked) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -47,7 +49,7 @@ const LifeHubShell: React.FC = () => {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [isUnlocked]);
 
   // Capture PWA install prompt (PC Chrome/Edge & Android Chrome)
   useEffect(() => {
@@ -64,6 +66,30 @@ const LifeHubShell: React.FC = () => {
     await installPrompt.prompt();
     setInstallPrompt(null);
   };
+
+  // Never mount the real dashboard or private data until verification passes
+  if (!authReady) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: 'var(--bg-canvas)' }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <img src="/favicon.svg" alt="LifeHub" className="w-11 h-11 rounded-xl opacity-90" />
+          <p className="text-xs text-zinc-500">Checking verification...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isUnlocked) {
+    return (
+      <>
+        <AuthGate />
+        <ToastContainer />
+      </>
+    );
+  }
 
   return (
     <Layout

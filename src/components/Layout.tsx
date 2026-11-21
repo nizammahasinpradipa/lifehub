@@ -4,6 +4,7 @@ import {
   Cloud,
   FileText,
   Home,
+  Lock,
   Plus,
   Search,
   Settings,
@@ -31,7 +32,7 @@ const NAV_ITEMS: Array<{ id: NavTab; label: string; Icon: React.FC<{ className?:
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSearch, onOpenAI }) => {
-  const { activeTab, setActiveTab, syncStatus, activeTasks } = useLifeHub();
+  const { activeTab, setActiveTab, syncStatus, activeTasks, lockNow } = useLifeHub();
 
   const openTasksCount = activeTasks.filter((t) => !t.parent_task_id && t.status === 'todo').length;
 
@@ -146,7 +147,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
           })}
         </nav>
 
-        <div className="pt-4 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="pt-4 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
           <button
             type="button"
             onClick={() => setActiveTab('settings')}
@@ -158,6 +159,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
           >
             <Settings className="w-4 h-4" />
             Settings & Sync
+          </button>
+          <button
+            type="button"
+            onClick={lockNow}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 transition-colors cursor-pointer"
+          >
+            <Lock className="w-4 h-4" />
+            Lock App
           </button>
           <div className="px-3 py-1">{renderSyncBadge()}</div>
         </div>
@@ -202,6 +211,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
             aria-label="Settings and Sync"
           >
             <Settings className="w-5 h-5" />
+          </button>
+          <button
+            type="button"
+            onClick={lockNow}
+            className="p-2.5 rounded-xl text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            aria-label="Lock LifeHub"
+            title="Lock app"
+          >
+            <Lock className="w-5 h-5" />
           </button>
         </div>
       </header>

@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { BaseEntity, LifeHubData, SupabaseConfig } from '../types/models';
+import type { BaseEntity, LifeHubData, RemoteAuthMeta, SecurityConfig, SupabaseConfig } from '../types/models';
 import { createInitialData } from './defaults';
 
 const IDB_NAME = 'LifeHubDB';
@@ -141,6 +141,7 @@ export function normalizeData(input: Partial<LifeHubData>): LifeHubData {
     tagAssignments: Array.isArray(input.tagAssignments) ? input.tagAssignments : [],
     links: Array.isArray(input.links) ? input.links : [],
     preferences: { ...base.preferences, ...(input.preferences || {}) },
+    security: input.security ?? null,
   };
 }
 
@@ -173,6 +174,13 @@ export function mergeLifeHubData(local: LifeHubData, remote: LifeHubData): LifeH
   const localUserTs = new Date(local.user?.updated_at || 0).getTime();
   const remoteUserTs = new Date(remote.user?.updated_at || 0).getTime();
 
+  let mergedSecurity: SecurityConfig | null = local.security || remote.security || null;
+  if (local.security && remote.security) {
+    const lTs = new Date(local.security.updated_at || 0).getTime();
+    const rTs = new Date(remote.security.updated_at || 0).getTime();
+    mergedSecurity = rTs >= lTs ? remote.security : local.security;
+  }
+
   return {
     version: 1,
     user: remoteUserTs >= localUserTs ? remote.user : local.user,
@@ -187,6 +195,7 @@ export function mergeLifeHubData(local: LifeHubData, remote: LifeHubData): LifeH
     tagAssignments: mergeEntityList(local.tagAssignments, remote.tagAssignments),
     links: mergeEntityList(local.links, remote.links),
     preferences: { ...remote.preferences, ...local.preferences },
+    security: mergedSecurity,
   };
 }
 
@@ -195,9 +204,40 @@ export function mergeLifeHubData(local: LifeHubData, remote: LifeHubData): LifeH
 // Works automatically when running via `npm run dev` or `npm start`
 // ============================================================
 
-export async function fetchLanData(): Promise<{ ok: boolean; data: LifeHubData | null; updatedAt: string | null }> {
+export async function fetchLanAuthStatus(): Promise<RemoteAuthMeta | null> {
   try {
-    const res = await fetch('/api/sync', { method: 'GET', cache: 'no-store' });
+    const res = await fetch('/api/auth/status', { method: 'GET', cache: 'no-store' });
+    if (!res.ok) return null;
+    return (await res.json()) as RemoteAuthMeta;
+  } catch {
+    return null;
+  }
+}
+
+export async function recoverLanAuth(recoveryHash: string, newAuth: SecurityConfig): Promise<boolean> {
+  try {
+    const res = await fetch('/api/auth/recover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recoveryHash, newAuth }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function fetchLanData(apiToken?: string | null): Promise<{
+  ok: boolean;
+  unauthorized?: boolean;
+  data: LifeHubData | null;
+  updatedAt: string | null;
+}> {
+  try {
+    const headers: Record<string, string> = {};
+    if (apiToken) headers['X-LifeHub-Auth'] = apiToken;
+    const res = await fetch('/api/sync', { method: 'GET', cache: 'no-store', headers });
+    if (res.status === 401) return { ok: false, unauthorized: true, data: null, updatedAt: null };
     if (!res.ok) return { ok: false, data: null, updatedAt: null };
     const json = await res.json();
     return {
@@ -210,11 +250,17 @@ export async function fetchLanData(): Promise<{ ok: boolean; data: LifeHubData |
   }
 }
 
-export async function pushLanData(data: LifeHubData, updatedAt: string): Promise<boolean> {
+export async function pushLanData(
+  data: LifeHubData,
+  updatedAt: string,
+  apiToken?: string | null
+): Promise<boolean> {
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (apiToken) headers['X-LifeHub-Auth'] = apiToken;
     const res = await fetch('/api/sync', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ data, updatedAt, clientId: getClientId() }),
     });
     return res.ok;
@@ -241,13 +287,19 @@ export async function fetchServerInfo(): Promise<{ ok: boolean; lanUrls: string[
 export function getSavedSupabaseConfig(): SupabaseConfig | null {
   try {
     const raw = localStorage.getItem(LS_SUPABASE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as SupabaseConfig;
-    if (parsed.url && parsed.anonKey) return parsed;
-    return null;
+    if (raw) {
+      const parsed = JSON.parse(raw) as SupabaseConfig;
+      if (parsed.url && parsed.anonKey) return parsed;
+    }
   } catch {
-    return null;
+    // ignore
   }
+  const envUrl = import.meta.env?.VITE_SUPABASE_URL;
+  const envKey = import.meta.env?.VITE_SUPABASE_ANON_KEY;
+  if (envUrl && envKey) {
+    return { url: envUrl, anonKey: envKey };
+  }
+  return null;
 }
 
 export function saveSupabaseConfig(config: SupabaseConfig | null): void {

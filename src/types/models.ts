@@ -9,6 +9,27 @@ export type NoteType = 'note' | 'journal';
 export type MoodRating = 1 | 2 | 3 | 4 | 5;
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type NavTab = 'home' | 'tasks' | 'spending' | 'notes' | 'settings';
+export type AutoLockMode = 'on-close' | '5m' | '15m' | '30m';
+
+export interface SecurityConfig {
+  enabled: boolean;
+  salt: string;
+  verify_hash: string;
+  recovery_hash: string;
+  api_token_hash: string;
+  hint: string;
+  auto_lock: AutoLockMode;
+  updated_at: string;
+}
+
+export interface RemoteAuthMeta {
+  locked: boolean;
+  hasData: boolean;
+  salt: string;
+  verify_hash: string;
+  recovery_hash: string;
+  hint: string;
+}
 
 export interface BaseEntity {
   id: string;
@@ -120,6 +141,7 @@ export interface LifeHubData {
   tagAssignments: TagAssignment[];
   links: ItemLink[];
   preferences: AppPreferences;
+  security: SecurityConfig | null;
 }
 
 export interface SupabaseConfig {

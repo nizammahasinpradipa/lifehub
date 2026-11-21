@@ -6,11 +6,14 @@ import {
   Database,
   Download,
   HardDrive,
+  KeyRound,
   Laptop,
+  Lock,
   LogOut,
   Monitor,
   Moon,
   RefreshCw,
+  ShieldCheck,
   Smartphone,
   Sun,
   Trash2,
@@ -19,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useLifeHub } from '../store/LifeHubContext';
 import { exportTransactionsToCsv } from '../lib/csv';
-import type { ThemePreference } from '../types/models';
+import type { AutoLockMode, ThemePreference } from '../types/models';
 
 interface SettingsViewProps {
   canInstallPwa: boolean;
@@ -47,6 +50,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
     signInCloud,
     signUpCloud,
     signOutCloud,
+    changePasscode,
+    setAutoLockMode,
+    lockNow,
     notify,
   } = useLifeHub();
 
@@ -58,6 +64,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
   const [authPassword, setAuthPassword] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+
+  // Change passcode state
+  const [currentPass, setCurrentPass] = useState('');
+  const [nextPass, setNextPass] = useState('');
+  const [nextHint, setNextHint] = useState(data.security?.hint || '');
+  const [freshRecoveryKey, setFreshRecoveryKey] = useState<string | null>(null);
+
+  const handleChangePasscode = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (nextPass.length < 4) {
+      notify('New passcode must be at least 4 characters', 'warning');
+      return;
+    }
+    const res = changePasscode(currentPass, nextPass, nextHint);
+    if (!res.ok) {
+      notify(res.error || 'Could not update passcode', 'warning');
+      return;
+    }
+    setCurrentPass('');
+    setNextPass('');
+    setFreshRecoveryKey(res.newRecoveryKey || null);
+  };
 
   const handleSaveSupabase = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,6 +141,113 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
           Manage local persistence, PC ↔ Android syncing, appearance, reminders, and backups.
         </p>
       </div>
+
+      {/* Security & Verification Gate */}
+      <section className="card p-5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-teal-600/10 text-teal-700 dark:text-teal-300 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Privacy &amp; Verification Lock</h2>
+              <p className="text-xs text-zinc-500">
+                Requires your passcode before the dashboard or any task/expense loads.
+              </p>
+            </div>
+          </div>
+          <button type="button" onClick={lockNow} className="btn-secondary !min-h-[38px] !text-xs">
+            <Lock className="w-3.5 h-3.5" />
+            Lock Now
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-zinc-500">Auto-lock behavior</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(
+              [
+                { id: 'on-close', label: 'On close / reopen' },
+                { id: '5m', label: '5 min idle' },
+                { id: '15m', label: '15 min idle' },
+                { id: '30m', label: '30 min idle' },
+              ] as Array<{ id: AutoLockMode; label: string }>
+            ).map((opt) => {
+              const active = (data.security?.auto_lock || 'on-close') === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setAutoLockMode(opt.id)}
+                  className={`py-2 px-2.5 rounded-xl border text-xs font-medium cursor-pointer transition-colors ${
+                    active
+                      ? 'border-teal-600 bg-teal-600/10 text-teal-700 dark:text-teal-300'
+                      : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  }`}
+                  style={{ borderColor: active ? undefined : 'var(--border-subtle)' }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <form onSubmit={handleChangePasscode} className="pt-3 border-t space-y-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
+          <p className="text-xs font-medium text-zinc-500 flex items-center gap-1.5">
+            <KeyRound className="w-3.5 h-3.5" />
+            Change passcode
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input
+              type="password"
+              value={currentPass}
+              onChange={(e) => setCurrentPass(e.target.value)}
+              placeholder="Current passcode"
+              className="input-field !py-2 !text-xs"
+              required
+            />
+            <input
+              type="password"
+              value={nextPass}
+              onChange={(e) => setNextPass(e.target.value)}
+              placeholder="New passcode (min 4)"
+              className="input-field !py-2 !text-xs"
+              required
+            />
+            <input
+              type="text"
+              value={nextHint}
+              onChange={(e) => setNextHint(e.target.value)}
+              placeholder="Hint (optional)"
+              className="input-field !py-2 !text-xs"
+            />
+          </div>
+          <button type="submit" className="btn-secondary !min-h-[36px] !text-xs">
+            Update Passcode
+          </button>
+
+          {freshRecoveryKey && (
+            <div
+              className="p-3 rounded-xl border flex flex-wrap items-center justify-between gap-2 mt-2"
+              style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-subtle)' }}
+            >
+              <div>
+                <p className="text-[11px] font-medium text-teal-700 dark:text-teal-300">New Recovery Key (save this safely):</p>
+                <code className="text-sm font-mono font-bold tracking-wider">{freshRecoveryKey}</code>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleCopy(freshRecoveryKey)}
+                className="btn-secondary !min-h-[32px] !px-2.5 !text-xs"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                Copy
+              </button>
+            </div>
+          )}
+        </form>
+      </section>
 
       {/* Persistence & Sync Status Card */}
       <section className="card p-5 space-y-4">
