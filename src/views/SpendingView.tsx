@@ -399,21 +399,21 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
       {subTab === 'transactions' && (
         <div className="space-y-3.5">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            <div className="card p-3.5">
-              <p className="text-[11px] text-zinc-500">Spent</p>
-              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5 text-rose-600 dark:text-rose-400">
+            <div className="card-chartreuse p-4">
+              <p className="text-[11px] font-semibold text-[var(--text-secondary)]">Spent</p>
+              <p className="text-base sm:text-lg font-extrabold tabular-nums mt-0.5 text-[#A64B3C] dark:text-[#E8927C]">
                 {formatIDR(monthTotals.expense)}
               </p>
             </div>
-            <div className="card p-3.5">
-              <p className="text-[11px] text-zinc-500">Income</p>
-              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5 text-emerald-600 dark:text-emerald-400">
+            <div className="card p-4">
+              <p className="text-[11px] font-semibold text-[var(--text-muted)]">Income</p>
+              <p className="text-base sm:text-lg font-extrabold tabular-nums mt-0.5 text-[#2D5A27] dark:text-[#B8CF7A]">
                 {formatIDR(monthTotals.income)}
               </p>
             </div>
-            <div className="hidden sm:block card p-3.5">
-              <p className="text-[11px] text-zinc-500">Net</p>
-              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5">
+            <div className="hidden sm:block card p-4">
+              <p className="text-[11px] font-semibold text-[var(--text-muted)]">Net</p>
+              <p className="text-base sm:text-lg hero-amount mt-0.5">
                 {formatIDR(monthTotals.net, { signed: true })}
               </p>
             </div>
@@ -473,12 +473,11 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                     style={{ borderColor: 'var(--border-subtle)' }}
                   >
                     <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: 'var(--bg-subtle)' }}
+                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-[#F4F0C8] dark:bg-[#2B3C23]"
                     >
-                      {tx.type === 'expense' && <ArrowUpRight className="w-4 h-4 text-rose-500" />}
-                      {tx.type === 'income' && <ArrowDownLeft className="w-4 h-4 text-emerald-600" />}
-                      {tx.type === 'transfer' && <ArrowLeftRight className="w-4 h-4 text-sky-600" />}
+                      {tx.type === 'expense' && <ArrowUpRight className="w-4 h-4 text-[#A64B3C] dark:text-[#E8927C]" />}
+                      {tx.type === 'income' && <ArrowDownLeft className="w-4 h-4 text-[#2D5A27] dark:text-[#B8CF7A]" />}
+                      {tx.type === 'transfer' && <ArrowLeftRight className="w-4 h-4 text-[#B87822] dark:text-[#F4C95D]" />}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -516,12 +515,12 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                     </div>
 
                     <span
-                      className={`text-sm font-semibold tabular-nums shrink-0 ${
+                      className={`text-sm font-bold tabular-nums shrink-0 ${
                         tx.type === 'income'
-                          ? 'text-emerald-600 dark:text-emerald-400'
+                          ? 'text-[#2D5A27] dark:text-[#B8CF7A]'
                           : tx.type === 'transfer'
-                          ? 'text-zinc-500'
-                          : ''
+                          ? 'text-[#B87822] dark:text-[#F4C95D]'
+                          : 'text-[#A64B3C] dark:text-[#E8927C]'
                       }`}
                     >
                       {tx.type === 'income' ? '+' : tx.type === 'expense' ? '-' : ''}
@@ -560,13 +559,13 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                       <span className="text-sm font-semibold">{cat.name}</span>
                     </div>
                     {isOver && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#B94E48]/15 text-[#A64B3C] dark:text-[#E8927C]">
                         <AlertTriangle className="w-3 h-3" />
                         {pct}% · Over budget
                       </span>
                     )}
                     {isWarn && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#F4C95D]/35 text-[#6E470A] dark:text-[#F4C95D]">
                         <AlertTriangle className="w-3 h-3" />
                         {pct}% · Approaching limit
                       </span>
@@ -587,7 +586,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                           className="h-full rounded-full transition-all duration-300"
                           style={{
                             width: `${barPct}%`,
-                            backgroundColor: isOver ? '#e11d48' : isWarn ? '#d97706' : cat.color,
+                            backgroundColor: isOver ? '#B94E48' : isWarn ? '#E59A38' : cat.color,
                           }}
                         />
                       </div>

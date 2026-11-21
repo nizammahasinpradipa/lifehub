@@ -77,7 +77,7 @@ const LifeHubShell: React.FC = () => {
         style={{ backgroundColor: 'var(--bg-canvas)' }}
       >
         <div className="flex flex-col items-center gap-3">
-          <img src="/favicon.svg" alt="LifeHub" className="w-11 h-11 rounded-xl opacity-90" />
+          <img src="/favicon.svg?v=2" alt="LifeHub" className="w-11 h-11 rounded-xl opacity-90" />
           <p className="text-xs text-zinc-500">Checking verification...</p>
         </div>
       </div>
