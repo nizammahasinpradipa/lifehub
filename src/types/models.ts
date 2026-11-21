@@ -180,7 +180,7 @@ export interface SupabaseConfig {
 }
 
 export interface SyncStatus {
-  state: 'saved' | 'syncing' | 'synced-lan' | 'synced-cloud' | 'offline';
+  state: 'saved' | 'syncing' | 'synced-lan' | 'synced-cloud' | 'offline' | 'error';
   lastSavedAt: string | null;
   lastSyncedAt: string | null;
   lanConnected: boolean;

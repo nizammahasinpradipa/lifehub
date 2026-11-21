@@ -11,7 +11,8 @@ export function uid(prefix: string): string {
 }
 
 export function createInitialData(): LifeHubData {
-  const now = new Date().toISOString();
+  // Epoch timestamp for untouched starter records so a fresh device NEVER overwrites edits from another device during merge
+  const seedTs = '1970-01-01T00:00:00.000Z';
 
   const wallets = [
     {
@@ -20,8 +21,8 @@ export function createInitialData(): LifeHubData {
       name: 'Cash',
       type: 'cash' as const,
       starting_balance: 0,
-      created_at: now,
-      updated_at: now,
+      created_at: seedTs,
+      updated_at: seedTs,
       deleted_at: null,
     },
     {
@@ -30,8 +31,8 @@ export function createInitialData(): LifeHubData {
       name: 'Bank (BCA)',
       type: 'bank' as const,
       starting_balance: 0,
-      created_at: now,
-      updated_at: now,
+      created_at: seedTs,
+      updated_at: seedTs,
       deleted_at: null,
     },
     {
@@ -40,8 +41,8 @@ export function createInitialData(): LifeHubData {
       name: 'GoPay',
       type: 'e-wallet' as const,
       starting_balance: 0,
-      created_at: now,
-      updated_at: now,
+      created_at: seedTs,
+      updated_at: seedTs,
       deleted_at: null,
     },
   ];
@@ -59,8 +60,8 @@ export function createInitialData(): LifeHubData {
   ].map((c) => ({
     ...c,
     user_id: DEFAULT_USER_ID,
-    created_at: now,
-    updated_at: now,
+    created_at: seedTs,
+    updated_at: seedTs,
     deleted_at: null,
   }));
 
@@ -70,8 +71,8 @@ export function createInitialData(): LifeHubData {
       user_id: DEFAULT_USER_ID,
       name: 'Personal',
       color: '#0F766E',
-      created_at: now,
-      updated_at: now,
+      created_at: seedTs,
+      updated_at: seedTs,
       deleted_at: null,
     },
     {
@@ -79,8 +80,8 @@ export function createInitialData(): LifeHubData {
       user_id: DEFAULT_USER_ID,
       name: 'Work',
       color: '#2563EB',
-      created_at: now,
-      updated_at: now,
+      created_at: seedTs,
+      updated_at: seedTs,
       deleted_at: null,
     },
   ];
@@ -93,8 +94,8 @@ export function createInitialData(): LifeHubData {
       email: 'owner@lifehub.local',
       display_name: 'Owner',
       timezone: DEFAULT_TIMEZONE,
-      created_at: now,
-      updated_at: now,
+      created_at: seedTs,
+      updated_at: seedTs,
       deleted_at: null,
     },
     projects,

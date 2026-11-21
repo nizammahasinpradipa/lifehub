@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
+  AlertCircle,
   Bell,
   Cloud,
   Copy,
@@ -8,6 +9,7 @@ import {
   HardDrive,
   KeyRound,
   Laptop,
+  Link2,
   Lock,
   LogOut,
   Monitor,
@@ -22,7 +24,18 @@ import {
 } from 'lucide-react';
 import { useLifeHub } from '../store/LifeHubContext';
 import { exportTransactionsToCsv } from '../lib/csv';
+import { buildPhoneSyncUrl } from '../lib/storage';
 import type { AutoLockMode, ThemePreference } from '../types/models';
+
+const QUICK_SNAPSHOT_SQL = `create table if not exists public.lifehub_snapshots (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  payload jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.lifehub_snapshots enable row level security;
+drop policy if exists "owner_snapshots" on public.lifehub_snapshots;
+create policy "owner_snapshots" on public.lifehub_snapshots
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);`;
 
 interface SettingsViewProps {
   canInstallPwa: boolean;
@@ -265,13 +278,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
               )}
             </div>
             <div>
-              <h2 className="text-base font-semibold">Auto-Save &amp; Storage</h2>
+              <h2 className="text-base font-semibold">Auto-Save &amp; Sync Diagnostics</h2>
               <p className="text-xs text-zinc-500">
-                {syncStatus.cloudUserEmail
-                  ? `Cloud synced as ${syncStatus.cloudUserEmail} + saved offline locally`
-                  : syncStatus.lanConnected
-                  ? 'Saved on this device (IndexedDB) + synced to PC disk (data/lifehub-db.json)'
-                  : 'Saved automatically on this device (IndexedDB + localStorage)'}
+                {syncStatus.error
+                  ? 'Sync issue detected — see details below'
+                  : syncStatus.state === 'synced-cloud'
+                  ? `Cloud synced (${syncStatus.cloudUserEmail}) · ${activeWallets.length} wallets`
+                  : syncStatus.state === 'synced-lan'
+                  ? `Wi-Fi synced with PC server · ${activeWallets.length} wallets`
+                  : `Local device only (${activeWallets.length} wallets) — NOT syncing to other devices yet`}
               </p>
             </div>
           </div>
@@ -281,6 +296,75 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
             Save &amp; Sync Now
           </button>
         </div>
+
+        {syncStatus.error && (
+          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 space-y-2.5 text-xs">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Sync Error</p>
+                <p className="mt-0.5 font-mono text-[11px]">{syncStatus.error}</p>
+              </div>
+            </div>
+            {account?.provider === 'cloud' && (
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleCopy(QUICK_SNAPSHOT_SQL)}
+                  className="btn-secondary !min-h-[32px] !px-2.5 !text-xs"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Copy Supabase Table SQL
+                </button>
+                <span className="text-[11px] text-rose-600/80 dark:text-rose-300/80">
+                  Run this in Supabase → SQL Editor, then tap &ldquo;Save &amp; Sync Now&rdquo;.
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {account?.provider === 'local' && !syncStatus.error && (
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-200 text-xs space-y-1.5">
+            <p className="font-semibold flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              Why PC and Android are not syncing yet
+            </p>
+            <p className="leading-relaxed">
+              You are signed into a <strong>Device Account</strong> (saved only inside this browser). To sync one account between PC and Android:
+            </p>
+            <ul className="list-disc pl-5 space-y-0.5">
+              <li>
+                <strong>Anywhere (Vercel / 4G / Wi-Fi):</strong> Connect a free <strong>Supabase Cloud</strong> project below, then copy the <strong>Phone Sync Link</strong> to your Android.
+              </li>
+              <li>
+                <strong>Same Wi-Fi only:</strong> Run <code className="font-mono">npm start</code> on your PC and open the PC&apos;s <code className="font-mono">http://192.168.x.x:3000</code> address on your Android phone.
+              </li>
+            </ul>
+          </div>
+        )}
+
+        {supabaseConfig && (
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3.5 rounded-xl border" style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-subtle)' }}>
+            <div>
+              <p className="text-xs font-semibold flex items-center gap-1.5">
+                <Link2 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                One-Tap Android Sync Link
+              </p>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                Send this link to your phone so Android connects to the exact same Cloud Sync server automatically.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleCopy(buildPhoneSyncUrl(supabaseConfig))}
+              className="btn-secondary !min-h-[34px] !px-3 !text-xs shrink-0"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Copy Phone Link
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="p-3.5 rounded-xl space-y-1.5" style={{ backgroundColor: 'var(--bg-subtle)' }}>

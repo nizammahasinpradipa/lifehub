@@ -72,130 +72,137 @@ function sendJson(res: any, status: number, obj: any) {
   res.end(JSON.stringify(obj));
 }
 
+function attachAccountApiMiddlewares(middlewares: any) {
+  ensureDirs();
+
+  middlewares.use('/api/health', (_req: any, res: any) => {
+    const accounts = readJson(ACCOUNTS_FILE, []);
+    sendJson(res, 200, {
+      ok: true,
+      mode: 'dev-account-server',
+      hasAccounts: accounts.length > 0,
+      lanUrls: [],
+      time: new Date().toISOString(),
+    });
+  });
+
+  middlewares.use('/api/account/register', async (req: any, res: any) => {
+    if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
+    try {
+      const { email, password, displayName } = await readBody(req);
+      const cleanEmail = String(email || '').trim().toLowerCase();
+      const pass = String(password || '');
+      if (!cleanEmail || !cleanEmail.includes('@')) return sendJson(res, 400, { error: 'Valid email required.' });
+      if (pass.length < 6) return sendJson(res, 400, { error: 'Password must be at least 6 characters.' });
+      const accounts = readJson(ACCOUNTS_FILE, []);
+      if (accounts.some((a: any) => a.email === cleanEmail)) {
+        return sendJson(res, 409, { error: 'Account already exists. Sign in instead.' });
+      }
+      const salt = crypto.randomBytes(16).toString('hex');
+      const account = {
+        id: `usr_${crypto.randomUUID()}`,
+        email: cleanEmail,
+        displayName: String(displayName || '').trim() || cleanEmail.split('@')[0],
+        salt,
+        passwordHash: hashPassword(pass, salt),
+        createdAt: new Date().toISOString(),
+      };
+      accounts.push(account);
+      writeJson(ACCOUNTS_FILE, accounts);
+      const token = crypto.randomBytes(32).toString('hex');
+      const sessions = readJson(SESSIONS_FILE, {});
+      sessions[token] = { userId: account.id, createdAt: new Date().toISOString(), expiresAt: Date.now() + 30 * 86400_000 };
+      writeJson(SESSIONS_FILE, sessions);
+      sendJson(res, 200, { ok: true, token, user: { id: account.id, email: account.email, displayName: account.displayName } });
+    } catch {
+      sendJson(res, 400, { error: 'Invalid request' });
+    }
+  });
+
+  middlewares.use('/api/account/login', async (req: any, res: any) => {
+    if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
+    try {
+      const { email, password } = await readBody(req);
+      const cleanEmail = String(email || '').trim().toLowerCase();
+      const accounts = readJson(ACCOUNTS_FILE, []);
+      const account = accounts.find((a: any) => a.email === cleanEmail);
+      if (!account || hashPassword(String(password || ''), account.salt) !== account.passwordHash) {
+        return sendJson(res, 401, { error: 'Incorrect email or password.' });
+      }
+      const token = crypto.randomBytes(32).toString('hex');
+      const sessions = readJson(SESSIONS_FILE, {});
+      sessions[token] = { userId: account.id, createdAt: new Date().toISOString(), expiresAt: Date.now() + 30 * 86400_000 };
+      writeJson(SESSIONS_FILE, sessions);
+      sendJson(res, 200, { ok: true, token, user: { id: account.id, email: account.email, displayName: account.displayName } });
+    } catch {
+      sendJson(res, 400, { error: 'Invalid request' });
+    }
+  });
+
+  middlewares.use('/api/account/me', (req: any, res: any) => {
+    const auth = getAuth(req);
+    if (!auth) return sendJson(res, 401, { error: 'Not signed in' });
+    sendJson(res, 200, { ok: true, user: { id: auth.account.id, email: auth.account.email, displayName: auth.account.displayName } });
+  });
+
+  middlewares.use('/api/account/logout', (req: any, res: any) => {
+    const auth = getAuth(req);
+    if (auth) {
+      const sessions = readJson(SESSIONS_FILE, {});
+      delete sessions[auth.token];
+      writeJson(SESSIONS_FILE, sessions);
+    }
+    sendJson(res, 200, { ok: true });
+  });
+
+  middlewares.use('/api/account/password', async (req: any, res: any) => {
+    const auth = getAuth(req);
+    if (!auth) return sendJson(res, 401, { error: 'Not signed in' });
+    const { currentPassword, newPassword } = await readBody(req);
+    if (hashPassword(String(currentPassword || ''), auth.account.salt) !== auth.account.passwordHash) {
+      return sendJson(res, 403, { error: 'Current password is incorrect.' });
+    }
+    if (String(newPassword || '').length < 6) {
+      return sendJson(res, 400, { error: 'New password must be at least 6 characters.' });
+    }
+    const newSalt = crypto.randomBytes(16).toString('hex');
+    const accounts = readJson(ACCOUNTS_FILE, []).map((a: any) =>
+      a.id === auth.account.id ? { ...a, salt: newSalt, passwordHash: hashPassword(String(newPassword), newSalt) } : a
+    );
+    writeJson(ACCOUNTS_FILE, accounts);
+    sendJson(res, 200, { ok: true });
+  });
+
+  middlewares.use('/api/sync', async (req: any, res: any, next: any) => {
+    const auth = getAuth(req);
+    if (!auth) return sendJson(res, 401, { error: 'Sign in required' });
+    const userFile = path.join(USERS_DIR, `${auth.account.id.replace(/[^a-zA-Z0-9_-]/g, '')}.json`);
+    if (req.method === 'GET') {
+      const rec = readJson(userFile, { version: 1, updatedAt: null, data: null });
+      return sendJson(res, 200, rec);
+    }
+    if (req.method === 'POST' || req.method === 'PUT') {
+      try {
+        const payload = await readBody(req);
+        const rec = { version: 1, updatedAt: payload.updatedAt || new Date().toISOString(), data: payload.data };
+        writeJson(userFile, rec);
+        return sendJson(res, 200, { ok: true, updatedAt: rec.updatedAt });
+      } catch (err: any) {
+        return sendJson(res, 400, { error: err?.message || 'Invalid JSON' });
+      }
+    }
+    next();
+  });
+}
+
 function localSyncApiPlugin() {
   return {
     name: 'lifehub-local-account-api',
     configureServer(server: any) {
-      ensureDirs();
-
-      server.middlewares.use('/api/health', (_req: any, res: any) => {
-        const accounts = readJson(ACCOUNTS_FILE, []);
-        sendJson(res, 200, {
-          ok: true,
-          mode: 'dev-account-server',
-          hasAccounts: accounts.length > 0,
-          lanUrls: [],
-          time: new Date().toISOString(),
-        });
-      });
-
-      server.middlewares.use('/api/account/register', async (req: any, res: any) => {
-        if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
-        try {
-          const { email, password, displayName } = await readBody(req);
-          const cleanEmail = String(email || '').trim().toLowerCase();
-          const pass = String(password || '');
-          if (!cleanEmail || !cleanEmail.includes('@')) return sendJson(res, 400, { error: 'Valid email required.' });
-          if (pass.length < 6) return sendJson(res, 400, { error: 'Password must be at least 6 characters.' });
-          const accounts = readJson(ACCOUNTS_FILE, []);
-          if (accounts.some((a: any) => a.email === cleanEmail)) {
-            return sendJson(res, 409, { error: 'Account already exists. Sign in instead.' });
-          }
-          const salt = crypto.randomBytes(16).toString('hex');
-          const account = {
-            id: `usr_${crypto.randomUUID()}`,
-            email: cleanEmail,
-            displayName: String(displayName || '').trim() || cleanEmail.split('@')[0],
-            salt,
-            passwordHash: hashPassword(pass, salt),
-            createdAt: new Date().toISOString(),
-          };
-          accounts.push(account);
-          writeJson(ACCOUNTS_FILE, accounts);
-          const token = crypto.randomBytes(32).toString('hex');
-          const sessions = readJson(SESSIONS_FILE, {});
-          sessions[token] = { userId: account.id, createdAt: new Date().toISOString(), expiresAt: Date.now() + 30 * 86400_000 };
-          writeJson(SESSIONS_FILE, sessions);
-          sendJson(res, 200, { ok: true, token, user: { id: account.id, email: account.email, displayName: account.displayName } });
-        } catch {
-          sendJson(res, 400, { error: 'Invalid request' });
-        }
-      });
-
-      server.middlewares.use('/api/account/login', async (req: any, res: any) => {
-        if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
-        try {
-          const { email, password } = await readBody(req);
-          const cleanEmail = String(email || '').trim().toLowerCase();
-          const accounts = readJson(ACCOUNTS_FILE, []);
-          const account = accounts.find((a: any) => a.email === cleanEmail);
-          if (!account || hashPassword(String(password || ''), account.salt) !== account.passwordHash) {
-            return sendJson(res, 401, { error: 'Incorrect email or password.' });
-          }
-          const token = crypto.randomBytes(32).toString('hex');
-          const sessions = readJson(SESSIONS_FILE, {});
-          sessions[token] = { userId: account.id, createdAt: new Date().toISOString(), expiresAt: Date.now() + 30 * 86400_000 };
-          writeJson(SESSIONS_FILE, sessions);
-          sendJson(res, 200, { ok: true, token, user: { id: account.id, email: account.email, displayName: account.displayName } });
-        } catch {
-          sendJson(res, 400, { error: 'Invalid request' });
-        }
-      });
-
-      server.middlewares.use('/api/account/me', (req: any, res: any) => {
-        const auth = getAuth(req);
-        if (!auth) return sendJson(res, 401, { error: 'Not signed in' });
-        sendJson(res, 200, { ok: true, user: { id: auth.account.id, email: auth.account.email, displayName: auth.account.displayName } });
-      });
-
-      server.middlewares.use('/api/account/logout', (req: any, res: any) => {
-        const auth = getAuth(req);
-        if (auth) {
-          const sessions = readJson(SESSIONS_FILE, {});
-          delete sessions[auth.token];
-          writeJson(SESSIONS_FILE, sessions);
-        }
-        sendJson(res, 200, { ok: true });
-      });
-
-      server.middlewares.use('/api/account/password', async (req: any, res: any) => {
-        const auth = getAuth(req);
-        if (!auth) return sendJson(res, 401, { error: 'Not signed in' });
-        const { currentPassword, newPassword } = await readBody(req);
-        if (hashPassword(String(currentPassword || ''), auth.account.salt) !== auth.account.passwordHash) {
-          return sendJson(res, 403, { error: 'Current password is incorrect.' });
-        }
-        if (String(newPassword || '').length < 6) {
-          return sendJson(res, 400, { error: 'New password must be at least 6 characters.' });
-        }
-        const newSalt = crypto.randomBytes(16).toString('hex');
-        const accounts = readJson(ACCOUNTS_FILE, []).map((a: any) =>
-          a.id === auth.account.id ? { ...a, salt: newSalt, passwordHash: hashPassword(String(newPassword), newSalt) } : a
-        );
-        writeJson(ACCOUNTS_FILE, accounts);
-        sendJson(res, 200, { ok: true });
-      });
-
-      server.middlewares.use('/api/sync', async (req: any, res: any, next: any) => {
-        const auth = getAuth(req);
-        if (!auth) return sendJson(res, 401, { error: 'Sign in required' });
-        const userFile = path.join(USERS_DIR, `${auth.account.id.replace(/[^a-zA-Z0-9_-]/g, '')}.json`);
-        if (req.method === 'GET') {
-          const rec = readJson(userFile, { version: 1, updatedAt: null, data: null });
-          return sendJson(res, 200, rec);
-        }
-        if (req.method === 'POST' || req.method === 'PUT') {
-          try {
-            const payload = await readBody(req);
-            const rec = { version: 1, updatedAt: payload.updatedAt || new Date().toISOString(), data: payload.data };
-            writeJson(userFile, rec);
-            return sendJson(res, 200, { ok: true, updatedAt: rec.updatedAt });
-          } catch (err: any) {
-            return sendJson(res, 400, { error: err?.message || 'Invalid JSON' });
-          }
-        }
-        next();
-      });
+      attachAccountApiMiddlewares(server.middlewares);
+    },
+    configurePreviewServer(server: any) {
+      attachAccountApiMiddlewares(server.middlewares);
     },
   };
 }

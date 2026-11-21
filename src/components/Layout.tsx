@@ -42,6 +42,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
   const openTasksCount = activeTasks.filter((t) => !t.parent_task_id && t.status === 'todo').length;
 
   const renderSyncBadge = () => {
+    if (syncStatus.state === 'error' || syncStatus.error) {
+      return (
+        <button
+          type="button"
+          onClick={() => setActiveTab('settings')}
+          className="inline-flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 font-medium hover:underline cursor-pointer"
+          title={syncStatus.error || 'Sync failed'}
+        >
+          <WifiOff className="w-3.5 h-3.5 shrink-0" />
+          Sync error — tap to fix
+        </button>
+      );
+    }
     if (syncStatus.state === 'synced-cloud') {
       return (
         <span className="inline-flex items-center gap-1.5 text-xs text-teal-700 dark:text-teal-300">
@@ -54,7 +67,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
       return (
         <span className="inline-flex items-center gap-1.5 text-xs text-teal-700 dark:text-teal-300">
           <Wifi className="w-3.5 h-3.5" />
-          PC & Phone synced
+          PC &amp; Phone synced
         </span>
       );
     }
@@ -67,10 +80,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500">
+      <button
+        type="button"
+        onClick={() => setActiveTab('settings')}
+        className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+        title="Local only — connect Cloud Sync in Settings to sync PC and Android"
+      >
         <HardDrive className="w-3.5 h-3.5" />
-        Saved locally
-      </span>
+        Local only (not synced)
+      </button>
     );
   };
 

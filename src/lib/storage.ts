@@ -291,6 +291,27 @@ export async function fetchServerInfo(): Promise<{ ok: boolean; hasAccounts: boo
 // ============================================================
 
 export function getSavedSupabaseConfig(): SupabaseConfig | null {
+  // Support 1-tap Phone Sync Link (?sb_url=...&sb_key=...) and immediately clean the URL
+  try {
+    if (typeof window !== 'undefined' && window.location.search) {
+      const params = new URLSearchParams(window.location.search);
+      const sbUrl = params.get('sb_url');
+      const sbKey = params.get('sb_key');
+      if (sbUrl && sbKey) {
+        const cfg: SupabaseConfig = { url: sbUrl.trim(), anonKey: sbKey.trim() };
+        localStorage.setItem(LS_SUPABASE_KEY, JSON.stringify(cfg));
+        params.delete('sb_url');
+        params.delete('sb_key');
+        const nextSearch = params.toString();
+        const cleanUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
+        window.history.replaceState({}, '', cleanUrl);
+        return cfg;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
   try {
     const raw = localStorage.getItem(LS_SUPABASE_KEY);
     if (raw) {
@@ -306,6 +327,14 @@ export function getSavedSupabaseConfig(): SupabaseConfig | null {
     return { url: envUrl, anonKey: envKey };
   }
   return null;
+}
+
+export function buildPhoneSyncUrl(config: SupabaseConfig): string {
+  if (typeof window === 'undefined') return '';
+  const url = new URL(window.location.origin + window.location.pathname);
+  url.searchParams.set('sb_url', config.url);
+  url.searchParams.set('sb_key', config.anonKey);
+  return url.toString();
 }
 
 export function saveSupabaseConfig(config: SupabaseConfig | null): void {
@@ -335,15 +364,24 @@ export function getSupabaseClient(config?: SupabaseConfig | null): SupabaseClien
   return client;
 }
 
-export async function pullCloudSnapshot(client: SupabaseClient, userId: string): Promise<{ data: LifeHubData | null; updatedAt: string | null }> {
+export async function pullCloudSnapshot(
+  client: SupabaseClient,
+  userId: string
+): Promise<{ ok: boolean; data: LifeHubData | null; updatedAt: string | null; error?: string }> {
   const { data, error } = await client
     .from('lifehub_snapshots')
     .select('payload, updated_at')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (error || !data) return { data: null, updatedAt: null };
+  if (error) {
+    return { ok: false, data: null, updatedAt: null, error: error.message };
+  }
+  if (!data) {
+    return { ok: true, data: null, updatedAt: null };
+  }
   return {
+    ok: true,
     data: data.payload ? normalizeData(data.payload as LifeHubData) : null,
     updatedAt: data.updated_at || null,
   };

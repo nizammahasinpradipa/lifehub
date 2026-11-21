@@ -270,6 +270,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   dataRef.current = data;
   const lastUpdatedRef = useRef<string>(initialSnap.updatedAt || new Date().toISOString());
   const pushTimerRef = useRef<number | null>(null);
+  const isPushingRef = useRef<boolean>(false);
   const lanConnectedRef = useRef<boolean>(false);
   const lanTokenRef = useRef<string | null>(null);
   const accountRef = useRef<AccountUser | null>(null);
@@ -330,39 +331,52 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     pushTimerRef.current = window.setTimeout(async () => {
+      isPushingRef.current = true;
       let syncedAny = false;
       let syncMode: SyncStatus['state'] = 'saved';
       let syncError: string | null = null;
       const acct = accountRef.current;
 
-      if (acct?.provider === 'lan' && lanTokenRef.current) {
-        const ok = await pushLanData(dataRef.current, lastUpdatedRef.current, lanTokenRef.current);
-        if (ok) {
-          syncedAny = true;
-          syncMode = 'synced-lan';
-        }
-      }
-
-      if (acct?.provider === 'cloud') {
-        const client = getSupabaseClient();
-        if (client) {
-          const res = await pushCloudSnapshot(client, acct.id, dataRef.current, lastUpdatedRef.current);
-          if (res.ok) {
+      try {
+        if (acct?.provider === 'lan' && lanTokenRef.current) {
+          const ok = await pushLanData(dataRef.current, lastUpdatedRef.current, lanTokenRef.current);
+          if (ok) {
             syncedAny = true;
-            syncMode = 'synced-cloud';
+            syncMode = 'synced-lan';
           } else {
-            syncError = res.error || 'Cloud sync failed';
+            syncError = 'Could not push to Wi-Fi sync server. Make sure "npm start" is running on your PC.';
           }
         }
+
+        if (acct?.provider === 'cloud') {
+          const client = getSupabaseClient();
+          if (client) {
+            const res = await pushCloudSnapshot(client, acct.id, dataRef.current, lastUpdatedRef.current);
+            if (res.ok) {
+              syncedAny = true;
+              syncMode = 'synced-cloud';
+            } else {
+              syncError = res.error || 'Cloud sync failed';
+            }
+          }
+        }
+      } finally {
+        isPushingRef.current = false;
       }
 
       setSyncStatus((prev) => ({
         ...prev,
-        state: syncedAny ? syncMode : navigator.onLine ? 'saved' : 'offline',
+        state: syncError
+          ? 'error'
+          : syncedAny
+          ? syncMode
+          : navigator.onLine
+          ? 'saved'
+          : 'offline',
         lastSyncedAt: syncedAny ? new Date().toISOString() : prev.lastSyncedAt,
         error: syncError,
       }));
-    }, 350);
+    }, 150);
   }, []);
 
   const commit = useCallback(
@@ -378,13 +392,15 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   );
 
   // Pull & merge from LAN and Cloud for the currently signed-in account
-  const pullRemoteAndMerge = useCallback(async (overrideAccount?: AccountUser | null) => {
+  const pullRemoteAndMerge = useCallback(async (overrideAccount?: AccountUser | null): Promise<{ ok: boolean; error?: string }> => {
     const acct = overrideAccount ?? accountRef.current;
-    if (!acct) return;
+    if (!acct) return { ok: false };
+    if (isPushingRef.current) return { ok: true };
 
     let merged = dataRef.current;
     let changed = false;
     let mode: SyncStatus['state'] = 'saved';
+    let syncError: string | null = null;
 
     // 1. LAN Account Server Sync
     if (acct.provider === 'lan' && lanTokenRef.current) {
@@ -396,8 +412,13 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
           merged = mergeLifeHubData(merged, lan.data);
           changed = true;
         } else {
-          await pushLanData(merged, lastUpdatedRef.current, lanTokenRef.current);
+          const pushed = await pushLanData(merged, lastUpdatedRef.current, lanTokenRef.current);
+          if (!pushed) syncError = 'Failed to upload initial data to Wi-Fi server.';
         }
+      } else {
+        syncError = lan.unauthorized
+          ? 'Wi-Fi session expired — please sign in again.'
+          : 'Could not reach Wi-Fi sync server.';
       }
     }
 
@@ -406,12 +427,19 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const client = getSupabaseClient();
       if (client) {
         const cloud = await pullCloudSnapshot(client, acct.id);
-        mode = 'synced-cloud';
-        if (cloud.data) {
+        if (!cloud.ok) {
+          syncError = cloud.error || 'Failed to read from Supabase cloud.';
+        } else if (cloud.data) {
+          mode = 'synced-cloud';
           merged = mergeLifeHubData(merged, cloud.data);
           changed = true;
         } else {
-          await pushCloudSnapshot(client, acct.id, merged, lastUpdatedRef.current);
+          const pushed = await pushCloudSnapshot(client, acct.id, merged, lastUpdatedRef.current);
+          if (pushed.ok) {
+            mode = 'synced-cloud';
+          } else {
+            syncError = pushed.error || 'Failed to save snapshot to Supabase cloud.';
+          }
         }
       }
     }
@@ -422,20 +450,33 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setData(merged);
       await saveLocalData(merged, now);
       if (acct.provider === 'lan' && lanTokenRef.current) {
-        await pushLanData(merged, now, lanTokenRef.current);
+        const pushed = await pushLanData(merged, now, lanTokenRef.current);
+        if (!pushed) syncError = 'Merged locally, but failed to push back to Wi-Fi server.';
       } else if (acct.provider === 'cloud') {
         const client = getSupabaseClient();
-        if (client) await pushCloudSnapshot(client, acct.id, merged, now);
+        if (client) {
+          const pushed = await pushCloudSnapshot(client, acct.id, merged, now);
+          if (!pushed.ok) syncError = pushed.error || 'Merged locally, but cloud upload failed.';
+        }
       }
     }
 
+    const finalState: SyncStatus['state'] = syncError
+      ? 'error'
+      : acct.provider === 'cloud' || acct.provider === 'lan'
+      ? mode
+      : 'saved';
+
     setSyncStatus((prev) => ({
       ...prev,
-      lanConnected: acct.provider === 'lan' && lanConnectedRef.current,
+      lanConnected: acct.provider === 'lan' && lanConnectedRef.current && !syncError,
       cloudUserEmail: acct.provider === 'cloud' ? acct.email : null,
-      state: acct.provider === 'cloud' || acct.provider === 'lan' ? mode : 'saved',
-      lastSyncedAt: acct.provider === 'cloud' || acct.provider === 'lan' ? new Date().toISOString() : prev.lastSyncedAt,
+      state: finalState,
+      lastSyncedAt: !syncError && (acct.provider === 'cloud' || acct.provider === 'lan') ? new Date().toISOString() : prev.lastSyncedAt,
+      error: syncError,
     }));
+
+    return { ok: !syncError, error: syncError || undefined };
   }, []);
 
   // Initial hydration: IndexedDB -> Check Active Account Session -> Sync
@@ -1499,10 +1540,20 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [commit]);
 
   const triggerManualSync = useCallback(async () => {
+    const acct = accountRef.current;
     setSyncStatus((prev) => ({ ...prev, state: 'syncing' }));
     await saveLocalData(dataRef.current, lastUpdatedRef.current);
-    await pullRemoteAndMerge();
-    notify('Saved & synced', 'success');
+    if (!acct || acct.provider === 'local') {
+      setSyncStatus((prev) => ({ ...prev, state: 'saved' }));
+      notify('Saved locally only — connect Supabase Cloud Sync to sync PC & Android', 'warning');
+      return;
+    }
+    const res = await pullRemoteAndMerge(acct);
+    if (!res.ok) {
+      notify(`Sync error: ${res.error || 'Could not sync'}`, 'warning');
+    } else {
+      notify(acct.provider === 'cloud' ? 'Synced with Cloud' : 'Synced on Wi-Fi', 'success');
+    }
   }, [pullRemoteAndMerge, notify]);
 
   const exportFullJsonBackup = useCallback(() => {
