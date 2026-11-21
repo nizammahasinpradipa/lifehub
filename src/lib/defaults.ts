@@ -48,15 +48,15 @@ export function createInitialData(): LifeHubData {
   ];
 
   const categories = [
-    { id: 'cat_food', name: 'Food', kind: 'expense' as const, icon: 'utensils', color: '#0F766E' },
-    { id: 'cat_transport', name: 'Transport', kind: 'expense' as const, icon: 'car', color: '#0284C7' },
-    { id: 'cat_bills', name: 'Bills', kind: 'expense' as const, icon: 'zap', color: '#D97706' },
-    { id: 'cat_shopping', name: 'Shopping', kind: 'expense' as const, icon: 'shopping-bag', color: '#7C3AED' },
-    { id: 'cat_health', name: 'Health', kind: 'expense' as const, icon: 'heart', color: '#E11D48' },
-    { id: 'cat_other', name: 'Other', kind: 'expense' as const, icon: 'circle-dot', color: '#64748B' },
-    { id: 'cat_salary', name: 'Salary', kind: 'income' as const, icon: 'briefcase', color: '#059669' },
-    { id: 'cat_freelance', name: 'Freelance', kind: 'income' as const, icon: 'laptop', color: '#0D9488' },
-    { id: 'cat_income_other', name: 'Other Income', kind: 'income' as const, icon: 'plus-circle', color: '#475569' },
+    { id: 'cat_food', name: 'Food', kind: 'expense' as const, icon: 'utensils', color: '#233E1E' },
+    { id: 'cat_transport', name: 'Transport', kind: 'expense' as const, icon: 'car', color: '#709446' },
+    { id: 'cat_bills', name: 'Bills', kind: 'expense' as const, icon: 'zap', color: '#E59A38' },
+    { id: 'cat_shopping', name: 'Shopping', kind: 'expense' as const, icon: 'shopping-bag', color: '#C3834C' },
+    { id: 'cat_health', name: 'Health', kind: 'expense' as const, icon: 'heart', color: '#B94E48' },
+    { id: 'cat_other', name: 'Other', kind: 'expense' as const, icon: 'circle-dot', color: '#6B6E5C' },
+    { id: 'cat_salary', name: 'Salary', kind: 'income' as const, icon: 'briefcase', color: '#233E1E' },
+    { id: 'cat_freelance', name: 'Freelance', kind: 'income' as const, icon: 'laptop', color: '#709446' },
+    { id: 'cat_income_other', name: 'Other Income', kind: 'income' as const, icon: 'plus-circle', color: '#6B6E5C' },
   ].map((c) => ({
     ...c,
     user_id: DEFAULT_USER_ID,

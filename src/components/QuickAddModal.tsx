@@ -162,7 +162,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
         style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
       >
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-          <div className="flex items-center gap-1 p-1 rounded-xl" style={{ backgroundColor: 'var(--bg-subtle)' }}>
+          <div className="flex items-center gap-1 retro-segmented">
             {(
               [
                 { id: 'task', label: 'Task', Icon: CheckSquare },
@@ -174,10 +174,8 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                 key={id}
                 type="button"
                 onClick={() => setTab(id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
-                  tab === id
-                    ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300'
-                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+                className={`retro-segmented-btn inline-flex items-center gap-1.5 !px-3 !py-1.5 ${
+                  tab === id ? 'active' : ''
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />

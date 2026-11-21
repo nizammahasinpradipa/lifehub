@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowRight,
@@ -6,10 +6,11 @@ import {
   Camera,
   Check,
   CheckSquare,
+  Eye,
+  EyeOff,
   Plus,
   Receipt,
   Sparkles,
-  Wallet,
 } from 'lucide-react';
 import { useLifeHub } from '../store/LifeHubContext';
 import {
@@ -32,11 +33,11 @@ interface HomeViewProps {
 }
 
 const MOOD_META: Record<number, { label: string; color: string }> = {
-  1: { label: 'Tough', color: '#e11d48' },
-  2: { label: 'Low', color: '#f97316' },
-  3: { label: 'Okay', color: '#eab308' },
-  4: { label: 'Good', color: '#14b8a6' },
-  5: { label: 'Great', color: '#059669' },
+  1: { label: 'Tough', color: '#B94E48' },
+  2: { label: 'Low', color: '#D97736' },
+  3: { label: 'Okay', color: '#E59A38' },
+  4: { label: 'Good', color: '#709446' },
+  5: { label: 'Great', color: '#233E1E' },
 };
 
 export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpenReceipt }) => {
@@ -53,6 +54,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
     setActiveTab,
     loadSampleDataset,
   } = useLifeHub();
+
+  const [hideBalance, setHideBalance] = useState(false);
 
   const today = getLocalDateString(new Date(), data.user.timezone);
   const currentMonth = getLocalMonthString(new Date(), data.user.timezone);
@@ -96,7 +99,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
       .map(([catId, amount]) => ({
         id: catId,
         name: catMap.get(catId)?.name || 'Other',
-        color: catMap.get(catId)?.color || '#64748b',
+        color: catMap.get(catId)?.color || '#709446',
         amount,
       }))
       .sort((a, b) => b.amount - a.amount)
@@ -127,103 +130,120 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
       ? Math.min(100, Math.round((spendingSummary.totalSpent / spendingSummary.totalBudget) * 100))
       : 0;
 
+  const formattedBalanceDigits = Math.abs(Math.round(spendingSummary.totalBalance))
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
   return (
-    <div className="space-y-6">
-      {/* Greeting & Quick AI Entry */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+    <div className="space-y-4 sm:space-y-5">
+      {/* Greeting */}
+      <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-            {formatFullDate(today)}
-          </p>
-          <h1 className="text-xl sm:text-3xl font-bold tracking-tight mt-0.5">
+          <p className="text-xs font-medium text-[var(--text-muted)]">{formatFullDate(today)}</p>
+          <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight mt-0.5">
             {getGreeting(data.user.timezone)}
             {data.user.display_name && data.user.display_name !== 'Owner'
               ? `, ${data.user.display_name}`
               : ''}
           </h1>
         </div>
-
-        <button
-          type="button"
-          onClick={onOpenAI}
-          className="btn-secondary !justify-start sm:!justify-center text-left !min-h-[42px]"
-        >
-          <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
-          <span className="truncate text-zinc-500 dark:text-zinc-400 font-normal text-xs sm:text-sm">
-            Try &ldquo;spent 50k on lunch with GoPay&rdquo;...
-          </span>
-        </button>
       </div>
 
-      {/* Desktop Fast Capture Strip (mobile uses the clean floating + button) */}
-      <div className="hidden md:grid md:grid-cols-4 gap-2.5">
-        <button
-          type="button"
-          onClick={() => onQuickAdd('task')}
-          className="card p-3.5 flex items-center gap-3 text-left hover:border-teal-500/60 transition-colors cursor-pointer"
-        >
-          <div className="w-9 h-9 rounded-xl bg-teal-600/10 text-teal-700 dark:text-teal-300 flex items-center justify-center shrink-0">
+      {/* Signature Frosted Cream Hero Wallet Balance Card (inspired by Paperpillar Gryn Wallet) */}
+      <section className="card-glass-hero p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold text-[var(--text-secondary)]">
+            Primary Wallet Balance ({activeWallets.length})
+          </p>
+          <button
+            type="button"
+            onClick={() => setActiveTab('spending')}
+            className="text-xs font-semibold text-[#233E1E] dark:text-[#C3D48E] hover:underline cursor-pointer"
+          >
+            All wallets →
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg sm:text-xl font-extrabold" style={{ color: 'var(--currency-amber)' }}>
+              {spendingSummary.totalBalance < 0 ? '-Rp' : 'Rp'}
+            </span>
+            <span className="hero-amount text-3xl sm:text-4xl">
+              {hideBalance ? '••••••••' : formattedBalanceDigits}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setHideBalance((h) => !h)}
+            className="w-9 h-9 rounded-full flex items-center justify-center border cursor-pointer transition-colors"
+            style={{
+              backgroundColor: 'var(--bg-subtle)',
+              borderColor: 'var(--border-subtle)',
+              color: 'var(--text-secondary)',
+            }}
+            aria-label={hideBalance ? 'Show balance' : 'Hide balance'}
+            title={hideBalance ? 'Show balance' : 'Hide balance'}
+          >
+            {hideBalance ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {/* Signature Sage + Mustard Action Pills */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <button type="button" onClick={() => onQuickAdd('task')} className="btn-sage flex-1 sm:flex-none">
             <CheckSquare className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold leading-tight">Add Task</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">1-tap capture</p>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onQuickAdd('expense')}
-          className="card p-3.5 flex items-center gap-3 text-left hover:border-teal-500/60 transition-colors cursor-pointer"
-        >
-          <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            Add Task
+          </button>
+          <button type="button" onClick={() => onQuickAdd('expense')} className="btn-mustard flex-1 sm:flex-none">
             <Receipt className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold leading-tight">Log Expense</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">IDR rupiah</p>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={onOpenReceipt}
-          className="card p-3.5 flex items-center gap-3 text-left hover:border-teal-500/60 transition-colors cursor-pointer"
-        >
-          <div className="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+            Log Expense
+          </button>
+          <button
+            type="button"
+            onClick={onOpenReceipt}
+            className="w-10 h-10 rounded-full flex items-center justify-center border cursor-pointer transition-colors shrink-0"
+            style={{
+              backgroundColor: 'var(--bg-surface-solid)',
+              borderColor: 'var(--border-subtle)',
+              color: 'var(--text-primary)',
+            }}
+            aria-label="Scan receipt"
+            title="Scan receipt"
+          >
             <Camera className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold leading-tight">Scan Receipt</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Review & save</p>
-          </div>
-        </button>
+          </button>
+        </div>
+      </section>
 
-        <button
-          type="button"
-          onClick={() => onQuickAdd('note')}
-          className="card p-3.5 flex items-center gap-3 text-left hover:border-teal-500/60 transition-colors cursor-pointer"
-        >
-          <div className="w-9 h-9 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
-            <BookOpen className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold leading-tight">Quick Note</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Auto-saved</p>
-          </div>
-        </button>
-      </div>
+      {/* Signature Deep Pine Forest Quick AI Banner */}
+      <button
+        type="button"
+        onClick={onOpenAI}
+        className="card-forest w-full p-4 sm:px-5 flex items-center justify-between gap-3 text-left cursor-pointer transition-transform active:scale-[0.99]"
+      >
+        <div className="min-w-0">
+          <p className="text-sm font-bold flex items-center gap-1.5 text-[#FBFBF4]">
+            <Sparkles className="w-4 h-4 text-[#F4C95D] shrink-0" />
+            Quick Natural Capture
+          </p>
+          <p className="text-xs text-[#FBFBF4]/70 truncate mt-0.5">
+            Type &ldquo;spent 50k on lunch with GoPay&rdquo; or ask your spending
+          </p>
+        </div>
+        <span className="px-3.5 py-2 rounded-full bg-[#FBFBF4] text-[#1C2F18] text-xs font-bold shrink-0">
+          Ask AI
+        </span>
+      </button>
 
       {/* Gentle first-run prompt */}
       {isBrandNew && (
-        <div
-          className="card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-dashed"
-          style={{ borderColor: 'var(--border-strong)' }}
-        >
+        <div className="card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold">Welcome to LifeHub</p>
-            <p className="text-xs text-zinc-500 mt-1 max-w-lg leading-relaxed">
-              Everything you add saves automatically so closing and reopening the app keeps all your data safe on PC and Android. Start adding your own items above, or load sample data to explore reports and budgets.
+            <p className="text-sm font-bold">Welcome to LifeHub</p>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+              Start adding your own items above, or load sample data to preview charts and budgets.
             </p>
           </div>
           <button type="button" onClick={loadSampleDataset} className="btn-secondary shrink-0">
@@ -233,14 +253,14 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
       )}
 
       {/* Main 3-Module Daily Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
         {/* Today's Tasks & Overdue */}
         <section className="card p-5 lg:col-span-7 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold">Today&apos;s Focus</h2>
+              <h2 className="text-base font-bold">Today&apos;s Focus</h2>
               {overdueTasks.length > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/12 text-rose-700 dark:text-rose-400">
                   <AlertCircle className="w-3 h-3" />
                   {overdueTasks.length} overdue
                 </span>
@@ -249,59 +269,61 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
             <button
               type="button"
               onClick={() => setActiveTab('tasks')}
-              className="btn-ghost !text-xs text-teal-700 dark:text-teal-400"
+              className="btn-ghost !text-xs text-[#233E1E] dark:text-[#C3D48E]"
             >
-              All tasks
+              See all
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
+          <div className="wavy-divider mb-3" />
+
           {overdueTasks.length === 0 && todayTasks.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-8 text-center">
-              <p className="text-sm text-zinc-500">No tasks due today. Capture a task whenever something comes up.</p>
-              <button type="button" onClick={() => onQuickAdd('task')} className="btn-secondary mt-3 !text-xs">
+            <div className="flex-1 flex flex-col items-center justify-center py-7 text-center">
+              <p className="text-sm text-[var(--text-secondary)]">No tasks due today.</p>
+              <button type="button" onClick={() => onQuickAdd('task')} className="btn-sage mt-3 !min-h-[36px] !text-xs">
                 <Plus className="w-3.5 h-3.5" />
                 Add a task
               </button>
             </div>
           ) : (
-            <div className="space-y-1.5">
-              {[...overdueTasks, ...todayTasks].slice(0, 7).map((task) => {
+            <div className="space-y-2">
+              {[...overdueTasks, ...todayTasks].slice(0, 6).map((task) => {
                 const overdue = isTaskOverdue(task.due_at, task.status);
                 return (
                   <div
                     key={task.id}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors hover:border-zinc-300 dark:hover:border-zinc-700"
+                    className="flex items-center gap-3 px-3.5 py-3 rounded-2xl border transition-colors"
                     style={{
-                      backgroundColor: overdue ? 'rgba(225, 29, 72, 0.04)' : 'var(--bg-subtle)',
-                      borderColor: overdue ? 'rgba(225, 29, 72, 0.25)' : 'transparent',
+                      backgroundColor: overdue ? 'rgba(185, 78, 72, 0.08)' : 'var(--bg-subtle)',
+                      borderColor: overdue ? 'rgba(185, 78, 72, 0.25)' : 'transparent',
                     }}
                   >
                     <button
                       type="button"
                       onClick={() => toggleTaskStatus(task.id)}
-                      className="w-5 h-5 rounded-md border flex items-center justify-center shrink-0 cursor-pointer hover:border-teal-600 transition-colors"
-                      style={{ borderColor: overdue ? '#e11d48' : 'var(--border-strong)' }}
+                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+                      style={{ borderColor: overdue ? '#B94E48' : 'var(--border-strong)' }}
                       aria-label={`Mark ${task.title} complete`}
                     >
-                      {task.status === 'done' && <Check className="w-3.5 h-3.5 text-teal-600" />}
+                      {task.status === 'done' && <Check className="w-3 h-3 text-[#233E1E]" />}
                     </button>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{task.title}</p>
+                      <p className="text-sm font-semibold truncate">{task.title}</p>
                       {task.due_at && (
-                        <p className={`text-xs ${overdue ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-zinc-500'}`}>
+                        <p className={`text-xs ${overdue ? 'text-rose-700 dark:text-rose-400 font-medium' : 'text-[var(--text-muted)]'}`}>
                           {overdue ? 'Overdue · ' : ''}
                           {formatDueAt(task.due_at, data.user.timezone)}
                         </p>
                       )}
                     </div>
                     <span
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full capitalize ${
+                      className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${
                         task.priority === 'high'
-                          ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                          ? 'bg-[#F4C95D]/40 text-[#2B1808] dark:text-[#F4C95D]'
                           : task.priority === 'medium'
-                          ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                          : 'bg-zinc-200/70 dark:bg-zinc-800 text-zinc-500'
+                          ? 'bg-[#C3D48E]/45 text-[#1C2C16] dark:text-[#C3D48E]'
+                          : 'bg-black/5 dark:bg-white/10 text-[var(--text-muted)]'
                       }`}
                     >
                       {task.priority}
@@ -313,27 +335,26 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
           )}
         </section>
 
-        {/* Spending & Monthly Budget */}
-        <section className="card p-5 lg:col-span-5 flex flex-col justify-between gap-4">
+        {/* Retro Chartreuse Monthly Spending Card */}
+        <section className="card-chartreuse p-5 lg:col-span-5 flex flex-col justify-between gap-4">
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-semibold">This Month&apos;s Spending</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-bold">This Month&apos;s Spending</h2>
               <button
                 type="button"
                 onClick={() => setActiveTab('spending')}
-                className="btn-ghost !text-xs text-teal-700 dark:text-teal-400"
+                className="text-xs font-bold text-[#233E1E] dark:text-[#F4C95D] hover:underline cursor-pointer"
               >
-                Details
-                <ArrowRight className="w-3.5 h-3.5" />
+                Details →
               </button>
             </div>
 
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="text-2xl font-bold tabular-nums tracking-tight">
+            <div className="flex items-baseline justify-between gap-2 mt-1">
+              <p className="hero-amount text-2xl sm:text-3xl">
                 {formatIDR(spendingSummary.totalSpent)}
               </p>
               {spendingSummary.totalBudget > 0 && (
-                <p className="text-xs text-zinc-500 tabular-nums">
+                <p className="text-xs font-medium text-[var(--text-secondary)] tabular-nums">
                   of {formatIDR(spendingSummary.totalBudget)}
                 </p>
               )}
@@ -341,56 +362,44 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
 
             {spendingSummary.totalBudget > 0 ? (
               <div className="mt-3 space-y-1.5">
-                <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-subtle)' }}>
+                <div className="h-2.5 w-full rounded-full overflow-hidden bg-black/10 dark:bg-white/10">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
                       width: `${budgetPct}%`,
                       backgroundColor:
                         spendingSummary.totalSpent >= spendingSummary.totalBudget
-                          ? '#e11d48'
+                          ? '#B94E48'
                           : budgetPct >= 80
-                          ? '#d97706'
-                          : 'var(--accent)',
+                          ? '#E59A38'
+                          : '#233E1E',
                     }}
                   />
                 </div>
-                <p className="text-xs text-zinc-500 tabular-nums">
+                <p className="text-xs font-medium text-[var(--text-secondary)] tabular-nums">
                   {spendingSummary.totalBudget - spendingSummary.totalSpent >= 0
                     ? `${formatIDR(spendingSummary.totalBudget - spendingSummary.totalSpent)} remaining`
-                    : `${formatIDR(spendingSummary.totalSpent - spendingSummary.totalBudget)} over total budget`}
+                    : `${formatIDR(spendingSummary.totalSpent - spendingSummary.totalBudget)} over budget`}
                 </p>
               </div>
             ) : (
-              <p className="text-xs text-zinc-500 mt-1.5">No monthly budgets set yet.</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1.5">No monthly budgets set yet.</p>
             )}
 
-            {/* Top 3 Categories */}
             {spendingSummary.topCategories.length > 0 && (
-              <div className="mt-4 pt-4 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
-                <p className="text-xs font-medium text-zinc-500">Top categories</p>
+              <div className="mt-4 pt-3.5 border-t space-y-2 border-black/10 dark:border-white/10">
+                <p className="text-xs font-semibold text-[var(--text-secondary)]">Top categories</p>
                 {spendingSummary.topCategories.map((cat) => (
                   <div key={cat.id} className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 font-medium">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
                       <span>{cat.name}</span>
                     </span>
-                    <span className="font-medium tabular-nums">{formatIDR(cat.amount)}</span>
+                    <span className="font-bold tabular-nums">{formatIDR(cat.amount)}</span>
                   </div>
                 ))}
               </div>
             )}
-          </div>
-
-          <div
-            className="flex items-center justify-between px-3.5 py-2.5 rounded-xl"
-            style={{ backgroundColor: 'var(--bg-subtle)' }}
-          >
-            <span className="inline-flex items-center gap-2 text-xs text-zinc-500">
-              <Wallet className="w-3.5 h-3.5" />
-              Total wallet balance
-            </span>
-            <span className="text-sm font-semibold tabular-nums">{formatIDR(spendingSummary.totalBalance)}</span>
           </div>
         </section>
 
@@ -398,11 +407,11 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
         <section className="card p-5 lg:col-span-12">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-base font-semibold">Daily Journal &amp; Mood</h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <h2 className="text-base font-bold">Daily Journal &amp; Mood</h2>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 {journalSummary.todayEntry && (journalSummary.todayEntry.body || journalSummary.todayEntry.mood)
                   ? `Today's entry updated${journalSummary.todayEntry.mood ? ` · Mood: ${MOOD_META[journalSummary.todayEntry.mood].label}` : ''}`
-                  : 'No entry written for today yet.'}
+                  : 'No reflection written for today yet.'}
               </p>
             </div>
             <button
@@ -411,7 +420,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
               className="btn-secondary !min-h-[38px] !text-xs self-start sm:self-auto"
             >
               <BookOpen className="w-3.5 h-3.5" />
-              {journalSummary.todayEntry ? "Continue today's journal" : "Write today's journal"}
+              {journalSummary.todayEntry ? "Open today's journal" : "Write today's journal"}
             </button>
           </div>
 
@@ -424,19 +433,19 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
                   key={d.date}
                   type="button"
                   onClick={() => setActiveTab('notes')}
-                  className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border transition-colors cursor-pointer hover:border-teal-500/60"
+                  className="flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition-colors cursor-pointer"
                   style={{
-                    backgroundColor: isToday ? 'var(--accent-soft)' : 'var(--bg-subtle)',
+                    backgroundColor: isToday ? 'var(--bg-chartreuse)' : 'var(--bg-subtle)',
                     borderColor: isToday ? 'var(--accent)' : 'transparent',
                   }}
                   title={mood ? `${d.date}: ${mood}/5 (${MOOD_META[mood].label})` : `${d.date}: No mood logged`}
                 >
-                  <span className="text-[11px] font-medium text-zinc-500">{d.dayShort}</span>
+                  <span className="text-[11px] font-semibold text-[var(--text-secondary)]">{d.dayShort}</span>
                   <div
-                    className="w-7 h-7 rounded-full mt-1.5 flex items-center justify-center text-xs font-bold"
+                    className="w-7 h-7 rounded-full mt-1.5 flex items-center justify-center text-xs font-extrabold"
                     style={{
                       backgroundColor: mood ? MOOD_META[mood].color : 'var(--border-subtle)',
-                      color: mood ? '#ffffff' : 'var(--text-muted)',
+                      color: mood ? '#FBFBF4' : 'var(--text-muted)',
                     }}
                   >
                     {mood ?? '–'}

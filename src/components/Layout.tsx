@@ -143,7 +143,7 @@ export const Layout: React.FC<LayoutProps> = ({
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Desktop Left Sidebar */}
       <aside
-        className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 border-r px-4 py-5 select-none"
+        className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 border-r px-4 py-5 select-none backdrop-blur-md"
         style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
       >
         <div className="flex items-center justify-between px-2 mb-6">
@@ -152,15 +152,15 @@ export const Layout: React.FC<LayoutProps> = ({
             onClick={() => setActiveTab('home')}
             className="flex items-center gap-2.5 cursor-pointer"
           >
-            <img src="/favicon.svg" alt="LifeHub" className="w-8 h-8 rounded-lg" />
+            <img src="/favicon.svg" alt="LifeHub" className="w-9 h-9 rounded-xl shadow-sm" />
             <div className="text-left">
-              <p className="text-base font-bold tracking-tight leading-none">LifeHub</p>
-              <p className="text-[11px] text-zinc-500 mt-0.5">Personal workspace</p>
+              <p className="text-base font-extrabold tracking-tight leading-none">LifeHub</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Personal workspace</p>
             </div>
           </button>
         </div>
 
-        <button type="button" onClick={onQuickAdd} className="btn-primary w-full mb-3 shadow-sm">
+        <button type="button" onClick={onQuickAdd} className="btn-primary w-full mb-3">
           <Plus className="w-4 h-4" />
           Quick Add
         </button>
@@ -169,22 +169,22 @@ export const Layout: React.FC<LayoutProps> = ({
           <button
             type="button"
             onClick={onOpenSearch}
-            className="btn-secondary !min-h-[38px] !text-xs !px-2.5 justify-between"
+            className="btn-secondary !min-h-[38px] !text-xs !px-3 justify-between"
             title="Search (Ctrl+K)"
           >
             <span className="inline-flex items-center gap-1.5">
-              <Search className="w-3.5 h-3.5 text-zinc-400" />
+              <Search className="w-3.5 h-3.5 text-[var(--text-muted)]" />
               Search
             </span>
-            <kbd className="text-[10px] text-zinc-400 font-sans">⌘K</kbd>
+            <kbd className="text-[10px] text-[var(--text-muted)] font-sans">⌘K</kbd>
           </button>
           <button
             type="button"
             onClick={onOpenAI}
-            className="btn-secondary !min-h-[38px] !text-xs !px-2.5"
+            className="btn-mustard !min-h-[38px] !text-xs !px-3"
             title="AI Natural Language Input"
           >
-            <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+            <Sparkles className="w-3.5 h-3.5" />
             Ask AI
           </button>
         </div>
@@ -197,10 +197,10 @@ export const Layout: React.FC<LayoutProps> = ({
                 key={id}
                 type="button"
                 onClick={() => setActiveTab(id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
                   active
-                    ? 'bg-teal-600/10 text-teal-700 dark:bg-teal-400/15 dark:text-teal-300'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/70'
+                    ? 'bg-[#233E1E] text-[#FBFBF4] dark:bg-[#C3D48E] dark:text-[#162613] shadow-sm'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
                 }`}
               >
                 <span className="flex items-center gap-3">
@@ -208,7 +208,13 @@ export const Layout: React.FC<LayoutProps> = ({
                   {label}
                 </span>
                 {id === 'tasks' && openTasksCount > 0 && (
-                  <span className="text-xs tabular-nums px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
+                  <span
+                    className={`text-xs tabular-nums px-2 py-0.5 rounded-full ${
+                      active
+                        ? 'bg-white/20 text-current'
+                        : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
+                    }`}
+                  >
                     {openTasksCount}
                   </span>
                 )}
@@ -220,25 +226,25 @@ export const Layout: React.FC<LayoutProps> = ({
         <div className="pt-4 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
           {account && (
             <div
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-2xl"
               style={{ backgroundColor: 'var(--bg-subtle)' }}
             >
-              <div className="w-7 h-7 rounded-full bg-teal-600 text-white text-xs font-bold flex items-center justify-center shrink-0 uppercase">
+              <div className="w-8 h-8 rounded-full bg-[#233E1E] text-[#F4C95D] text-xs font-extrabold flex items-center justify-center shrink-0 uppercase">
                 {(account.displayName || account.email)[0]}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold truncate leading-tight">{account.displayName}</p>
-                <p className="text-[11px] text-zinc-500 truncate">{account.email}</p>
+                <p className="text-xs font-bold truncate leading-tight">{account.displayName}</p>
+                <p className="text-[11px] text-[var(--text-muted)] truncate">{account.email}</p>
               </div>
             </div>
           )}
           <button
             type="button"
             onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
               activeTab === 'settings'
-                ? 'bg-teal-600/10 text-teal-700 dark:bg-teal-400/15 dark:text-teal-300'
-                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/70'
+                ? 'bg-[#233E1E] text-[#FBFBF4] dark:bg-[#C3D48E] dark:text-[#162613]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -247,7 +253,7 @@ export const Layout: React.FC<LayoutProps> = ({
           <button
             type="button"
             onClick={lockNow}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-full text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             Sign Out / Lock
@@ -299,8 +305,10 @@ export const Layout: React.FC<LayoutProps> = ({
         <button
           type="button"
           onClick={onQuickAdd}
-          className="md:hidden fixed right-4 bottom-20 z-30 w-13 h-13 rounded-2xl shadow-lg flex items-center justify-center transition-transform active:scale-95"
-          style={{ backgroundColor: 'var(--accent)', color: '#ffffff' }}
+          className="md:hidden fixed right-4 bottom-20 z-30 w-13 h-13 rounded-full shadow-xl flex items-center justify-center transition-transform active:scale-95 text-[#FBFBF4]"
+          style={{
+            background: 'linear-gradient(135deg, var(--accent-grad-from) 0%, var(--accent-grad-to) 100%)',
+          }}
           aria-label="Quick Add"
         >
           <Plus className="w-6 h-6" />
@@ -309,7 +317,7 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* Clean 5-Tab Mobile Bottom Bar (Home, Tasks, Spending, Notes, More) */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe backdrop-blur-lg"
         style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
         aria-label="Bottom Navigation"
       >
@@ -324,8 +332,10 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   setActiveTab(id);
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[48px] rounded-xl transition-colors ${
-                  active ? 'text-teal-700 dark:text-teal-300 font-semibold' : 'text-zinc-500'
+                className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[48px] rounded-2xl transition-colors ${
+                  active
+                    ? 'text-[#233E1E] dark:text-[#C3D48E] font-bold'
+                    : 'text-[var(--text-muted)]'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -337,10 +347,10 @@ export const Layout: React.FC<LayoutProps> = ({
           <button
             type="button"
             onClick={() => setMoreOpen((o) => !o)}
-            className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[48px] rounded-xl transition-colors relative ${
+            className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[48px] rounded-2xl transition-colors relative ${
               moreOpen || isMoreTabActive
-                ? 'text-teal-700 dark:text-teal-300 font-semibold'
-                : 'text-zinc-500'
+                ? 'text-[#233E1E] dark:text-[#C3D48E] font-bold'
+                : 'text-[var(--text-muted)]'
             }`}
           >
             <Menu className="w-5 h-5" />

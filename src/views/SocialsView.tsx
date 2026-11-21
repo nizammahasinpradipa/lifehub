@@ -364,10 +364,10 @@ export const SocialsView: React.FC = () => {
               key={f.id}
               type="button"
               onClick={() => setCategoryFilter(f.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition-colors shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors shrink-0 ${
                 categoryFilter === f.id
-                  ? 'bg-teal-600 text-white dark:bg-teal-400 dark:text-zinc-950'
-                  : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  ? 'bg-[#233E1E] text-[#FBFBF4] dark:bg-[#C3D48E] dark:text-[#162613]'
+                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:brightness-95'
               }`}
             >
               {f.label}

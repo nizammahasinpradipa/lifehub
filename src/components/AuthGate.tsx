@@ -170,52 +170,46 @@ export const AuthGate: React.FC = () => {
   const renderProviderBadge = () => {
     if (availableProvider === 'cloud') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-teal-600/10 text-teal-700 dark:text-teal-300">
-          <Cloud className="w-3.5 h-3.5" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-[#FBFBF4] border border-white/20 backdrop-blur-sm">
+          <Cloud className="w-3.5 h-3.5 text-[#F4C95D]" />
           Cloud Account · Syncs PC &amp; Android anywhere
         </span>
       );
     }
     if (availableProvider === 'lan') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-teal-600/10 text-teal-700 dark:text-teal-300">
-          <Wifi className="w-3.5 h-3.5" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-[#FBFBF4] border border-white/20 backdrop-blur-sm">
+          <Wifi className="w-3.5 h-3.5 text-[#C3D48E]" />
           Wi-Fi Account · Syncs PC &amp; Android on same network
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
-        <HardDrive className="w-3.5 h-3.5" />
-        Device Account · Connect Cloud below for multi-device sync
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-[#FBFBF4]/90 border border-white/20 backdrop-blur-sm">
+        <HardDrive className="w-3.5 h-3.5 text-[#F4C95D]" />
+        Device Account · Connect Cloud below to sync
       </span>
     );
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
-      style={{ backgroundColor: 'var(--bg-canvas)' }}
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 retro-botanical-bg">
       <div className="w-full max-w-md space-y-5 animate-modal">
-        {/* Brand Header */}
-        <div className="flex flex-col items-center text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl shadow-sm flex items-center justify-center relative">
-            <img src="/favicon.svg" alt="LifeHub" className="w-14 h-14 rounded-2xl" />
-            <span
-              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2"
-              style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--bg-canvas)' }}
-            >
-              <Lock className="w-3 h-3 text-teal-700 dark:text-teal-400" />
+        {/* Brand Header (inspired by the cream squircle badge over botanical forest) */}
+        <div className="flex flex-col items-center text-center space-y-2.5">
+          <div className="w-16 h-16 rounded-[22px] shadow-xl flex items-center justify-center relative bg-[#FBFBF4]">
+            <img src="/favicon.svg" alt="LifeHub" className="w-16 h-16 rounded-[22px]" />
+            <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#233E1E] bg-[#F4C95D] text-[#2B1808]">
+              <Lock className="w-3 h-3" />
             </span>
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">LifeHub</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <h1 className="text-2xl font-extrabold tracking-tight text-[#FBFBF4]">LifeHub</h1>
+            <p className="text-xs text-[#FBFBF4]/75 mt-0.5">
               One private account for your PC and Android
             </p>
           </div>
-          <div className="pt-1">{renderProviderBadge()}</div>
+          <div className="pt-0.5">{renderProviderBadge()}</div>
         </div>
 
         {/* Recovery Key Notice (if local account created) */}
@@ -252,9 +246,9 @@ export const AuthGate: React.FC = () => {
         )}
 
         {/* Main Account Card */}
-        <div className="card p-6 space-y-4 shadow-sm">
+        <div className="card p-6 space-y-4">
           {mode !== 'recover' && (
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl" style={{ backgroundColor: 'var(--bg-subtle)' }}>
+            <div className="grid grid-cols-2 gap-1 retro-segmented">
               <button
                 type="button"
                 onClick={() => {
@@ -262,11 +256,7 @@ export const AuthGate: React.FC = () => {
                   setError(null);
                   setInfoMsg(null);
                 }}
-                className={`py-2 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                  mode === 'signin'
-                    ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300'
-                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
-                }`}
+                className={`retro-segmented-btn ${mode === 'signin' ? 'active' : ''}`}
               >
                 Sign In
               </button>
@@ -277,11 +267,7 @@ export const AuthGate: React.FC = () => {
                   setError(null);
                   setInfoMsg(null);
                 }}
-                className={`py-2 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                  mode === 'signup'
-                    ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300'
-                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
-                }`}
+                className={`retro-segmented-btn ${mode === 'signup' ? 'active' : ''}`}
               >
                 Create Account
               </button>

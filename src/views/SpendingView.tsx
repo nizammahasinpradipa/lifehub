@@ -47,7 +47,7 @@ interface SpendingViewProps {
 
 type SpendingTab = 'transactions' | 'budgets' | 'reports' | 'manage';
 
-const CAT_COLORS = ['#0F766E', '#0284C7', '#D97706', '#7C3AED', '#E11D48', '#059669', '#64748B'];
+const CAT_COLORS = ['#233E1E', '#709446', '#E59A38', '#C3834C', '#B94E48', '#527A34', '#6B6E5C'];
 
 export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, onOpenReceipt }) => {
   const {
@@ -352,10 +352,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
 
       {/* Clean Single-Row Sub-Tabs + Desktop Month Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div
-          className="grid grid-cols-4 sm:flex items-center gap-1 p-1 rounded-xl w-full sm:w-auto"
-          style={{ backgroundColor: 'var(--bg-subtle)' }}
-        >
+        <div className="grid grid-cols-4 sm:flex items-center gap-1 retro-segmented w-full sm:w-auto">
           {(
             [
               { id: 'transactions', label: 'Log' },
@@ -368,10 +365,8 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
               key={t.id}
               type="button"
               onClick={() => setSubTab(t.id)}
-              className={`px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors text-center ${
-                subTab === t.id
-                  ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300'
-                  : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+              className={`retro-segmented-btn text-center !px-2 sm:!px-4 ${
+                subTab === t.id ? 'active' : ''
               }`}
             >
               {t.label}
@@ -697,7 +692,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                     <XAxis type="number" tickFormatter={(v) => formatIDR(v, { compact: true })} fontSize={11} />
                     <YAxis type="category" dataKey="name" width={90} fontSize={12} />
                     <Tooltip formatter={(val: number) => formatIDR(val)} />
-                    <Bar dataKey="amount" fill="#0F766E" radius={[0, 8, 8, 0]} />
+                    <Bar dataKey="amount" fill="#233E1E" radius={[0, 10, 10, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -717,8 +712,8 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                   <XAxis dataKey="month" fontSize={12} />
                   <YAxis tickFormatter={(v) => formatIDR(v, { compact: true })} fontSize={11} width={72} />
                   <Tooltip formatter={(val: number) => formatIDR(val)} />
-                  <Bar dataKey="Expense" fill="#0F766E" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="Income" fill="#94A3B8" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Expense" fill="#233E1E" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="Income" fill="#C3D48E" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

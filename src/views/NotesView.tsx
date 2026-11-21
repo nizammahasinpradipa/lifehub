@@ -36,11 +36,11 @@ import { LinkPicker } from '../components/LinkPicker';
 type NotesTab = 'journal' | 'notes' | 'mood';
 
 const MOODS: Array<{ value: MoodRating; label: string; color: string }> = [
-  { value: 1, label: 'Tough', color: '#e11d48' },
-  { value: 2, label: 'Low', color: '#f97316' },
-  { value: 3, label: 'Okay', color: '#eab308' },
-  { value: 4, label: 'Good', color: '#14b8a6' },
-  { value: 5, label: 'Great', color: '#059669' },
+  { value: 1, label: 'Tough', color: '#B94E48' },
+  { value: 2, label: 'Low', color: '#D97736' },
+  { value: 3, label: 'Okay', color: '#E59A38' },
+  { value: 4, label: 'Good', color: '#709446' },
+  { value: 5, label: 'Great', color: '#233E1E' },
 ];
 
 export const NotesView: React.FC = () => {
@@ -177,12 +177,9 @@ export const NotesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Sub-Tabs (full-width clean segmented bar on Android) */}
+      {/* Sub-Tabs (full-width deep pine segmented bar) */}
       <div className="flex items-center justify-between gap-2">
-        <div
-          className="grid grid-cols-3 sm:flex items-center gap-1 p-1 rounded-xl flex-1 sm:flex-none"
-          style={{ backgroundColor: 'var(--bg-subtle)' }}
-        >
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 retro-segmented flex-1 sm:flex-none">
           {(
             [
               { id: 'journal', label: 'Journal', Icon: BookOpen },
@@ -194,10 +191,8 @@ export const NotesView: React.FC = () => {
               key={id}
               type="button"
               onClick={() => setSubTab(id)}
-              className={`inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-                subTab === id
-                  ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300'
-                  : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+              className={`retro-segmented-btn inline-flex items-center justify-center gap-1.5 !px-2.5 sm:!px-4 ${
+                subTab === id ? 'active' : ''
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -537,9 +532,9 @@ export const NotesView: React.FC = () => {
                   <Line
                     type="monotone"
                     dataKey="mood"
-                    stroke="#0F766E"
+                    stroke="#233E1E"
                     strokeWidth={2.5}
-                    dot={{ r: 3.5, fill: '#0F766E' }}
+                    dot={{ r: 4, fill: '#709446' }}
                     connectNulls
                   />
                 </LineChart>
