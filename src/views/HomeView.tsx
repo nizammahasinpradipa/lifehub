@@ -190,20 +190,28 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
           </button>
         </div>
 
-        {/* Signature Sage + Mustard Action Pills */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <button type="button" onClick={() => onQuickAdd('task')} className="btn-sage flex-1 sm:flex-none">
-            <CheckSquare className="w-4 h-4" />
-            Add Task
+        {/* Signature Sage + Mustard Action Pills (strictly equal width, height, and single-line on Android) */}
+        <div className="grid grid-cols-[1fr_1fr_auto] sm:flex sm:items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => onQuickAdd('task')}
+            className="btn-sage !h-11 !min-h-[44px] !px-3 sm:!px-5 whitespace-nowrap !text-xs sm:!text-[13px]"
+          >
+            <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Add Task</span>
           </button>
-          <button type="button" onClick={() => onQuickAdd('expense')} className="btn-mustard flex-1 sm:flex-none">
-            <Receipt className="w-4 h-4" />
-            Log Expense
+          <button
+            type="button"
+            onClick={() => onQuickAdd('expense')}
+            className="btn-mustard !h-11 !min-h-[44px] !px-3 sm:!px-5 whitespace-nowrap !text-xs sm:!text-[13px]"
+          >
+            <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Expense</span>
           </button>
           <button
             type="button"
             onClick={onOpenReceipt}
-            className="w-10 h-10 rounded-full flex items-center justify-center border cursor-pointer transition-colors shrink-0"
+            className="w-11 h-11 rounded-full flex items-center justify-center border cursor-pointer transition-transform active:scale-95 shrink-0"
             style={{
               backgroundColor: 'var(--bg-surface-solid)',
               borderColor: 'var(--border-subtle)',
