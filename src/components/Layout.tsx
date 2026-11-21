@@ -5,6 +5,7 @@ import {
   FileText,
   Home,
   Lock,
+  LogOut,
   Mail,
   Plus,
   Search,
@@ -36,7 +37,7 @@ const NAV_ITEMS: Array<{ id: NavTab; label: string; mobileLabel: string; Icon: R
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSearch, onOpenAI }) => {
-  const { activeTab, setActiveTab, syncStatus, activeTasks, lockNow } = useLifeHub();
+  const { activeTab, setActiveTab, syncStatus, activeTasks, account, lockNow } = useLifeHub();
 
   const openTasksCount = activeTasks.filter((t) => !t.parent_task_id && t.status === 'todo').length;
 
@@ -151,11 +152,25 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
           })}
         </nav>
 
-        <div className="pt-4 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="pt-4 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
+          {account && (
+            <div
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl"
+              style={{ backgroundColor: 'var(--bg-subtle)' }}
+            >
+              <div className="w-7 h-7 rounded-full bg-teal-600 text-white text-xs font-bold flex items-center justify-center shrink-0 uppercase">
+                {(account.displayName || account.email)[0]}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold truncate leading-tight">{account.displayName}</p>
+                <p className="text-[11px] text-zinc-500 truncate">{account.email}</p>
+              </div>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
               activeTab === 'settings'
                 ? 'bg-teal-600/10 text-teal-700 dark:bg-teal-400/15 dark:text-teal-300'
                 : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/70'
@@ -169,10 +184,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
             onClick={lockNow}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 transition-colors cursor-pointer"
           >
-            <Lock className="w-4 h-4" />
-            Lock App
+            <LogOut className="w-4 h-4" />
+            Sign Out / Lock
           </button>
-          <div className="px-3 py-1">{renderSyncBadge()}</div>
+          <div className="px-3 py-0.5">{renderSyncBadge()}</div>
         </div>
       </aside>
 

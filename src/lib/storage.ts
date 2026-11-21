@@ -229,7 +229,7 @@ export async function recoverLanAuth(recoveryHash: string, newAuth: SecurityConf
   }
 }
 
-export async function fetchLanData(apiToken?: string | null): Promise<{
+export async function fetchLanData(sessionToken?: string | null): Promise<{
   ok: boolean;
   unauthorized?: boolean;
   data: LifeHubData | null;
@@ -237,7 +237,7 @@ export async function fetchLanData(apiToken?: string | null): Promise<{
 }> {
   try {
     const headers: Record<string, string> = {};
-    if (apiToken) headers['X-LifeHub-Auth'] = apiToken;
+    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
     const res = await fetch('/api/sync', { method: 'GET', cache: 'no-store', headers });
     if (res.status === 401) return { ok: false, unauthorized: true, data: null, updatedAt: null };
     if (!res.ok) return { ok: false, data: null, updatedAt: null };
@@ -255,11 +255,11 @@ export async function fetchLanData(apiToken?: string | null): Promise<{
 export async function pushLanData(
   data: LifeHubData,
   updatedAt: string,
-  apiToken?: string | null
+  sessionToken?: string | null
 ): Promise<boolean> {
   try {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (apiToken) headers['X-LifeHub-Auth'] = apiToken;
+    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
     const res = await fetch('/api/sync', {
       method: 'POST',
       headers,
@@ -271,14 +271,18 @@ export async function pushLanData(
   }
 }
 
-export async function fetchServerInfo(): Promise<{ ok: boolean; lanUrls: string[] }> {
+export async function fetchServerInfo(): Promise<{ ok: boolean; hasAccounts: boolean; lanUrls: string[] }> {
   try {
     const res = await fetch('/api/health', { cache: 'no-store' });
-    if (!res.ok) return { ok: false, lanUrls: [] };
+    if (!res.ok) return { ok: false, hasAccounts: false, lanUrls: [] };
     const json = await res.json();
-    return { ok: true, lanUrls: Array.isArray(json.lanUrls) ? json.lanUrls : [] };
+    return {
+      ok: true,
+      hasAccounts: Boolean(json.hasAccounts),
+      lanUrls: Array.isArray(json.lanUrls) ? json.lanUrls : [],
+    };
   } catch {
-    return { ok: false, lanUrls: [] };
+    return { ok: false, hasAccounts: false, lanUrls: [] };
   }
 }
 

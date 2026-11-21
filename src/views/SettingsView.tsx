@@ -32,6 +32,7 @@ interface SettingsViewProps {
 export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onInstallPwa }) => {
   const {
     data,
+    account,
     syncStatus,
     lanUrls,
     activeTransactions,
@@ -50,7 +51,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
     signInCloud,
     signUpCloud,
     signOutCloud,
-    changePasscode,
+    changeAccountPassword,
     setAutoLockMode,
     lockNow,
     notify,
@@ -65,21 +66,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
   const [authBusy, setAuthBusy] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
-  // Change passcode state
+  // Change account password state
   const [currentPass, setCurrentPass] = useState('');
   const [nextPass, setNextPass] = useState('');
-  const [nextHint, setNextHint] = useState(data.security?.hint || '');
+  const [passBusy, setPassBusy] = useState(false);
   const [freshRecoveryKey, setFreshRecoveryKey] = useState<string | null>(null);
 
-  const handleChangePasscode = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (nextPass.length < 4) {
-      notify('New passcode must be at least 4 characters', 'warning');
+    if (nextPass.length < 6) {
+      notify('New password must be at least 6 characters', 'warning');
       return;
     }
-    const res = changePasscode(currentPass, nextPass, nextHint);
+    setPassBusy(true);
+    const res = await changeAccountPassword(currentPass, nextPass);
+    setPassBusy(false);
     if (!res.ok) {
-      notify(res.error || 'Could not update passcode', 'warning');
+      notify(res.error || 'Could not update password', 'warning');
       return;
     }
     setCurrentPass('');
@@ -142,7 +145,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
         </p>
       </div>
 
-      {/* Security & Verification Gate */}
+      {/* Signed-in Account & Security */}
       <section className="card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -150,15 +153,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold">Privacy &amp; Verification Lock</h2>
+              <h2 className="text-base font-semibold">
+                {account ? account.email : 'Account & Security'}
+              </h2>
               <p className="text-xs text-zinc-500">
-                Requires your passcode before the dashboard or any task/expense loads.
+                {account?.provider === 'cloud'
+                  ? 'Cloud Account · Real-time sync between PC & Android anywhere'
+                  : account?.provider === 'lan'
+                  ? 'Wi-Fi Account · Real-time sync between PC & Android on same network'
+                  : 'Device Account · Connect Supabase Cloud below to sync PC & Android over internet'}
               </p>
             </div>
           </div>
           <button type="button" onClick={lockNow} className="btn-secondary !min-h-[38px] !text-xs">
             <Lock className="w-3.5 h-3.5" />
-            Lock Now
+            Sign Out / Lock
           </button>
         </div>
 
@@ -193,17 +202,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
           </div>
         </div>
 
-        <form onSubmit={handleChangePasscode} className="pt-3 border-t space-y-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
+        <form onSubmit={handleChangePassword} className="pt-3 border-t space-y-2.5" style={{ borderColor: 'var(--border-subtle)' }}>
           <p className="text-xs font-medium text-zinc-500 flex items-center gap-1.5">
             <KeyRound className="w-3.5 h-3.5" />
-            Change passcode
+            Change account password
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <input
               type="password"
               value={currentPass}
               onChange={(e) => setCurrentPass(e.target.value)}
-              placeholder="Current passcode"
+              placeholder="Current password"
               className="input-field !py-2 !text-xs"
               required
             />
@@ -211,20 +220,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
               type="password"
               value={nextPass}
               onChange={(e) => setNextPass(e.target.value)}
-              placeholder="New passcode (min 4)"
+              placeholder="New password (min 6)"
               className="input-field !py-2 !text-xs"
               required
             />
-            <input
-              type="text"
-              value={nextHint}
-              onChange={(e) => setNextHint(e.target.value)}
-              placeholder="Hint (optional)"
-              className="input-field !py-2 !text-xs"
-            />
           </div>
-          <button type="submit" className="btn-secondary !min-h-[36px] !text-xs">
-            Update Passcode
+          <button type="submit" disabled={passBusy} className="btn-secondary !min-h-[36px] !text-xs">
+            {passBusy ? 'Updating...' : 'Update Password'}
           </button>
 
           {freshRecoveryKey && (

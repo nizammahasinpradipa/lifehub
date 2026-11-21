@@ -31,7 +31,6 @@ import type {
 } from '../types/models';
 import { createInitialData, createSampleData, DEFAULT_USER_ID, uid } from '../lib/defaults';
 import {
-  fetchLanAuthStatus,
   fetchLanData,
   fetchServerInfo,
   getClientId,
@@ -44,23 +43,33 @@ import {
   pullCloudSnapshot,
   pushCloudSnapshot,
   pushLanData,
-  recoverLanAuth,
   saveLocalData,
   saveSupabaseConfig,
 } from '../lib/storage';
 import {
   clearFailedAttempts,
-  clearSessionAuthToken,
-  constantTimeEqual,
-  deriveAuthBundle,
-  generateRecoveryKey,
-  generateSalt,
   getLockoutStatus,
-  getSessionAuthToken,
-  hashRecoveryKey,
   recordFailedAttempt,
-  saveSessionAuthToken,
 } from '../lib/security';
+import {
+  clearLanToken,
+  clearLocalSessionUser,
+  getSavedLanToken,
+  getSavedLocalSessionUser,
+  hasLocalAccounts,
+  lanChangePassword,
+  lanLogin,
+  lanLogout,
+  lanMe,
+  lanRegister,
+  localChangePassword,
+  localLogin,
+  localRecoverPassword,
+  localRegister,
+  subscribeToCloudSnapshot,
+  type AccountProvider,
+  type AccountUser,
+} from '../lib/account';
 import { clearSessionGmailToken } from '../lib/gmail';
 import { addDaysToDateString, getLocalDateString, getLocalMonthString, isoToLocalDate, isoToLocalTimeInput, localDateTimeToUtcIso } from '../lib/dates';
 import { findDueReminders, fireTaskReminder, requestNotificationPermission } from '../lib/reminders';
@@ -82,8 +91,9 @@ interface LifeHubContextValue {
   hydrated: boolean;
   authReady: boolean;
   isUnlocked: boolean;
-  needsAuthSetup: boolean;
-  authHint: string;
+  account: AccountUser | null;
+  availableProvider: AccountProvider;
+  hasExistingAccount: boolean;
   syncStatus: SyncStatus;
   lanUrls: string[];
   toasts: ToastItem[];
@@ -95,22 +105,31 @@ interface LifeHubContextValue {
   notify: (message: string, tone?: ToastItem['tone']) => void;
   dismissToast: (id: string) => void;
 
-  // Verification & Privacy Lock
-  setupPasscode: (passcode: string, hint: string, ownerName?: string) => { recoveryKey: string };
-  finishSetupUnlock: () => void;
-  verifyPasscode: (passcode: string) => Promise<{ ok: boolean; error?: string; cooldownMs?: number }>;
-  recoverWithKey: (
-    recoveryKey: string,
-    newPasscode: string,
-    hint: string
+  // Unified Account System (Syncs PC + Android)
+  signUpAccount: (input: {
+    email: string;
+    password: string;
+    displayName: string;
+    remember: boolean;
+  }) => Promise<{ ok: boolean; error?: string; recoveryKey?: string; needsEmailConfirm?: boolean }>;
+  signInAccount: (input: {
+    email: string;
+    password: string;
+    remember: boolean;
+  }) => Promise<{ ok: boolean; error?: string; cooldownMs?: number }>;
+  recoverLocalAccount: (input: {
+    email: string;
+    recoveryKey: string;
+    newPassword: string;
+    remember: boolean;
+  }) => Promise<{ ok: boolean; error?: string; newRecoveryKey?: string }>;
+  changeAccountPassword: (
+    currentPassword: string,
+    newPassword: string
   ) => Promise<{ ok: boolean; error?: string; newRecoveryKey?: string }>;
-  changePasscode: (
-    currentPasscode: string,
-    newPasscode: string,
-    hint: string
-  ) => { ok: boolean; error?: string; newRecoveryKey?: string };
   setAutoLockMode: (mode: AutoLockMode) => void;
   lockNow: () => void;
+  signOutAccount: () => Promise<void>;
 
   // Derived active lists (filtered out deleted_at)
   activeProjects: Project[];
@@ -229,14 +248,14 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [data, setData] = useState<LifeHubData>(initialSnap.data);
   const [hydrated, setHydrated] = useState(false);
   const [authReady, setAuthReady] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [remoteAuthMeta, setRemoteAuthMeta] = useState<RemoteAuthMeta | null>(null);
+  const [account, setAccount] = useState<AccountUser | null>(null);
+  const [lanServerAvailable, setLanServerAvailable] = useState(false);
+  const [lanHasAccounts, setLanHasAccounts] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [focusTarget, setFocusTarget] = useState<NavigationTarget | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig | null>(() => getSavedSupabaseConfig());
-  const [cloudUser, setCloudUser] = useState<{ id: string; email: string } | null>(null);
 
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     state: 'saved',
@@ -252,11 +271,22 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const lastUpdatedRef = useRef<string>(initialSnap.updatedAt || new Date().toISOString());
   const pushTimerRef = useRef<number | null>(null);
   const lanConnectedRef = useRef<boolean>(false);
-  const apiTokenRef = useRef<string | null>(null);
-  const remoteAuthRef = useRef<RemoteAuthMeta | null>(null);
-  remoteAuthRef.current = remoteAuthMeta;
-  const cloudUserRef = useRef<{ id: string; email: string } | null>(null);
-  cloudUserRef.current = cloudUser;
+  const lanTokenRef = useRef<string | null>(null);
+  const accountRef = useRef<AccountUser | null>(null);
+  accountRef.current = account;
+
+  const isUnlocked = Boolean(account);
+  const availableProvider: AccountProvider = supabaseConfig
+    ? 'cloud'
+    : lanServerAvailable
+    ? 'lan'
+    : 'local';
+  const hasExistingAccount =
+    availableProvider === 'cloud'
+      ? true
+      : availableProvider === 'lan'
+      ? lanHasAccounts
+      : hasLocalAccounts();
 
   const notify = useCallback((message: string, tone: ToastItem['tone'] = 'neutral') => {
     const id = uid('tst');
@@ -288,9 +318,10 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const now = new Date().toISOString();
     lastUpdatedRef.current = now;
     void saveLocalData(nextData, now);
+    const activeAcct = accountRef.current;
     setSyncStatus((prev) => ({
       ...prev,
-      state: lanConnectedRef.current || cloudUserRef.current ? 'syncing' : 'saved',
+      state: activeAcct && (activeAcct.provider === 'cloud' || activeAcct.provider === 'lan') ? 'syncing' : 'saved',
       lastSavedAt: now,
     }));
 
@@ -302,24 +333,26 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       let syncedAny = false;
       let syncMode: SyncStatus['state'] = 'saved';
       let syncError: string | null = null;
+      const acct = accountRef.current;
 
-      if (lanConnectedRef.current) {
-        const ok = await pushLanData(dataRef.current, lastUpdatedRef.current, apiTokenRef.current);
+      if (acct?.provider === 'lan' && lanTokenRef.current) {
+        const ok = await pushLanData(dataRef.current, lastUpdatedRef.current, lanTokenRef.current);
         if (ok) {
           syncedAny = true;
           syncMode = 'synced-lan';
         }
       }
 
-      const client = getSupabaseClient();
-      const cUser = cloudUserRef.current;
-      if (client && cUser) {
-        const res = await pushCloudSnapshot(client, cUser.id, dataRef.current, lastUpdatedRef.current);
-        if (res.ok) {
-          syncedAny = true;
-          syncMode = 'synced-cloud';
-        } else {
-          syncError = res.error || 'Cloud sync failed';
+      if (acct?.provider === 'cloud') {
+        const client = getSupabaseClient();
+        if (client) {
+          const res = await pushCloudSnapshot(client, acct.id, dataRef.current, lastUpdatedRef.current);
+          if (res.ok) {
+            syncedAny = true;
+            syncMode = 'synced-cloud';
+          } else {
+            syncError = res.error || 'Cloud sync failed';
+          }
         }
       }
 
@@ -344,37 +377,42 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     [persistAndSync]
   );
 
-  // Pull & merge from LAN and Cloud
-  const pullRemoteAndMerge = useCallback(async () => {
+  // Pull & merge from LAN and Cloud for the currently signed-in account
+  const pullRemoteAndMerge = useCallback(async (overrideAccount?: AccountUser | null) => {
+    const acct = overrideAccount ?? accountRef.current;
+    if (!acct) return;
+
     let merged = dataRef.current;
     let changed = false;
     let mode: SyncStatus['state'] = 'saved';
 
-    // 1. LAN Server
-    const lan = await fetchLanData(apiTokenRef.current);
-    if (lan.ok) {
-      lanConnectedRef.current = true;
-      mode = 'synced-lan';
-      if (lan.data) {
-        merged = mergeLifeHubData(merged, lan.data);
-        changed = true;
-      } else {
-        // Seed empty LAN DB with our local data
-        await pushLanData(merged, lastUpdatedRef.current, apiTokenRef.current);
+    // 1. LAN Account Server Sync
+    if (acct.provider === 'lan' && lanTokenRef.current) {
+      const lan = await fetchLanData(lanTokenRef.current);
+      if (lan.ok) {
+        lanConnectedRef.current = true;
+        mode = 'synced-lan';
+        if (lan.data) {
+          merged = mergeLifeHubData(merged, lan.data);
+          changed = true;
+        } else {
+          await pushLanData(merged, lastUpdatedRef.current, lanTokenRef.current);
+        }
       }
     }
 
-    // 2. Supabase Cloud
-    const client = getSupabaseClient();
-    const cUser = cloudUserRef.current;
-    if (client && cUser) {
-      const cloud = await pullCloudSnapshot(client, cUser.id);
-      mode = 'synced-cloud';
-      if (cloud.data) {
-        merged = mergeLifeHubData(merged, cloud.data);
-        changed = true;
-      } else {
-        await pushCloudSnapshot(client, cUser.id, merged, lastUpdatedRef.current);
+    // 2. Supabase Cloud Account Sync
+    if (acct.provider === 'cloud') {
+      const client = getSupabaseClient();
+      if (client) {
+        const cloud = await pullCloudSnapshot(client, acct.id);
+        mode = 'synced-cloud';
+        if (cloud.data) {
+          merged = mergeLifeHubData(merged, cloud.data);
+          changed = true;
+        } else {
+          await pushCloudSnapshot(client, acct.id, merged, lastUpdatedRef.current);
+        }
       }
     }
 
@@ -383,20 +421,24 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       dataRef.current = merged;
       setData(merged);
       await saveLocalData(merged, now);
-      if (lanConnectedRef.current) {
-        await pushLanData(merged, now, apiTokenRef.current);
+      if (acct.provider === 'lan' && lanTokenRef.current) {
+        await pushLanData(merged, now, lanTokenRef.current);
+      } else if (acct.provider === 'cloud') {
+        const client = getSupabaseClient();
+        if (client) await pushCloudSnapshot(client, acct.id, merged, now);
       }
     }
 
     setSyncStatus((prev) => ({
       ...prev,
-      lanConnected: lanConnectedRef.current,
-      state: lanConnectedRef.current || cUser ? mode : 'saved',
-      lastSyncedAt: lanConnectedRef.current || cUser ? new Date().toISOString() : prev.lastSyncedAt,
+      lanConnected: acct.provider === 'lan' && lanConnectedRef.current,
+      cloudUserEmail: acct.provider === 'cloud' ? acct.email : null,
+      state: acct.provider === 'cloud' || acct.provider === 'lan' ? mode : 'saved',
+      lastSyncedAt: acct.provider === 'cloud' || acct.provider === 'lan' ? new Date().toISOString() : prev.lastSyncedAt,
     }));
   }, []);
 
-  // Initial hydration: IndexedDB -> Auth Gate Check -> LAN/Cloud (only when unlocked!)
+  // Initial hydration: IndexedDB -> Check Active Account Session -> Sync
   useEffect(() => {
     let active = true;
     (async () => {
@@ -406,48 +448,62 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setData(best.data);
       if (best.updatedAt) lastUpdatedRef.current = best.updatedAt;
 
-      const [info, authMeta] = await Promise.all([fetchServerInfo(), fetchLanAuthStatus()]);
+      const info = await fetchServerInfo();
       if (!active) return;
       if (info.ok) {
         lanConnectedRef.current = true;
+        setLanServerAvailable(true);
+        setLanHasAccounts(info.hasAccounts);
         setLanUrls(info.lanUrls);
       }
-      if (authMeta) {
-        remoteAuthRef.current = authMeta;
-        setRemoteAuthMeta(authMeta);
-      }
 
+      let restoredAccount: AccountUser | null = null;
+
+      // 1. Check Supabase Cloud Account session first if configured
       const client = getSupabaseClient();
       if (client) {
-        const { data: sessionData } = await client.auth.getSession();
-        const user = sessionData?.session?.user;
-        if (active && user) {
-          const cu = { id: user.id, email: user.email || '' };
-          cloudUserRef.current = cu;
-          setCloudUser(cu);
-          setSyncStatus((prev) => ({ ...prev, cloudUserEmail: cu.email }));
+        const ephemeral = localStorage.getItem('lifehub_cloud_ephemeral') === '1';
+        const hasSessionMarker = sessionStorage.getItem('lifehub_cloud_session_active') === '1';
+        if (ephemeral && !hasSessionMarker) {
+          // User chose NOT to stay signed in across browser closes
+          await client.auth.signOut().catch(() => {});
+        } else {
+          const { data: sessionData } = await client.auth.getSession();
+          const u = sessionData?.session?.user;
+          if (u) {
+            restoredAccount = {
+              id: u.id,
+              email: u.email || '',
+              displayName: (u.user_metadata?.display_name as string) || best.data.user.display_name || (u.email || 'Owner').split('@')[0],
+              provider: 'cloud',
+            };
+          }
         }
       }
 
-      // Determine active verification lock (remote LAN lock takes precedence over empty local device)
-      const effectiveVerifyHash = authMeta?.locked
-        ? authMeta.verify_hash
-        : best.data.security?.enabled
-        ? best.data.security.verify_hash
-        : '';
-
-      if (effectiveVerifyHash) {
-        const session = getSessionAuthToken();
-        if (session && constantTimeEqual(session.verifyHash, effectiveVerifyHash)) {
-          apiTokenRef.current = session.apiToken;
-          setIsUnlocked(true);
-          await pullRemoteAndMerge();
-        } else {
-          setIsUnlocked(false);
+      // 2. Check LAN Account Server session
+      if (!restoredAccount && info.ok) {
+        const token = getSavedLanToken();
+        if (token) {
+          const lanUser = await lanMe(token);
+          if (lanUser) {
+            lanTokenRef.current = token;
+            restoredAccount = lanUser;
+          } else {
+            clearLanToken();
+          }
         }
-      } else {
-        // First-time user: require setting up verification passcode before viewing dashboard
-        setIsUnlocked(false);
+      }
+
+      // 3. Check Local Device Account session
+      if (!restoredAccount && !client && !info.ok) {
+        restoredAccount = getSavedLocalSessionUser();
+      }
+
+      if (active && restoredAccount) {
+        accountRef.current = restoredAccount;
+        setAccount(restoredAccount);
+        await pullRemoteAndMerge(restoredAccount);
       }
 
       if (active) {
@@ -461,46 +517,84 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, [pullRemoteAndMerge]);
 
-  // Real-time SSE listener for LAN sync (only active when unlocked)
+  // Real-time sync listeners: Supabase Realtime (cloud) OR SSE (LAN) + visibility/online refresh
   useEffect(() => {
-    if (!hydrated || !isUnlocked || !lanConnectedRef.current) return;
+    if (!hydrated || !account) return;
+
+    let cleanupRealtime: (() => void) | null = null;
     let es: EventSource | null = null;
-    try {
-      const tokenParam = apiTokenRef.current ? `?token=${encodeURIComponent(apiTokenRef.current)}` : '';
-      es = new EventSource(`/api/events${tokenParam}`);
-      es.onmessage = (evt) => {
-        try {
-          const msg = JSON.parse(evt.data);
-          if (msg.type === 'sync' && msg.clientId !== getClientId()) {
-            void pullRemoteAndMerge();
+
+    if (account.provider === 'cloud') {
+      const client = getSupabaseClient();
+      if (client) {
+        cleanupRealtime = subscribeToCloudSnapshot(client, account.id, () => {
+          void pullRemoteAndMerge(account);
+        });
+      }
+    } else if (account.provider === 'lan' && lanTokenRef.current) {
+      try {
+        es = new EventSource(`/api/events?token=${encodeURIComponent(lanTokenRef.current)}`);
+        es.onmessage = (evt) => {
+          try {
+            const msg = JSON.parse(evt.data);
+            if (msg.type === 'sync' && msg.clientId !== getClientId()) {
+              void pullRemoteAndMerge(account);
+            }
+          } catch {
+            // ignore
           }
-        } catch {
-          // ignore
-        }
-      };
-    } catch {
-      // SSE optional
+        };
+      } catch {
+        // SSE optional
+      }
     }
 
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === 'visible' && lanConnectedRef.current) {
-        void pullRemoteAndMerge();
+    const onVisibleOrOnline = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        void pullRemoteAndMerge(account);
       }
-    }, 5000);
+    };
+    document.addEventListener('visibilitychange', onVisibleOrOnline);
+    window.addEventListener('online', onVisibleOrOnline);
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible' && (account.provider === 'lan' || account.provider === 'cloud')) {
+        void pullRemoteAndMerge(account);
+      }
+    }, 10_000);
 
     return () => {
+      if (cleanupRealtime) cleanupRealtime();
       if (es) es.close();
+      document.removeEventListener('visibilitychange', onVisibleOrOnline);
+      window.removeEventListener('online', onVisibleOrOnline);
       window.clearInterval(interval);
     };
-  }, [hydrated, isUnlocked, pullRemoteAndMerge]);
+  }, [hydrated, account, pullRemoteAndMerge]);
 
-  // Idle Auto-Lock Timer
-  const lockNow = useCallback(() => {
-    apiTokenRef.current = null;
-    clearSessionAuthToken();
+  // Sign Out / Lock Account
+  const signOutAccount = useCallback(async () => {
+    const current = accountRef.current;
     clearSessionGmailToken();
-    setIsUnlocked(false);
+    if (current?.provider === 'lan') {
+      await lanLogout(lanTokenRef.current);
+      lanTokenRef.current = null;
+    } else if (current?.provider === 'cloud') {
+      const client = getSupabaseClient();
+      if (client) await client.auth.signOut().catch(() => {});
+      sessionStorage.removeItem('lifehub_cloud_session_active');
+      localStorage.removeItem('lifehub_cloud_ephemeral');
+    } else {
+      clearLocalSessionUser();
+    }
+    accountRef.current = null;
+    setAccount(null);
+    setSyncStatus((prev) => ({ ...prev, cloudUserEmail: null, state: 'saved' }));
   }, []);
+
+  const lockNow = useCallback(() => {
+    void signOutAccount();
+  }, [signOutAccount]);
 
   useEffect(() => {
     if (!isUnlocked) return;
@@ -533,13 +627,13 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const flush = () => {
       if (!isUnlocked) return;
       void saveLocalData(dataRef.current, lastUpdatedRef.current);
-      if (lanConnectedRef.current && apiTokenRef.current) {
+      if (accountRef.current?.provider === 'lan' && lanTokenRef.current) {
         void fetch('/api/sync', {
           method: 'POST',
           keepalive: true,
           headers: {
             'Content-Type': 'application/json',
-            'X-LifeHub-Auth': apiTokenRef.current,
+            Authorization: `Bearer ${lanTokenRef.current}`,
           },
           body: JSON.stringify({
             data: dataRef.current,
@@ -1456,222 +1550,200 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     notify('Workspace reset to clean state', 'neutral');
   }, [commit, notify]);
 
-  // ======================== VERIFICATION & PRIVACY LOCK ========================
-  const needsAuthSetup = useMemo(() => {
-    if (remoteAuthMeta?.locked) return false;
-    return !(data.security && data.security.enabled);
-  }, [remoteAuthMeta, data.security]);
+  // ======================== UNIFIED ACCOUNT SYSTEM ========================
+  const signUpAccount: LifeHubContextValue['signUpAccount'] = useCallback(
+    async ({ email, password, displayName, remember }) => {
+      const cleanEmail = email.trim().toLowerCase();
+      const name = displayName.trim() || cleanEmail.split('@')[0] || 'Owner';
 
-  const authHint = useMemo(() => {
-    if (remoteAuthMeta?.locked) return remoteAuthMeta.hint || '';
-    return data.security?.hint || '';
-  }, [remoteAuthMeta, data.security]);
+      // 1. Supabase Cloud Account (syncs PC & Android anywhere)
+      const client = getSupabaseClient();
+      if (client) {
+        const { data: authData, error } = await client.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: { data: { display_name: name } },
+        });
+        if (error) return { ok: false, error: error.message };
+        if (authData.session && authData.user) {
+          sessionStorage.setItem('lifehub_cloud_session_active', '1');
+          localStorage.setItem('lifehub_cloud_ephemeral', remember ? '0' : '1');
+          const acct: AccountUser = {
+            id: authData.user.id,
+            email: authData.user.email || cleanEmail,
+            displayName: name,
+            provider: 'cloud',
+          };
+          accountRef.current = acct;
+          setAccount(acct);
+          commit((prev) => ({
+            ...prev,
+            user: { ...prev.user, id: acct.id, email: acct.email, display_name: name, updated_at: new Date().toISOString() },
+          }));
+          await pullRemoteAndMerge(acct);
+          notify('Account created & synced to cloud', 'success');
+          return { ok: true };
+        }
+        return { ok: true, needsEmailConfirm: true };
+      }
 
-  const setupPasscode: LifeHubContextValue['setupPasscode'] = useCallback(
-    (passcode, hint, ownerName) => {
-      const salt = generateSalt();
-      const recoveryKey = generateRecoveryKey();
-      const { verifyHash, apiToken, apiTokenHash } = deriveAuthBundle(passcode, salt);
-      const recoveryHash = hashRecoveryKey(recoveryKey, salt);
-      const now = new Date().toISOString();
+      // 2. Built-in LAN Account Server (syncs PC & Android on Wi-Fi)
+      if (lanConnectedRef.current) {
+        const res = await lanRegister(cleanEmail, password, name, remember);
+        if (!res.ok || !res.user || !res.token) {
+          return { ok: false, error: res.error || 'Could not create account.' };
+        }
+        lanTokenRef.current = res.token;
+        setLanHasAccounts(true);
+        accountRef.current = res.user;
+        setAccount(res.user);
+        commit((prev) => ({
+          ...prev,
+          user: { ...prev.user, id: res.user!.id, email: res.user!.email, display_name: name, updated_at: new Date().toISOString() },
+        }));
+        await pullRemoteAndMerge(res.user);
+        notify('Account created & synced on Wi-Fi', 'success');
+        return { ok: true };
+      }
 
-      const security: SecurityConfig = {
-        enabled: true,
-        salt,
-        verify_hash: verifyHash,
-        recovery_hash: recoveryHash,
-        api_token_hash: apiTokenHash,
-        hint: hint.trim(),
-        auto_lock: 'on-close',
-        updated_at: now,
-      };
-
-      apiTokenRef.current = apiToken;
-      saveSessionAuthToken(apiToken, verifyHash);
-      clearFailedAttempts();
-
+      // 3. Offline / Static Device Account
+      const res = localRegister(cleanEmail, password, name, remember);
+      if (!res.ok || !res.user) return { ok: false, error: res.error };
+      accountRef.current = res.user;
+      setAccount(res.user);
       commit((prev) => ({
         ...prev,
-        user: ownerName?.trim() ? { ...prev.user, display_name: ownerName.trim(), updated_at: now } : prev.user,
-        security,
+        user: { ...prev.user, id: res.user!.id, email: res.user!.email, display_name: name, updated_at: new Date().toISOString() },
       }));
-
-      setRemoteAuthMeta({
-        locked: true,
-        hasData: true,
-        salt,
-        verify_hash: verifyHash,
-        recovery_hash: recoveryHash,
-        hint: security.hint,
-      });
-
-      return { recoveryKey };
+      notify('Account created on this device', 'success');
+      return { ok: true, recoveryKey: res.recoveryKey };
     },
-    [commit]
+    [commit, pullRemoteAndMerge, notify]
   );
 
-  const finishSetupUnlock = useCallback(() => {
-    setIsUnlocked(true);
-    void pullRemoteAndMerge();
-  }, [pullRemoteAndMerge]);
-
-  const verifyPasscode: LifeHubContextValue['verifyPasscode'] = useCallback(
-    async (passcode) => {
+  const signInAccount: LifeHubContextValue['signInAccount'] = useCallback(
+    async ({ email, password, remember }) => {
       const lockout = getLockoutStatus();
       if (lockout.cooldownMs > 0) {
         return {
           ok: false,
-          error: `Too many attempts. Try again in ${Math.ceil(lockout.cooldownMs / 1000)}s.`,
+          error: `Too many failed attempts. Try again in ${Math.ceil(lockout.cooldownMs / 1000)}s.`,
           cooldownMs: lockout.cooldownMs,
         };
       }
 
-      const activeSalt = remoteAuthRef.current?.locked
-        ? remoteAuthRef.current.salt
-        : dataRef.current.security?.salt || '';
-      const expectedHash = remoteAuthRef.current?.locked
-        ? remoteAuthRef.current.verify_hash
-        : dataRef.current.security?.verify_hash || '';
+      const cleanEmail = email.trim().toLowerCase();
 
-      if (!activeSalt || !expectedHash) {
-        return { ok: false, error: 'Verification lock is not configured.' };
-      }
-
-      const { verifyHash, apiToken } = deriveAuthBundle(passcode, activeSalt);
-      if (!constantTimeEqual(verifyHash, expectedHash)) {
-        const fail = recordFailedAttempt();
-        if (fail.cooldownMs > 0) {
+      // 1. Supabase Cloud Account
+      const client = getSupabaseClient();
+      if (client) {
+        const { data: authData, error } = await client.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+        if (error || !authData.user) {
+          const fail = recordFailedAttempt();
           return {
             ok: false,
-            error: `Incorrect passcode. Locked for ${Math.ceil(fail.cooldownMs / 1000)}s.`,
-            cooldownMs: fail.cooldownMs,
+            error: error?.message || `Incorrect email or password (${fail.remainingAttempts} left).`,
+            cooldownMs: fail.cooldownMs || undefined,
           };
         }
+        clearFailedAttempts();
+        sessionStorage.setItem('lifehub_cloud_session_active', '1');
+        localStorage.setItem('lifehub_cloud_ephemeral', remember ? '0' : '1');
+        const acct: AccountUser = {
+          id: authData.user.id,
+          email: authData.user.email || cleanEmail,
+          displayName: (authData.user.user_metadata?.display_name as string) || cleanEmail.split('@')[0],
+          provider: 'cloud',
+        };
+        accountRef.current = acct;
+        setAccount(acct);
+        await pullRemoteAndMerge(acct);
+        notify('Signed in & synced with cloud', 'success');
+        return { ok: true };
+      }
+
+      // 2. LAN Account Server
+      if (lanConnectedRef.current) {
+        const res = await lanLogin(cleanEmail, password, remember);
+        if (!res.ok || !res.user || !res.token) {
+          const fail = recordFailedAttempt();
+          return {
+            ok: false,
+            error: res.error || `Incorrect email or password (${fail.remainingAttempts} left).`,
+            cooldownMs: fail.cooldownMs || undefined,
+          };
+        }
+        clearFailedAttempts();
+        lanTokenRef.current = res.token;
+        accountRef.current = res.user;
+        setAccount(res.user);
+        await pullRemoteAndMerge(res.user);
+        notify('Signed in & synced on Wi-Fi', 'success');
+        return { ok: true };
+      }
+
+      // 3. Local Device Account
+      const res = localLogin(cleanEmail, password, remember);
+      if (!res.ok || !res.user) {
+        const fail = recordFailedAttempt();
         return {
           ok: false,
-          error: `Incorrect passcode (${fail.remainingAttempts} ${fail.remainingAttempts === 1 ? 'try' : 'tries'} left).`,
+          error: res.error || `Incorrect email or password (${fail.remainingAttempts} left).`,
+          cooldownMs: fail.cooldownMs || undefined,
         };
       }
-
       clearFailedAttempts();
-      apiTokenRef.current = apiToken;
-      saveSessionAuthToken(apiToken, verifyHash);
-      setIsUnlocked(true);
-      await pullRemoteAndMerge();
+      accountRef.current = res.user;
+      setAccount(res.user);
       return { ok: true };
     },
-    [pullRemoteAndMerge]
+    [pullRemoteAndMerge, notify]
   );
 
-  const recoverWithKey: LifeHubContextValue['recoverWithKey'] = useCallback(
-    async (recoveryKey, newPasscode, hint) => {
-      const activeSalt = remoteAuthRef.current?.locked
-        ? remoteAuthRef.current.salt
-        : dataRef.current.security?.salt || '';
-      const expectedRecoveryHash = remoteAuthRef.current?.locked
-        ? remoteAuthRef.current.recovery_hash
-        : dataRef.current.security?.recovery_hash || '';
-
-      if (!activeSalt || !expectedRecoveryHash) {
-        return { ok: false, error: 'No recovery key configured.' };
-      }
-
-      const providedHash = hashRecoveryKey(recoveryKey, activeSalt);
-      if (!constantTimeEqual(providedHash, expectedRecoveryHash)) {
-        return { ok: false, error: 'Invalid recovery key. Check all characters (e.g. LH-XXXX-XXXX-XXXX).' };
-      }
-
-      const newSalt = generateSalt();
-      const newRecoveryKey = generateRecoveryKey();
-      const { verifyHash, apiToken, apiTokenHash } = deriveAuthBundle(newPasscode, newSalt);
-      const newRecoveryHash = hashRecoveryKey(newRecoveryKey, newSalt);
-      const now = new Date().toISOString();
-
-      const newSecurity: SecurityConfig = {
-        enabled: true,
-        salt: newSalt,
-        verify_hash: verifyHash,
-        recovery_hash: newRecoveryHash,
-        api_token_hash: apiTokenHash,
-        hint: hint.trim(),
-        auto_lock: dataRef.current.security?.auto_lock || 'on-close',
-        updated_at: now,
-      };
-
-      if (lanConnectedRef.current && remoteAuthRef.current?.locked) {
-        const ok = await recoverLanAuth(providedHash, newSecurity);
-        if (!ok) {
-          return { ok: false, error: 'Server rejected recovery key.' };
-        }
-      }
-
+  const recoverLocalAccount: LifeHubContextValue['recoverLocalAccount'] = useCallback(
+    async ({ email, recoveryKey, newPassword, remember }) => {
+      const res = localRecoverPassword(email, recoveryKey, newPassword, remember);
+      if (!res.ok || !res.user) return { ok: false, error: res.error };
       clearFailedAttempts();
-      apiTokenRef.current = apiToken;
-      saveSessionAuthToken(apiToken, verifyHash);
-
-      commit((prev) => ({ ...prev, security: newSecurity }));
-      setRemoteAuthMeta({
-        locked: true,
-        hasData: true,
-        salt: newSalt,
-        verify_hash: verifyHash,
-        recovery_hash: newRecoveryHash,
-        hint: newSecurity.hint,
-      });
-
-      return { ok: true, newRecoveryKey };
+      accountRef.current = res.user;
+      setAccount(res.user);
+      notify('Password reset', 'success');
+      return { ok: true, newRecoveryKey: res.newRecoveryKey };
     },
-    [commit]
+    [notify]
   );
 
-  const changePasscode: LifeHubContextValue['changePasscode'] = useCallback(
-    (currentPasscode, newPasscode, hint) => {
-      const sec = dataRef.current.security;
-      if (!sec || !sec.enabled) {
-        return { ok: false, error: 'No passcode currently set.' };
-      }
-      const currentBundle = deriveAuthBundle(currentPasscode, sec.salt);
-      if (!constantTimeEqual(currentBundle.verifyHash, sec.verify_hash)) {
-        return { ok: false, error: 'Current passcode is incorrect.' };
-      }
-      const newSalt = generateSalt();
-      const newRecoveryKey = generateRecoveryKey();
-      const { verifyHash, apiToken, apiTokenHash } = deriveAuthBundle(newPasscode, newSalt);
-      const newRecoveryHash = hashRecoveryKey(newRecoveryKey, newSalt);
-      const now = new Date().toISOString();
+  const changeAccountPassword: LifeHubContextValue['changeAccountPassword'] = useCallback(
+    async (currentPassword, newPassword) => {
+      const acct = accountRef.current;
+      if (!acct) return { ok: false, error: 'Not signed in.' };
 
-      const nextSecurity: SecurityConfig = {
-        ...sec,
-        salt: newSalt,
-        verify_hash: verifyHash,
-        recovery_hash: newRecoveryHash,
-        api_token_hash: apiTokenHash,
-        hint: hint.trim(),
-        updated_at: now,
-      };
-
-      // Push using the OLD apiToken first? Server accepts update because apiTokenRef still holds old token during push,
-      // then switch apiTokenRef to new token right after.
-      const prevToken = apiTokenRef.current;
-      commit((prev) => ({ ...prev, security: nextSecurity }));
-      if (lanConnectedRef.current) {
-        void pushLanData({ ...dataRef.current, security: nextSecurity }, now, prevToken);
+      if (acct.provider === 'cloud') {
+        const client = getSupabaseClient();
+        if (!client) return { ok: false, error: 'Cloud client unavailable.' };
+        // Re-verify current password first
+        const check = await client.auth.signInWithPassword({ email: acct.email, password: currentPassword });
+        if (check.error) return { ok: false, error: 'Current password is incorrect.' };
+        const { error } = await client.auth.updateUser({ password: newPassword });
+        if (error) return { ok: false, error: error.message };
+        notify('Cloud account password updated', 'success');
+        return { ok: true };
       }
 
-      apiTokenRef.current = apiToken;
-      saveSessionAuthToken(apiToken, verifyHash);
-      setRemoteAuthMeta({
-        locked: true,
-        hasData: true,
-        salt: newSalt,
-        verify_hash: verifyHash,
-        recovery_hash: newRecoveryHash,
-        hint: nextSecurity.hint,
-      });
-      notify('Passcode updated', 'success');
-      return { ok: true, newRecoveryKey };
+      if (acct.provider === 'lan' && lanTokenRef.current) {
+        const res = await lanChangePassword(lanTokenRef.current, currentPassword, newPassword);
+        if (res.ok) notify('Account password updated', 'success');
+        return res;
+      }
+
+      const res = localChangePassword(acct.email, currentPassword, newPassword);
+      if (res.ok) notify('Account password updated', 'success');
+      return res;
     },
-    [commit, notify]
+    [notify]
   );
 
   const setAutoLockMode: LifeHubContextValue['setAutoLockMode'] = useCallback(
@@ -1679,7 +1751,16 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const now = new Date().toISOString();
       commit((prev) => ({
         ...prev,
-        security: prev.security ? { ...prev.security, auto_lock: mode, updated_at: now } : prev.security,
+        security: {
+          enabled: true,
+          salt: prev.security?.salt || '',
+          verify_hash: prev.security?.verify_hash || '',
+          recovery_hash: prev.security?.recovery_hash || '',
+          api_token_hash: prev.security?.api_token_hash || '',
+          hint: prev.security?.hint || '',
+          auto_lock: mode,
+          updated_at: now,
+        },
       }));
       notify('Auto-lock preference updated', 'success');
     },
@@ -1691,52 +1772,37 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     saveSupabaseConfig(cfg);
     setSupabaseConfig(cfg);
     if (!cfg) {
-      setCloudUser(null);
       setSyncStatus((prev) => ({ ...prev, cloudUserEmail: null }));
     }
   }, []);
 
   const signInCloud = useCallback(
     async (email: string, password: string) => {
-      const client = getSupabaseClient();
-      if (!client) return { ok: false, error: 'Configure Supabase URL and Anon Key first' };
-      const { data: authData, error } = await client.auth.signInWithPassword({ email, password });
-      if (error || !authData.user) return { ok: false, error: error?.message || 'Sign-in failed' };
-      const cu = { id: authData.user.id, email: authData.user.email || email };
-      cloudUserRef.current = cu;
-      setCloudUser(cu);
-      setSyncStatus((prev) => ({ ...prev, cloudUserEmail: cu.email }));
-      await pullRemoteAndMerge();
-      notify('Signed in & synced with cloud', 'success');
-      return { ok: true };
+      return signInAccount({ email, password, remember: true });
     },
-    [pullRemoteAndMerge, notify]
+    [signInAccount]
   );
 
-  const signUpCloud = useCallback(async (email: string, password: string) => {
-    const client = getSupabaseClient();
-    if (!client) return { ok: false, error: 'Configure Supabase URL and Anon Key first' };
-    const { error } = await client.auth.signUp({ email, password });
-    if (error) return { ok: false, error: error.message };
-    return { ok: true };
-  }, []);
+  const signUpCloud = useCallback(
+    async (email: string, password: string) => {
+      return signUpAccount({ email, password, displayName: email.split('@')[0], remember: true });
+    },
+    [signUpAccount]
+  );
 
   const signOutCloud = useCallback(async () => {
-    const client = getSupabaseClient();
-    if (client) await client.auth.signOut();
-    cloudUserRef.current = null;
-    setCloudUser(null);
-    setSyncStatus((prev) => ({ ...prev, cloudUserEmail: null, state: lanConnectedRef.current ? 'synced-lan' : 'saved' }));
-    notify('Signed out of cloud sync', 'neutral');
-  }, [notify]);
+    await signOutAccount();
+    notify('Signed out', 'neutral');
+  }, [signOutAccount, notify]);
 
   const value: LifeHubContextValue = {
     data,
     hydrated,
     authReady,
     isUnlocked,
-    needsAuthSetup,
-    authHint,
+    account,
+    availableProvider,
+    hasExistingAccount,
     syncStatus,
     lanUrls,
     toasts,
@@ -1747,13 +1813,13 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     clearFocusTarget,
     notify,
     dismissToast,
-    setupPasscode,
-    finishSetupUnlock,
-    verifyPasscode,
-    recoverWithKey,
-    changePasscode,
+    signUpAccount,
+    signInAccount,
+    recoverLocalAccount,
+    changeAccountPassword,
     setAutoLockMode,
     lockNow,
+    signOutAccount,
     activeProjects,
     activeTasks,
     activeWallets,

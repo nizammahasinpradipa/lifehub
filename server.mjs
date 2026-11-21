@@ -8,7 +8,10 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
 const DIST_DIR = path.resolve(process.cwd(), 'dist');
 const DATA_DIR = path.resolve(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'lifehub-db.json');
+const USERS_DIR = path.join(DATA_DIR, 'users');
+const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
+const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
+const LEGACY_DB_FILE = path.join(DATA_DIR, 'lifehub-db.json');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -26,70 +29,154 @@ const MIME_TYPES = {
   '.woff2': 'font/woff2',
 };
 
-const sseClients = new Set();
+// Map<userId, Set<http.ServerResponse>>
+const sseClientsByUser = new Map();
 
-function ensureDbFile() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(
-      DB_FILE,
-      JSON.stringify({ version: 1, updatedAt: null, auth: null, data: null }, null, 2),
-      'utf-8'
-    );
-  }
+function ensureStorageDirs() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(USERS_DIR)) fs.mkdirSync(USERS_DIR, { recursive: true });
+  if (!fs.existsSync(ACCOUNTS_FILE)) fs.writeFileSync(ACCOUNTS_FILE, '[]', 'utf-8');
+  if (!fs.existsSync(SESSIONS_FILE)) fs.writeFileSync(SESSIONS_FILE, '{}', 'utf-8');
 }
 
-function readDbRecord() {
-  ensureDbFile();
+function atomicWriteJson(filePath, obj) {
+  ensureStorageDirs();
+  const tmp = `${filePath}.${crypto.randomBytes(4).toString('hex')}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(obj, null, 2), 'utf-8');
+  fs.renameSync(tmp, filePath);
+}
+
+function readAccounts() {
+  ensureStorageDirs();
   try {
-    const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
-    return {
-      version: 1,
-      updatedAt: parsed?.updatedAt || null,
-      auth: parsed?.auth || parsed?.data?.security || null,
-      data: parsed?.data || null,
-    };
+    const parsed = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, 'utf-8'));
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return { version: 1, updatedAt: null, auth: null, data: null };
+    return [];
   }
 }
 
-function writeDbRecord(record) {
-  ensureDbFile();
-  const tmpFile = `${DB_FILE}.tmp`;
-  fs.writeFileSync(tmpFile, JSON.stringify(record, null, 2), 'utf-8');
-  fs.renameSync(tmpFile, DB_FILE);
+function readSessions() {
+  ensureStorageDirs();
+  try {
+    const parsed = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf-8'));
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
-function hashServerToken(token) {
-  return crypto.createHash('sha256').update(`server-token:${token}`).digest('hex');
+function hashPassword(password, salt) {
+  return crypto.pbkdf2Sync(password, salt, 60000, 32, 'sha256').toString('hex');
 }
 
-function isAuthorized(req, reqUrl, record) {
-  const auth = record.auth;
-  if (!auth || !auth.enabled || !auth.api_token_hash) return true;
-  const headerToken = req.headers['x-lifehub-auth'];
-  const queryToken = reqUrl.searchParams.get('token');
-  const provided = typeof headerToken === 'string' ? headerToken : queryToken || '';
-  if (!provided) return false;
-  const providedHash = hashServerToken(provided);
-  const a = Buffer.from(providedHash, 'utf-8');
-  const b = Buffer.from(String(auth.api_token_hash), 'utf-8');
-  if (a.length !== b.length) return false;
-  return crypto.timingSafeEqual(a, b);
+function verifyPassword(password, salt, expectedHex) {
+  const actual = hashPassword(password, salt);
+  const a = Buffer.from(actual, 'utf-8');
+  const b = Buffer.from(String(expectedHex || ''), 'utf-8');
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-function broadcastUpdate(updatedAt, clientId) {
+function createSessionToken(userId) {
+  const token = crypto.randomBytes(32).toString('hex');
+  const sessions = readSessions();
+  sessions[token] = {
+    userId,
+    createdAt: new Date().toISOString(),
+    expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days max server TTL
+  };
+  atomicWriteJson(SESSIONS_FILE, sessions);
+  return token;
+}
+
+function getAuthenticatedUser(req, reqUrl) {
+  const authHeader = req.headers['authorization'] || '';
+  const bearer = typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const customHeader = typeof req.headers['x-lifehub-session'] === 'string' ? req.headers['x-lifehub-session'].trim() : '';
+  const queryToken = reqUrl.searchParams.get('token') || '';
+  const token = bearer || customHeader || queryToken;
+  if (!token) return null;
+
+  const sessions = readSessions();
+  const sess = sessions[token];
+  if (!sess) return null;
+  if (sess.expiresAt && sess.expiresAt < Date.now()) {
+    delete sessions[token];
+    atomicWriteJson(SESSIONS_FILE, sessions);
+    return null;
+  }
+  const accounts = readAccounts();
+  const account = accounts.find((a) => a.id === sess.userId);
+  if (!account) return null;
+  return { account, token };
+}
+
+function getUserDbFile(userId) {
+  const safe = String(userId).replace(/[^a-zA-Z0-9_-]/g, '');
+  return path.join(USERS_DIR, `${safe}.json`);
+}
+
+function readUserRecord(userId) {
+  ensureStorageDirs();
+  const file = getUserDbFile(userId);
+  if (!fs.existsSync(file)) {
+    // Migrate legacy single-user file for first registered account if present
+    if (fs.existsSync(LEGACY_DB_FILE)) {
+      try {
+        const legacy = JSON.parse(fs.readFileSync(LEGACY_DB_FILE, 'utf-8'));
+        if (legacy?.data) {
+          atomicWriteJson(file, { version: 1, updatedAt: legacy.updatedAt || new Date().toISOString(), data: legacy.data });
+          return { version: 1, updatedAt: legacy.updatedAt || null, data: legacy.data };
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return { version: 1, updatedAt: null, data: null };
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    return { version: 1, updatedAt: parsed?.updatedAt || null, data: parsed?.data || null };
+  } catch {
+    return { version: 1, updatedAt: null, data: null };
+  }
+}
+
+function broadcastUserSync(userId, updatedAt, clientId) {
+  const set = sseClientsByUser.get(userId);
+  if (!set) return;
   const payload = `data: ${JSON.stringify({ type: 'sync', updatedAt, clientId })}\n\n`;
-  for (const res of sseClients) {
+  for (const res of set) {
     try {
       res.write(payload);
     } catch {
-      sseClients.delete(res);
+      set.delete(res);
     }
   }
+}
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk.toString('utf-8');
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (err) {
+        reject(err);
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function sendJson(res, status, obj) {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+  res.statusCode = status;
+  res.end(JSON.stringify(obj));
 }
 
 function getLanUrls(port) {
@@ -105,158 +192,181 @@ function getLanUrls(port) {
   return urls;
 }
 
-ensureDbFile();
+ensureStorageDirs();
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const reqUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const pathname = reqUrl.pathname;
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-LifeHub-Auth');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-LifeHub-Session');
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
     res.end();
     return;
   }
 
+  // Health & LAN discovery
   if (pathname === '/api/health') {
-    res.setHeader('Content-Type', 'application/json');
-    res.statusCode = 200;
-    res.end(
-      JSON.stringify({
-        ok: true,
-        mode: 'lifehub-server',
-        lanUrls: getLanUrls(PORT),
-        time: new Date().toISOString(),
-      })
-    );
-    return;
-  }
-
-  // Public auth status: returns ONLY lock metadata — NEVER returns tasks, expenses, or notes
-  if (pathname === '/api/auth/status' && req.method === 'GET') {
-    const record = readDbRecord();
-    const auth = record.auth;
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'no-store');
-    res.statusCode = 200;
-    res.end(
-      JSON.stringify({
-        locked: Boolean(auth && auth.enabled),
-        hasData: Boolean(record.data),
-        salt: auth?.enabled ? auth.salt : '',
-        verify_hash: auth?.enabled ? auth.verify_hash : '',
-        recovery_hash: auth?.enabled ? auth.recovery_hash : '',
-        hint: auth?.enabled ? auth.hint || '' : '',
-      })
-    );
-    return;
-  }
-
-  // Recovery key reset endpoint for LAN devices
-  if (pathname === '/api/auth/recover' && req.method === 'POST') {
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk.toString('utf-8');
+    sendJson(res, 200, {
+      ok: true,
+      mode: 'lifehub-account-server',
+      hasAccounts: readAccounts().length > 0,
+      lanUrls: getLanUrls(PORT),
+      time: new Date().toISOString(),
     });
-    req.on('end', () => {
-      res.setHeader('Content-Type', 'application/json');
-      try {
-        const { recoveryHash, newAuth } = JSON.parse(body);
-        const record = readDbRecord();
-        if (!record.auth || !record.auth.recovery_hash) {
-          res.statusCode = 400;
-          res.end(JSON.stringify({ error: 'No recovery lock configured' }));
-          return;
-        }
-        const a = Buffer.from(String(recoveryHash || ''), 'utf-8');
-        const b = Buffer.from(String(record.auth.recovery_hash), 'utf-8');
-        if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
-          res.statusCode = 403;
-          res.end(JSON.stringify({ error: 'Invalid recovery key' }));
-          return;
-        }
-        const nextRecord = {
-          ...record,
-          auth: newAuth,
-          data: record.data ? { ...record.data, security: newAuth } : record.data,
-          updatedAt: new Date().toISOString(),
-        };
-        writeDbRecord(nextRecord);
-        res.statusCode = 200;
-        res.end(JSON.stringify({ ok: true }));
-      } catch {
-        res.statusCode = 400;
-        res.end(JSON.stringify({ error: 'Invalid request' }));
+    return;
+  }
+
+  // Account: Register
+  if (pathname === '/api/account/register' && req.method === 'POST') {
+    try {
+      const { email, password, displayName } = await readJsonBody(req);
+      const cleanEmail = String(email || '').trim().toLowerCase();
+      const pass = String(password || '');
+      if (!cleanEmail || !cleanEmail.includes('@')) {
+        return sendJson(res, 400, { error: 'Please enter a valid email address.' });
       }
-    });
-    return;
+      if (pass.length < 6) {
+        return sendJson(res, 400, { error: 'Password must be at least 6 characters.' });
+      }
+      const accounts = readAccounts();
+      if (accounts.some((a) => a.email === cleanEmail)) {
+        return sendJson(res, 409, { error: 'An account with this email already exists. Please sign in.' });
+      }
+      const salt = crypto.randomBytes(16).toString('hex');
+      const account = {
+        id: `usr_${crypto.randomUUID()}`,
+        email: cleanEmail,
+        displayName: String(displayName || '').trim() || cleanEmail.split('@')[0],
+        salt,
+        passwordHash: hashPassword(pass, salt),
+        createdAt: new Date().toISOString(),
+      };
+      accounts.push(account);
+      atomicWriteJson(ACCOUNTS_FILE, accounts);
+      const token = createSessionToken(account.id);
+      return sendJson(res, 200, {
+        ok: true,
+        token,
+        user: { id: account.id, email: account.email, displayName: account.displayName },
+      });
+    } catch {
+      return sendJson(res, 400, { error: 'Invalid registration payload.' });
+    }
   }
 
-  if (pathname === '/api/events') {
-    const record = readDbRecord();
-    if (!isAuthorized(req, reqUrl, record)) {
-      res.statusCode = 401;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Verification required' }));
-      return;
+  // Account: Sign In
+  if (pathname === '/api/account/login' && req.method === 'POST') {
+    try {
+      const { email, password } = await readJsonBody(req);
+      const cleanEmail = String(email || '').trim().toLowerCase();
+      const pass = String(password || '');
+      const accounts = readAccounts();
+      const account = accounts.find((a) => a.email === cleanEmail);
+      if (!account || !verifyPassword(pass, account.salt, account.passwordHash)) {
+        return sendJson(res, 401, { error: 'Incorrect email or password.' });
+      }
+      const token = createSessionToken(account.id);
+      return sendJson(res, 200, {
+        ok: true,
+        token,
+        user: { id: account.id, email: account.email, displayName: account.displayName },
+      });
+    } catch {
+      return sendJson(res, 400, { error: 'Invalid sign-in payload.' });
     }
+  }
+
+  // Account: Current session check
+  if (pathname === '/api/account/me' && req.method === 'GET') {
+    const auth = getAuthenticatedUser(req, reqUrl);
+    if (!auth) return sendJson(res, 401, { error: 'Not signed in' });
+    return sendJson(res, 200, {
+      ok: true,
+      user: { id: auth.account.id, email: auth.account.email, displayName: auth.account.displayName },
+    });
+  }
+
+  // Account: Sign Out
+  if (pathname === '/api/account/logout' && req.method === 'POST') {
+    const auth = getAuthenticatedUser(req, reqUrl);
+    if (auth) {
+      const sessions = readSessions();
+      delete sessions[auth.token];
+      atomicWriteJson(SESSIONS_FILE, sessions);
+    }
+    return sendJson(res, 200, { ok: true });
+  }
+
+  // Account: Change Password
+  if (pathname === '/api/account/password' && req.method === 'POST') {
+    const auth = getAuthenticatedUser(req, reqUrl);
+    if (!auth) return sendJson(res, 401, { error: 'Not signed in' });
+    try {
+      const { currentPassword, newPassword } = await readJsonBody(req);
+      if (!verifyPassword(String(currentPassword || ''), auth.account.salt, auth.account.passwordHash)) {
+        return sendJson(res, 403, { error: 'Current password is incorrect.' });
+      }
+      if (String(newPassword || '').length < 6) {
+        return sendJson(res, 400, { error: 'New password must be at least 6 characters.' });
+      }
+      const newSalt = crypto.randomBytes(16).toString('hex');
+      const accounts = readAccounts().map((a) =>
+        a.id === auth.account.id ? { ...a, salt: newSalt, passwordHash: hashPassword(String(newPassword), newSalt) } : a
+      );
+      atomicWriteJson(ACCOUNTS_FILE, accounts);
+      return sendJson(res, 200, { ok: true });
+    } catch {
+      return sendJson(res, 400, { error: 'Invalid request' });
+    }
+  }
+
+  // Realtime SSE stream scoped to signed-in account
+  if (pathname === '/api/events') {
+    const auth = getAuthenticatedUser(req, reqUrl);
+    if (!auth) return sendJson(res, 401, { error: 'Sign in required' });
+    const userId = auth.account.id;
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
     });
     res.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
-    sseClients.add(res);
+    if (!sseClientsByUser.has(userId)) sseClientsByUser.set(userId, new Set());
+    sseClientsByUser.get(userId).add(res);
     req.on('close', () => {
-      sseClients.delete(res);
+      sseClientsByUser.get(userId)?.delete(res);
     });
     return;
   }
 
+  // Per-account Data Sync
   if (pathname === '/api/sync') {
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'no-store');
-    const existing = readDbRecord();
-
-    if (!isAuthorized(req, reqUrl, existing)) {
-      res.statusCode = 401;
-      res.end(JSON.stringify({ error: 'Verification required' }));
-      return;
-    }
+    const auth = getAuthenticatedUser(req, reqUrl);
+    if (!auth) return sendJson(res, 401, { error: 'Sign in required' });
+    const userId = auth.account.id;
 
     if (req.method === 'GET') {
-      res.statusCode = 200;
-      res.end(JSON.stringify({ version: 1, updatedAt: existing.updatedAt, data: existing.data }));
-      return;
+      const record = readUserRecord(userId);
+      return sendJson(res, 200, record);
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
-      let body = '';
-      req.on('data', (chunk) => {
-        body += chunk.toString('utf-8');
-      });
-      req.on('end', () => {
-        try {
-          const payload = JSON.parse(body);
-          const nextAuth = payload.data?.security || existing.auth || null;
-          const record = {
-            version: 1,
-            updatedAt: payload.updatedAt || new Date().toISOString(),
-            auth: nextAuth,
-            data: payload.data,
-          };
-          writeDbRecord(record);
-          broadcastUpdate(record.updatedAt, payload.clientId || null);
-          res.statusCode = 200;
-          res.end(JSON.stringify({ ok: true, updatedAt: record.updatedAt }));
-        } catch (err) {
-          res.statusCode = 400;
-          res.end(JSON.stringify({ error: err?.message || 'Invalid JSON' }));
-        }
-      });
-      return;
+      try {
+        const payload = await readJsonBody(req);
+        const record = {
+          version: 1,
+          updatedAt: payload.updatedAt || new Date().toISOString(),
+          data: payload.data,
+        };
+        atomicWriteJson(getUserDbFile(userId), record);
+        broadcastUserSync(userId, record.updatedAt, payload.clientId || null);
+        return sendJson(res, 200, { ok: true, updatedAt: record.updatedAt });
+      } catch (err) {
+        return sendJson(res, 400, { error: err?.message || 'Invalid JSON' });
+      }
     }
   }
 
@@ -292,10 +402,10 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, HOST, () => {
   const lanUrls = getLanUrls(PORT);
-  console.log('\n  LifeHub is running!');
+  console.log('\n  LifeHub Account & Sync Server is running!');
   console.log(`  PC:      http://localhost:${PORT}`);
   if (lanUrls.length > 0) {
-    lanUrls.forEach((url) => console.log(`  Android: ${url}  (open on phone over same Wi-Fi)`));
+    lanUrls.forEach((url) => console.log(`  Android: ${url}  (sign in with same account over Wi-Fi)`));
   }
-  console.log(`  Data:    ${DB_FILE}\n`);
+  console.log(`  Data:    ${DATA_DIR}\n`);
 });

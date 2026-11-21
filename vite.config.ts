@@ -6,150 +6,195 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'lifehub-db.json');
+const USERS_DIR = path.join(DATA_DIR, 'users');
+const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
+const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 
-function ensureDbFile() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({ version: 1, updatedAt: null, auth: null, data: null }, null, 2), 'utf-8');
-  }
+function ensureDirs() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(USERS_DIR)) fs.mkdirSync(USERS_DIR, { recursive: true });
+  if (!fs.existsSync(ACCOUNTS_FILE)) fs.writeFileSync(ACCOUNTS_FILE, '[]', 'utf-8');
+  if (!fs.existsSync(SESSIONS_FILE)) fs.writeFileSync(SESSIONS_FILE, '{}', 'utf-8');
 }
 
-function readDbRecord() {
-  ensureDbFile();
+function readJson(file: string, fallback: any) {
+  ensureDirs();
   try {
-    const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
-    return {
-      version: 1,
-      updatedAt: parsed?.updatedAt || null,
-      auth: parsed?.auth || parsed?.data?.security || null,
-      data: parsed?.data || null,
-    };
+    return JSON.parse(fs.readFileSync(file, 'utf-8'));
   } catch {
-    return { version: 1, updatedAt: null, auth: null, data: null };
+    return fallback;
   }
 }
 
-function isAuthorized(req: any, record: any) {
-  const auth = record.auth;
-  if (!auth || !auth.enabled || !auth.api_token_hash) return true;
-  const provided = typeof req.headers['x-lifehub-auth'] === 'string' ? req.headers['x-lifehub-auth'] : '';
-  if (!provided) return false;
-  const hash = crypto.createHash('sha256').update(`server-token:${provided}`).digest('hex');
-  const a = Buffer.from(hash, 'utf-8');
-  const b = Buffer.from(String(auth.api_token_hash), 'utf-8');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+function writeJson(file: string, obj: any) {
+  ensureDirs();
+  const tmp = `${file}.${crypto.randomBytes(4).toString('hex')}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(obj, null, 2), 'utf-8');
+  fs.renameSync(tmp, file);
+}
+
+function hashPassword(password: string, salt: string) {
+  return crypto.pbkdf2Sync(password, salt, 60000, 32, 'sha256').toString('hex');
+}
+
+function getAuth(req: any) {
+  const h = req.headers['authorization'] || '';
+  const bearer = typeof h === 'string' && h.startsWith('Bearer ') ? h.slice(7).trim() : '';
+  const custom = typeof req.headers['x-lifehub-session'] === 'string' ? req.headers['x-lifehub-session'].trim() : '';
+  const token = bearer || custom;
+  if (!token) return null;
+  const sessions = readJson(SESSIONS_FILE, {});
+  const sess = sessions[token];
+  if (!sess || (sess.expiresAt && sess.expiresAt < Date.now())) return null;
+  const accounts = readJson(ACCOUNTS_FILE, []);
+  const account = accounts.find((a: any) => a.id === sess.userId);
+  return account ? { account, token } : null;
+}
+
+function readBody(req: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (c: Buffer) => (body += c.toString('utf-8')));
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });
+}
+
+function sendJson(res: any, status: number, obj: any) {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+  res.statusCode = status;
+  res.end(JSON.stringify(obj));
 }
 
 function localSyncApiPlugin() {
   return {
-    name: 'lifehub-local-sync-api',
+    name: 'lifehub-local-account-api',
     configureServer(server: any) {
-      ensureDbFile();
-
-      server.middlewares.use('/api/auth/status', (_req: any, res: any) => {
-        const record = readDbRecord();
-        const auth = record.auth;
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Cache-Control', 'no-store');
-        res.statusCode = 200;
-        res.end(
-          JSON.stringify({
-            locked: Boolean(auth && auth.enabled),
-            hasData: Boolean(record.data),
-            salt: auth?.enabled ? auth.salt : '',
-            verify_hash: auth?.enabled ? auth.verify_hash : '',
-            recovery_hash: auth?.enabled ? auth.recovery_hash : '',
-            hint: auth?.enabled ? auth.hint || '' : '',
-          })
-        );
-      });
-
-      server.middlewares.use('/api/auth/recover', (req: any, res: any) => {
-        let body = '';
-        req.on('data', (chunk: Buffer) => {
-          body += chunk.toString('utf-8');
-        });
-        req.on('end', () => {
-          res.setHeader('Content-Type', 'application/json');
-          try {
-            const { recoveryHash, newAuth } = JSON.parse(body);
-            const record = readDbRecord();
-            if (!record.auth || record.auth.recovery_hash !== recoveryHash) {
-              res.statusCode = 403;
-              res.end(JSON.stringify({ error: 'Invalid recovery key' }));
-              return;
-            }
-            const next = {
-              ...record,
-              auth: newAuth,
-              data: record.data ? { ...record.data, security: newAuth } : record.data,
-              updatedAt: new Date().toISOString(),
-            };
-            fs.writeFileSync(DB_FILE, JSON.stringify(next, null, 2), 'utf-8');
-            res.statusCode = 200;
-            res.end(JSON.stringify({ ok: true }));
-          } catch {
-            res.statusCode = 400;
-            res.end(JSON.stringify({ error: 'Invalid request' }));
-          }
-        });
-      });
-
-      server.middlewares.use('/api/sync', (req: any, res: any, next: any) => {
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Cache-Control', 'no-store');
-        const existing = readDbRecord();
-
-        if (!isAuthorized(req, existing)) {
-          res.statusCode = 401;
-          res.end(JSON.stringify({ error: 'Verification required' }));
-          return;
-        }
-
-        if (req.method === 'GET') {
-          res.statusCode = 200;
-          res.end(JSON.stringify({ version: 1, updatedAt: existing.updatedAt, data: existing.data }));
-          return;
-        }
-
-        if (req.method === 'POST' || req.method === 'PUT') {
-          let body = '';
-          req.on('data', (chunk: Buffer) => {
-            body += chunk.toString('utf-8');
-          });
-          req.on('end', () => {
-            try {
-              const payload = JSON.parse(body);
-              ensureDbFile();
-              const tmpFile = `${DB_FILE}.tmp`;
-              const record = {
-                version: 1,
-                updatedAt: payload.updatedAt || new Date().toISOString(),
-                auth: payload.data?.security || existing.auth || null,
-                data: payload.data,
-              };
-              fs.writeFileSync(tmpFile, JSON.stringify(record, null, 2), 'utf-8');
-              fs.renameSync(tmpFile, DB_FILE);
-              res.statusCode = 200;
-              res.end(JSON.stringify({ ok: true, updatedAt: record.updatedAt }));
-            } catch (err: any) {
-              res.statusCode = 400;
-              res.end(JSON.stringify({ error: err?.message || 'Invalid JSON payload' }));
-            }
-          });
-          return;
-        }
-
-        next();
-      });
+      ensureDirs();
 
       server.middlewares.use('/api/health', (_req: any, res: any) => {
-        res.setHeader('Content-Type', 'application/json');
-        res.statusCode = 200;
-        res.end(JSON.stringify({ ok: true, mode: 'dev-local-sync', time: new Date().toISOString() }));
+        const accounts = readJson(ACCOUNTS_FILE, []);
+        sendJson(res, 200, {
+          ok: true,
+          mode: 'dev-account-server',
+          hasAccounts: accounts.length > 0,
+          lanUrls: [],
+          time: new Date().toISOString(),
+        });
+      });
+
+      server.middlewares.use('/api/account/register', async (req: any, res: any) => {
+        if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
+        try {
+          const { email, password, displayName } = await readBody(req);
+          const cleanEmail = String(email || '').trim().toLowerCase();
+          const pass = String(password || '');
+          if (!cleanEmail || !cleanEmail.includes('@')) return sendJson(res, 400, { error: 'Valid email required.' });
+          if (pass.length < 6) return sendJson(res, 400, { error: 'Password must be at least 6 characters.' });
+          const accounts = readJson(ACCOUNTS_FILE, []);
+          if (accounts.some((a: any) => a.email === cleanEmail)) {
+            return sendJson(res, 409, { error: 'Account already exists. Sign in instead.' });
+          }
+          const salt = crypto.randomBytes(16).toString('hex');
+          const account = {
+            id: `usr_${crypto.randomUUID()}`,
+            email: cleanEmail,
+            displayName: String(displayName || '').trim() || cleanEmail.split('@')[0],
+            salt,
+            passwordHash: hashPassword(pass, salt),
+            createdAt: new Date().toISOString(),
+          };
+          accounts.push(account);
+          writeJson(ACCOUNTS_FILE, accounts);
+          const token = crypto.randomBytes(32).toString('hex');
+          const sessions = readJson(SESSIONS_FILE, {});
+          sessions[token] = { userId: account.id, createdAt: new Date().toISOString(), expiresAt: Date.now() + 30 * 86400_000 };
+          writeJson(SESSIONS_FILE, sessions);
+          sendJson(res, 200, { ok: true, token, user: { id: account.id, email: account.email, displayName: account.displayName } });
+        } catch {
+          sendJson(res, 400, { error: 'Invalid request' });
+        }
+      });
+
+      server.middlewares.use('/api/account/login', async (req: any, res: any) => {
+        if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
+        try {
+          const { email, password } = await readBody(req);
+          const cleanEmail = String(email || '').trim().toLowerCase();
+          const accounts = readJson(ACCOUNTS_FILE, []);
+          const account = accounts.find((a: any) => a.email === cleanEmail);
+          if (!account || hashPassword(String(password || ''), account.salt) !== account.passwordHash) {
+            return sendJson(res, 401, { error: 'Incorrect email or password.' });
+          }
+          const token = crypto.randomBytes(32).toString('hex');
+          const sessions = readJson(SESSIONS_FILE, {});
+          sessions[token] = { userId: account.id, createdAt: new Date().toISOString(), expiresAt: Date.now() + 30 * 86400_000 };
+          writeJson(SESSIONS_FILE, sessions);
+          sendJson(res, 200, { ok: true, token, user: { id: account.id, email: account.email, displayName: account.displayName } });
+        } catch {
+          sendJson(res, 400, { error: 'Invalid request' });
+        }
+      });
+
+      server.middlewares.use('/api/account/me', (req: any, res: any) => {
+        const auth = getAuth(req);
+        if (!auth) return sendJson(res, 401, { error: 'Not signed in' });
+        sendJson(res, 200, { ok: true, user: { id: auth.account.id, email: auth.account.email, displayName: auth.account.displayName } });
+      });
+
+      server.middlewares.use('/api/account/logout', (req: any, res: any) => {
+        const auth = getAuth(req);
+        if (auth) {
+          const sessions = readJson(SESSIONS_FILE, {});
+          delete sessions[auth.token];
+          writeJson(SESSIONS_FILE, sessions);
+        }
+        sendJson(res, 200, { ok: true });
+      });
+
+      server.middlewares.use('/api/account/password', async (req: any, res: any) => {
+        const auth = getAuth(req);
+        if (!auth) return sendJson(res, 401, { error: 'Not signed in' });
+        const { currentPassword, newPassword } = await readBody(req);
+        if (hashPassword(String(currentPassword || ''), auth.account.salt) !== auth.account.passwordHash) {
+          return sendJson(res, 403, { error: 'Current password is incorrect.' });
+        }
+        if (String(newPassword || '').length < 6) {
+          return sendJson(res, 400, { error: 'New password must be at least 6 characters.' });
+        }
+        const newSalt = crypto.randomBytes(16).toString('hex');
+        const accounts = readJson(ACCOUNTS_FILE, []).map((a: any) =>
+          a.id === auth.account.id ? { ...a, salt: newSalt, passwordHash: hashPassword(String(newPassword), newSalt) } : a
+        );
+        writeJson(ACCOUNTS_FILE, accounts);
+        sendJson(res, 200, { ok: true });
+      });
+
+      server.middlewares.use('/api/sync', async (req: any, res: any, next: any) => {
+        const auth = getAuth(req);
+        if (!auth) return sendJson(res, 401, { error: 'Sign in required' });
+        const userFile = path.join(USERS_DIR, `${auth.account.id.replace(/[^a-zA-Z0-9_-]/g, '')}.json`);
+        if (req.method === 'GET') {
+          const rec = readJson(userFile, { version: 1, updatedAt: null, data: null });
+          return sendJson(res, 200, rec);
+        }
+        if (req.method === 'POST' || req.method === 'PUT') {
+          try {
+            const payload = await readBody(req);
+            const rec = { version: 1, updatedAt: payload.updatedAt || new Date().toISOString(), data: payload.data };
+            writeJson(userFile, rec);
+            return sendJson(res, 200, { ok: true, updatedAt: rec.updatedAt });
+          } catch (err: any) {
+            return sendJson(res, 400, { error: err?.message || 'Invalid JSON' });
+          }
+        }
+        next();
       });
     },
   };
