@@ -61,6 +61,7 @@ import {
   recordFailedAttempt,
   saveSessionAuthToken,
 } from '../lib/security';
+import { clearSessionGmailToken } from '../lib/gmail';
 import { addDaysToDateString, getLocalDateString, getLocalMonthString, isoToLocalDate, isoToLocalTimeInput, localDateTimeToUtcIso } from '../lib/dates';
 import { findDueReminders, fireTaskReminder, requestNotificationPermission } from '../lib/reminders';
 
@@ -497,6 +498,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const lockNow = useCallback(() => {
     apiTokenRef.current = null;
     clearSessionAuthToken();
+    clearSessionGmailToken();
     setIsUnlocked(false);
   }, []);
 

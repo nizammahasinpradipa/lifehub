@@ -5,6 +5,7 @@ import {
   FileText,
   Home,
   Lock,
+  Mail,
   Plus,
   Search,
   Settings,
@@ -25,12 +26,13 @@ interface LayoutProps {
   onOpenAI: () => void;
 }
 
-const NAV_ITEMS: Array<{ id: NavTab; label: string; Icon: React.FC<{ className?: string }> }> = [
-  { id: 'home', label: 'Home', Icon: Home },
-  { id: 'tasks', label: 'Tasks', Icon: CheckSquare },
-  { id: 'spending', label: 'Spending', Icon: Wallet },
-  { id: 'notes', label: 'Notes', Icon: FileText },
-  { id: 'socials', label: 'Socials', Icon: Share2 },
+const NAV_ITEMS: Array<{ id: NavTab; label: string; mobileLabel: string; Icon: React.FC<{ className?: string }> }> = [
+  { id: 'home', label: 'Home', mobileLabel: 'Home', Icon: Home },
+  { id: 'tasks', label: 'Tasks', mobileLabel: 'Tasks', Icon: CheckSquare },
+  { id: 'spending', label: 'Spending', mobileLabel: 'Spend', Icon: Wallet },
+  { id: 'notes', label: 'Notes', mobileLabel: 'Notes', Icon: FileText },
+  { id: 'email', label: 'Email', mobileLabel: 'Email', Icon: Mail },
+  { id: 'socials', label: 'Socials', mobileLabel: 'Socials', Icon: Share2 },
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSearch, onOpenAI }) => {
@@ -242,14 +244,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
         <Plus className="w-6 h-6" />
       </button>
 
-      {/* Mobile Bottom Navigation Tabs (Home, Tasks, Spending, Notes, Socials) */}
+      {/* Mobile Bottom Navigation Tabs */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe"
         style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
         aria-label="Bottom Navigation"
       >
-        <div className="grid grid-cols-5 px-1.5 pt-1.5">
-          {NAV_ITEMS.map(({ id, label, Icon }) => {
+        <div className="grid grid-cols-6 px-1 pt-1.5">
+          {NAV_ITEMS.map(({ id, mobileLabel, Icon }) => {
             const active = activeTab === id;
             return (
               <button
@@ -261,7 +263,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, onQuickAdd, onOpenSear
                 }`}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-[11px] leading-none">{label}</span>
+                <span className="text-[10px] leading-none">{mobileLabel}</span>
               </button>
             );
           })}

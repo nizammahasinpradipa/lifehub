@@ -11,6 +11,7 @@ import { HomeView } from './views/HomeView';
 import { TasksView } from './views/TasksView';
 import { SpendingView } from './views/SpendingView';
 import { NotesView } from './views/NotesView';
+import { EmailView } from './views/EmailView';
 import { SocialsView } from './views/SocialsView';
 import { SettingsView } from './views/SettingsView';
 
@@ -113,6 +114,7 @@ const LifeHubShell: React.FC = () => {
         />
       )}
       {activeTab === 'notes' && <NotesView />}
+      {activeTab === 'email' && <EmailView />}
       {activeTab === 'socials' && <SocialsView />}
       {activeTab === 'settings' && (
         <SettingsView canInstallPwa={Boolean(installPrompt)} onInstallPwa={handleInstallPwa} />

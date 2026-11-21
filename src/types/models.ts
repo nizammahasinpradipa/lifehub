@@ -8,7 +8,7 @@ export type TransactionType = 'expense' | 'income' | 'transfer';
 export type NoteType = 'note' | 'journal';
 export type MoodRating = 1 | 2 | 3 | 4 | 5;
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type NavTab = 'home' | 'tasks' | 'spending' | 'notes' | 'socials' | 'settings';
+export type NavTab = 'home' | 'tasks' | 'spending' | 'notes' | 'email' | 'socials' | 'settings';
 export type AutoLockMode = 'on-close' | '5m' | '15m' | '30m';
 
 export type SocialPlatform =
