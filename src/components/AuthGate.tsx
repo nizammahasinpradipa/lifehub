@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useLifeHub } from '../store/LifeHubContext';
 import { getLockoutStatus } from '../lib/security';
+import { AppLogo } from './AppLogo';
 
 export const AuthGate: React.FC = () => {
   const {
@@ -198,7 +199,7 @@ export const AuthGate: React.FC = () => {
         {/* Brand Header (inspired by the cream squircle badge over botanical forest) */}
         <div className="flex flex-col items-center text-center space-y-2.5">
           <div className="w-16 h-16 rounded-[22px] shadow-xl flex items-center justify-center relative">
-            <img src="/favicon.svg?v=2" alt="LifeHub" className="w-16 h-16 rounded-[22px]" />
+            <AppLogo className="w-16 h-16" />
             <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#233E1E] bg-[#F4C95D] text-[#2B1808]">
               <Lock className="w-3 h-3" />
             </span>

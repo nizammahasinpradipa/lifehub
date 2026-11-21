@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useLifeHub } from '../store/LifeHubContext';
 import type { NavTab } from '../types/models';
+import { AppLogo } from './AppLogo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -152,7 +153,7 @@ export const Layout: React.FC<LayoutProps> = ({
             onClick={() => setActiveTab('home')}
             className="flex items-center gap-2.5 cursor-pointer"
           >
-            <img src="/favicon.svg?v=2" alt="LifeHub" className="w-9 h-9 rounded-xl shadow-sm" />
+            <AppLogo className="w-9 h-9 rounded-xl shadow-sm shrink-0" />
             <div className="text-left">
               <p className="text-base font-extrabold tracking-tight leading-none">LifeHub</p>
               <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Personal workspace</p>
@@ -271,7 +272,7 @@ export const Layout: React.FC<LayoutProps> = ({
         }}
       >
         <div className="flex items-center gap-2.5">
-          {activeTab === 'home' && <img src="/favicon.svg?v=2" alt="LifeHub" className="w-7 h-7 rounded-lg shadow-xs" />}
+          {activeTab === 'home' && <AppLogo className="w-7 h-7 rounded-lg shadow-xs shrink-0" />}
           <span className="font-bold text-lg tracking-tight">{TAB_TITLES[activeTab]}</span>
           <button
             type="button"

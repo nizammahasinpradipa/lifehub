@@ -23,16 +23,16 @@ export function sendLocalNotification(title: string, body: string): void {
         .then((reg) => {
           reg.showNotification(title, {
             body,
-            icon: '/icon-192.svg',
-            badge: '/favicon.svg',
+            icon: '/logo-192.png',
+            badge: '/logo-192.png',
             tag: `lifehub-${Date.now()}`,
           });
         })
         .catch(() => {
-          new Notification(title, { body, icon: '/icon-192.svg' });
+          new Notification(title, { body, icon: '/logo-192.png' });
         });
     } else {
-      new Notification(title, { body, icon: '/icon-192.svg' });
+      new Notification(title, { body, icon: '/logo-192.png' });
     }
   } catch {
     // Silent fallback if browser blocks notification

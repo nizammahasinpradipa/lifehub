@@ -1,5 +1,5 @@
-const CACHE_NAME = 'lifehub-app-v2';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg?v=2', '/icon-192.svg?v=2', '/icon-512.svg?v=2'];
+const CACHE_NAME = 'lifehub-app-v3';
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest?v=3', '/logo.svg', '/logo-192.png', '/logo-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -26,15 +26,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (request.mode === 'navigate') {
+  // Network-first for HTML, manifest, and icons so updates show immediately
+  if (
+    request.mode === 'navigate' ||
+    url.pathname.includes('manifest') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.png')
+  ) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          if (response && response.status === 200 && url.origin === self.location.origin) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
           return response;
         })
-        .catch(() => caches.match('/index.html'))
+        .catch(() => caches.match(request).then((c) => c || caches.match('/index.html')))
     );
     return;
   }

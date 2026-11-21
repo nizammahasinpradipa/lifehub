@@ -7,6 +7,7 @@ import { AIAssistantModal } from './components/AIAssistantModal';
 import { ReceiptScanModal } from './components/ReceiptScanModal';
 import { ToastContainer } from './components/Toast';
 import { AuthGate } from './components/AuthGate';
+import { AppLogo } from './components/AppLogo';
 import { HomeView } from './views/HomeView';
 import { TasksView } from './views/TasksView';
 import { SpendingView } from './views/SpendingView';
@@ -77,7 +78,7 @@ const LifeHubShell: React.FC = () => {
         style={{ backgroundColor: 'var(--bg-canvas)' }}
       >
         <div className="flex flex-col items-center gap-3">
-          <img src="/favicon.svg?v=2" alt="LifeHub" className="w-11 h-11 rounded-xl opacity-90" />
+          <AppLogo className="w-11 h-11 opacity-90" />
           <p className="text-xs text-zinc-500">Checking verification...</p>
         </div>
       </div>
