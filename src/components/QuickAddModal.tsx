@@ -5,6 +5,8 @@ import { getLocalDateString, localDateTimeToUtcIso } from '../lib/dates';
 import { formatIDR, parseIDRAmount } from '../lib/idr';
 import type { Priority, Recurrence, TransactionType } from '../types/models';
 import { TagPicker } from './TagPicker';
+import { NativeSelect } from './NativeSelect';
+import { haptic } from '../lib/haptics';
 
 export type QuickAddTab = 'task' | 'expense' | 'note';
 
@@ -156,12 +158,17 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-lg rounded-t-2xl md:rounded-2xl border shadow-2xl max-h-[92vh] overflow-y-auto animate-modal"
-        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+        className="w-full max-w-lg rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+        style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
+        <div className="flex items-center justify-between px-5 pt-3.5 md:pt-4 pb-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="flex items-center gap-1 retro-segmented">
             {(
               [
@@ -209,6 +216,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
               <input
                 ref={firstInputRef}
                 type="text"
+                enterKeyHint="done"
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
                 placeholder="What needs to be done?"
@@ -227,15 +235,17 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                 </div>
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">Priority</label>
-                  <select
+                  <NativeSelect
+                    title="Select Priority"
                     value={taskPriority}
-                    onChange={(e) => setTaskPriority(e.target.value as Priority)}
-                    className="input-field !py-2 !text-sm"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
+                    onChange={(v) => setTaskPriority(v as Priority)}
+                    className="!py-2 !text-sm"
+                    options={[
+                      { value: 'low', label: 'Low', dotColor: '#8B947D' },
+                      { value: 'medium', label: 'Medium', dotColor: '#709446' },
+                      { value: 'high', label: 'High', dotColor: '#E59A38' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -252,37 +262,47 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <div>
                       <label className="block text-[11px] font-medium text-zinc-500 mb-1">Project</label>
-                      <select value={taskProjectId} onChange={(e) => setTaskProjectId(e.target.value)} className="input-field !py-2 !text-sm">
-                        <option value="">No project</option>
-                        {activeProjects.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
+                      <NativeSelect
+                        title="Select Project"
+                        value={taskProjectId}
+                        onChange={setTaskProjectId}
+                        className="!py-2 !text-sm"
+                        options={[
+                          { value: '', label: 'No project' },
+                          ...activeProjects.map((p) => ({ value: p.id, label: p.name, dotColor: p.color })),
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[11px] font-medium text-zinc-500 mb-1">Reminder</label>
-                      <select value={taskReminder} onChange={(e) => setTaskReminder(e.target.value)} className="input-field !py-2 !text-sm">
-                        <option value="">None</option>
-                        <option value="0">At due time</option>
-                        <option value="15">15 min before</option>
-                        <option value="30">30 min before</option>
-                        <option value="60">1 hr before</option>
-                      </select>
+                      <NativeSelect
+                        title="Reminder Time"
+                        value={taskReminder}
+                        onChange={setTaskReminder}
+                        className="!py-2 !text-sm"
+                        options={[
+                          { value: '', label: 'None' },
+                          { value: '0', label: 'At due time' },
+                          { value: '15', label: '15 min before' },
+                          { value: '30', label: '30 min before' },
+                          { value: '60', label: '1 hr before' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[11px] font-medium text-zinc-500 mb-1">Repeat</label>
-                      <select
+                      <NativeSelect
+                        title="Repeat Schedule"
                         value={taskRecurrence}
-                        onChange={(e) => setTaskRecurrence(e.target.value as Recurrence)}
-                        className="input-field !py-2 !text-sm"
-                      >
-                        <option value="none">One-time</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                      </select>
+                        onChange={(v) => setTaskRecurrence(v as Recurrence)}
+                        className="!py-2 !text-sm"
+                        options={[
+                          { value: 'none', label: 'One-time' },
+                          { value: 'daily', label: 'Daily' },
+                          { value: 'weekly', label: 'Weekly' },
+                          { value: 'monthly', label: 'Monthly' },
+                        ]}
+                      />
                     </div>
                   </div>
                   <TagPicker selectedTagIds={taskTagIds} onChange={setTaskTagIds} compact />
@@ -342,11 +362,12 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                 <input
                   ref={firstInputRef}
                   type="text"
-                  inputMode="decimal"
+                  inputMode="numeric"
+                  enterKeyHint="done"
                   value={txAmount}
                   onChange={(e) => setTxAmount(e.target.value)}
-                  placeholder="50000 or 50k"
-                  className="input-field !text-xl !py-3 font-semibold tabular-nums"
+                  placeholder="50000"
+                  className="input-field !text-2xl !py-3 hero-amount"
                   required
                 />
                 <div className="flex flex-wrap gap-1.5 mt-2">
@@ -354,8 +375,11 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                     <button
                       key={amt}
                       type="button"
-                      onClick={() => setTxAmount(String(amt))}
-                      className="px-2.5 py-1 rounded-lg text-xs font-medium tabular-nums border cursor-pointer transition-colors hover:border-teal-500"
+                      onClick={() => {
+                        haptic('tap');
+                        setTxAmount(String(amt));
+                      }}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold tabular-nums border cursor-pointer transition-colors hover:border-teal-500"
                       style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-subtle)' }}
                     >
                       {formatIDR(amt, { compact: true })}
@@ -369,39 +393,51 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">
                     {txType === 'transfer' ? 'From wallet' : 'Wallet'}
                   </label>
-                  <select value={txWalletId} onChange={(e) => setTxWalletId(e.target.value)} className="input-field !py-2 !text-sm">
-                    {activeWallets.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.name}
-                      </option>
-                    ))}
-                  </select>
+                  <NativeSelect
+                    title={txType === 'transfer' ? 'From Wallet' : 'Select Wallet'}
+                    value={txWalletId}
+                    onChange={setTxWalletId}
+                    className="!py-2 !text-sm"
+                    options={activeWallets.map((w) => ({
+                      value: w.id,
+                      label: w.name,
+                      subtitle: w.type,
+                    }))}
+                  />
                 </div>
 
                 {txType === 'transfer' ? (
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-500 mb-1">To wallet</label>
-                    <select value={txDestWalletId} onChange={(e) => setTxDestWalletId(e.target.value)} className="input-field !py-2 !text-sm">
-                      <option value="">Choose wallet...</option>
-                      {activeWallets
+                    <NativeSelect
+                      title="Destination Wallet"
+                      value={txDestWalletId}
+                      onChange={setTxDestWalletId}
+                      placeholder="Choose wallet..."
+                      className="!py-2 !text-sm"
+                      options={activeWallets
                         .filter((w) => w.id !== txWalletId)
-                        .map((w) => (
-                          <option key={w.id} value={w.id}>
-                            {w.name}
-                          </option>
-                        ))}
-                    </select>
+                        .map((w) => ({
+                          value: w.id,
+                          label: w.name,
+                          subtitle: w.type,
+                        }))}
+                    />
                   </div>
                 ) : (
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-500 mb-1">Category</label>
-                    <select value={txCategoryId} onChange={(e) => setTxCategoryId(e.target.value)} className="input-field !py-2 !text-sm">
-                      {filteredCategories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                    <NativeSelect
+                      title="Select Category"
+                      value={txCategoryId}
+                      onChange={setTxCategoryId}
+                      className="!py-2 !text-sm"
+                      options={filteredCategories.map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                        dotColor: c.color,
+                      }))}
+                    />
                   </div>
                 )}
               </div>

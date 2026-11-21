@@ -3,6 +3,7 @@ import { Camera, Check, Loader2, Upload, X, AlertCircle } from 'lucide-react';
 import { useLifeHub } from '../store/LifeHubContext';
 import { getLocalDateString } from '../lib/dates';
 import { formatIDR, parseIDRAmount } from '../lib/idr';
+import { NativeSelect } from './NativeSelect';
 
 interface ReceiptScanModalProps {
   open: boolean;
@@ -145,11 +146,16 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({ open, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+      onClick={handleClose}
+    >
       <div
-        className="w-full max-w-lg rounded-t-2xl md:rounded-2xl border shadow-2xl max-h-[90vh] overflow-y-auto animate-modal"
-        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+        className="w-full max-w-lg rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+        style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+        onClick={(e) => e.stopPropagation()}
       >
+        <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
         <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="flex items-center gap-2">
             <Camera className="w-5 h-5 text-teal-600 dark:text-teal-400" />
@@ -251,23 +257,21 @@ export const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({ open, onClos
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1">Category</label>
-                  <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="input-field">
-                    {expenseCategories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                  <NativeSelect
+                    title="Select Category"
+                    value={categoryId}
+                    onChange={setCategoryId}
+                    options={expenseCategories.map((c) => ({ value: c.id, label: c.name, dotColor: c.color }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1">Wallet</label>
-                  <select value={walletId} onChange={(e) => setWalletId(e.target.value)} className="input-field">
-                    {activeWallets.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.name}
-                      </option>
-                    ))}
-                  </select>
+                  <NativeSelect
+                    title="Select Wallet"
+                    value={walletId}
+                    onChange={setWalletId}
+                    options={activeWallets.map((w) => ({ value: w.id, label: w.name, subtitle: w.type }))}
+                  />
                 </div>
               </div>
 

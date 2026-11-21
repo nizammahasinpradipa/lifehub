@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Camera,
   CheckSquare,
@@ -23,6 +23,7 @@ import {
 import { useLifeHub } from '../store/LifeHubContext';
 import type { NavTab } from '../types/models';
 import { AppLogo } from './AppLogo';
+import { haptic } from '../lib/haptics';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -70,6 +71,57 @@ export const Layout: React.FC<LayoutProps> = ({
 
   const openTasksCount = activeTasks.filter((t) => !t.parent_task_id && t.status === 'todo').length;
   const isMoreTabActive = activeTab === 'email' || activeTab === 'socials' || activeTab === 'settings';
+
+  // Android native feel: hide fixed bottom tab bar & FAB smoothly while virtual keyboard is open
+  useEffect(() => {
+    const isTextInput = (el: EventTarget | null) => {
+      if (!(el instanceof HTMLElement)) return false;
+      const tag = el.tagName;
+      if (tag === 'TEXTAREA') return true;
+      if (tag === 'INPUT') {
+        const t = (el as HTMLInputElement).type;
+        return !['checkbox', 'radio', 'file', 'button', 'submit', 'range', 'color'].includes(t);
+      }
+      return false;
+    };
+
+    const onFocusIn = (e: FocusEvent) => {
+      if (window.innerWidth < 768 && isTextInput(e.target)) {
+        document.body.classList.add('keyboard-open');
+      }
+    };
+
+    const onFocusOut = () => {
+      window.setTimeout(() => {
+        if (!isTextInput(document.activeElement)) {
+          document.body.classList.remove('keyboard-open');
+        }
+      }, 120);
+    };
+
+    const vv = window.visualViewport;
+    const onResize = () => {
+      if (window.innerWidth >= 768 || !vv) {
+        document.body.classList.remove('keyboard-open');
+        return;
+      }
+      if (vv.height < window.innerHeight * 0.78) {
+        document.body.classList.add('keyboard-open');
+      } else if (!isTextInput(document.activeElement)) {
+        document.body.classList.remove('keyboard-open');
+      }
+    };
+
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
+    vv?.addEventListener('resize', onResize);
+    return () => {
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
+      vv?.removeEventListener('resize', onResize);
+      document.body.classList.remove('keyboard-open');
+    };
+  }, []);
 
   const renderSyncBadge = () => {
     if (syncStatus.state === 'error' || syncStatus.error) {
@@ -283,15 +335,20 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* Main Content Area */}
       <main className="flex-1 md:pl-64 pb-28 md:pb-12">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">{children}</div>
+        <div key={activeTab} className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-page">
+          {children}
+        </div>
       </main>
 
       {/* Single Primary Floating Quick-Add Button on Android/Mobile */}
       {activeTab !== 'settings' && (
         <button
           type="button"
-          onClick={onQuickAdd}
-          className="md:hidden fixed right-4 bottom-20 z-30 w-13 h-13 rounded-full shadow-xl flex items-center justify-center transition-transform active:scale-95 text-[#FBFBF4]"
+          onClick={() => {
+            haptic('tap');
+            onQuickAdd();
+          }}
+          className="mobile-bottom-chrome md:hidden fixed right-4 bottom-20 z-30 w-14 h-14 rounded-2xl shadow-xl flex items-center justify-center transition-transform active:scale-90 text-[#FBFBF4]"
           style={{
             background: 'linear-gradient(135deg, var(--accent-grad-from) 0%, var(--accent-grad-to) 100%)',
           }}
@@ -301,9 +358,9 @@ export const Layout: React.FC<LayoutProps> = ({
         </button>
       )}
 
-      {/* Clean 5-Tab Mobile Bottom Bar (Home, Tasks, Spending, Notes, More) */}
+      {/* Material-3 Style 5-Tab Mobile Bottom Bar (Home, Tasks, Spending, Notes, More) */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe backdrop-blur-lg"
+        className="mobile-bottom-chrome md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe backdrop-blur-lg"
         style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
         aria-label="Bottom Navigation"
       >
@@ -315,16 +372,23 @@ export const Layout: React.FC<LayoutProps> = ({
                 key={id}
                 type="button"
                 onClick={() => {
+                  haptic('tap');
                   setMoreOpen(false);
                   setActiveTab(id);
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[48px] rounded-2xl transition-colors ${
+                className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[52px] rounded-2xl transition-colors ${
                   active
                     ? 'text-[#233E1E] dark:text-[#C3D48E] font-bold'
                     : 'text-[var(--text-muted)]'
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <span
+                  className={`px-4 py-1 rounded-full transition-colors ${
+                    active ? 'bg-[#C3D48E]/55 dark:bg-[#C3D48E]/20' : ''
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                </span>
                 <span className="text-[11px] leading-none">{label}</span>
               </button>
             );
@@ -332,14 +396,23 @@ export const Layout: React.FC<LayoutProps> = ({
 
           <button
             type="button"
-            onClick={() => setMoreOpen((o) => !o)}
-            className={`flex flex-col items-center justify-center gap-1 py-1.5 min-h-[48px] rounded-2xl transition-colors relative ${
+            onClick={() => {
+              haptic('tap');
+              setMoreOpen((o) => !o);
+            }}
+            className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[52px] rounded-2xl transition-colors relative ${
               moreOpen || isMoreTabActive
                 ? 'text-[#233E1E] dark:text-[#C3D48E] font-bold'
                 : 'text-[var(--text-muted)]'
             }`}
           >
-            <Menu className="w-5 h-5" />
+            <span
+              className={`px-4 py-1 rounded-full transition-colors ${
+                moreOpen || isMoreTabActive ? 'bg-[#C3D48E]/55 dark:bg-[#C3D48E]/20' : ''
+              }`}
+            >
+              <Menu className="w-5 h-5" />
+            </span>
             <span className="text-[11px] leading-none">More</span>
             {(syncStatus.state === 'error' || syncStatus.error) && (
               <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-4" />
@@ -355,8 +428,8 @@ export const Layout: React.FC<LayoutProps> = ({
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="w-full rounded-t-3xl border-t p-5 pb-safe space-y-4 animate-modal max-h-[85vh] overflow-y-auto"
-            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+            className="w-full rounded-t-3xl border-t p-5 pb-safe space-y-4 animate-sheet max-h-[85dvh] overflow-y-auto"
+            style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700 mx-auto" />

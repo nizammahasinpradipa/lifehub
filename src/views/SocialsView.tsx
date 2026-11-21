@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useLifeHub } from '../store/LifeHubContext';
 import type { SocialCategory, SocialLink, SocialPlatform } from '../types/models';
+import { NativeSelect } from '../components/NativeSelect';
 
 interface PlatformMeta {
   id: SocialPlatform;
@@ -558,32 +559,34 @@ export const SocialsView: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">Platform</label>
-                  <select
+                  <NativeSelect
+                    title="Select Platform"
                     value={platform}
-                    onChange={(e) => handlePlatformChange(e.target.value as SocialPlatform)}
-                    className="input-field !py-2 !text-sm"
-                  >
-                    {PLATFORMS.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => handlePlatformChange(v as SocialPlatform)}
+                    className="!py-2 !text-sm"
+                    options={PLATFORMS.map((p) => ({
+                      value: p.id,
+                      label: p.label,
+                      dotColor: p.color,
+                    }))}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">Group</label>
-                  <select
+                  <NativeSelect
+                    title="Select Group"
                     value={category}
-                    onChange={(e) => setCategory(e.target.value as SocialCategory)}
-                    className="input-field !py-2 !text-sm"
-                  >
-                    <option value="social">Social</option>
-                    <option value="dev">Dev</option>
-                    <option value="design">Design</option>
-                    <option value="contact">Contact</option>
-                    <option value="other">Other</option>
-                  </select>
+                    onChange={(v) => setCategory(v as SocialCategory)}
+                    className="!py-2 !text-sm"
+                    options={[
+                      { value: 'social', label: 'Social' },
+                      { value: 'dev', label: 'Dev' },
+                      { value: 'design', label: 'Design' },
+                      { value: 'contact', label: 'Contact' },
+                      { value: 'other', label: 'Other' },
+                    ]}
+                  />
                 </div>
               </div>
 

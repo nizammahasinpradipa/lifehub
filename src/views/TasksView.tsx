@@ -25,6 +25,7 @@ import {
 import type { Priority, Recurrence, Task } from '../types/models';
 import { TagPicker } from '../components/TagPicker';
 import { LinkPicker } from '../components/LinkPicker';
+import { NativeSelect } from '../components/NativeSelect';
 
 type TaskFilter = 'today' | 'upcoming' | 'overdue' | 'all' | 'completed';
 
@@ -540,11 +541,16 @@ export const TasksView: React.FC = () => {
 
       {/* Task Detail / Edit Drawer Modal */}
       {editingTask && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+          onClick={() => setEditingTaskId(null)}
+        >
           <div
-            className="w-full max-w-xl rounded-t-2xl md:rounded-2xl border shadow-2xl max-h-[92vh] overflow-y-auto animate-modal"
-            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+            className="w-full max-w-xl rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+            style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+            onClick={(e) => e.stopPropagation()}
           >
+            <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <button
                 type="button"
@@ -625,65 +631,69 @@ export const TasksView: React.FC = () => {
                 </div>
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">Priority</label>
-                  <select
+                  <NativeSelect
+                    title="Select Priority"
                     value={editingTask.priority}
-                    onChange={(e) => updateTask(editingTask.id, { priority: e.target.value as Priority })}
-                    className="input-field !py-2 !text-sm"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
+                    onChange={(v) => updateTask(editingTask.id, { priority: v as Priority })}
+                    className="!py-2 !text-sm"
+                    options={[
+                      { value: 'low', label: 'Low', dotColor: '#8B947D' },
+                      { value: 'medium', label: 'Medium', dotColor: '#709446' },
+                      { value: 'high', label: 'High', dotColor: '#E59A38' },
+                    ]}
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">Project</label>
-                  <select
+                  <NativeSelect
+                    title="Select Project"
                     value={editingTask.project_id || ''}
-                    onChange={(e) => updateTask(editingTask.id, { project_id: e.target.value || null })}
-                    className="input-field !py-2 !text-sm"
-                  >
-                    <option value="">No project</option>
-                    {activeProjects.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => updateTask(editingTask.id, { project_id: v || null })}
+                    className="!py-2 !text-sm"
+                    options={[
+                      { value: '', label: 'No project' },
+                      ...activeProjects.map((p) => ({ value: p.id, label: p.name, dotColor: p.color })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">Reminder</label>
-                  <select
+                  <NativeSelect
+                    title="Reminder Time"
                     value={editingTask.reminder_minutes_before !== null ? String(editingTask.reminder_minutes_before) : ''}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       updateTask(editingTask.id, {
-                        reminder_minutes_before: e.target.value === '' ? null : Number(e.target.value),
+                        reminder_minutes_before: v === '' ? null : Number(v),
                         reminder_fired_at: null,
                       })
                     }
-                    className="input-field !py-2 !text-sm"
-                  >
-                    <option value="">No reminder</option>
-                    <option value="0">At due time</option>
-                    <option value="15">15 min before</option>
-                    <option value="30">30 min before</option>
-                    <option value="60">1 hour before</option>
-                  </select>
+                    className="!py-2 !text-sm"
+                    options={[
+                      { value: '', label: 'No reminder' },
+                      { value: '0', label: 'At due time' },
+                      { value: '15', label: '15 min before' },
+                      { value: '30', label: '30 min before' },
+                      { value: '60', label: '1 hour before' },
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">Repeat</label>
-                  <select
+                  <NativeSelect
+                    title="Repeat Schedule"
                     value={editingTask.recurrence}
-                    onChange={(e) => updateTask(editingTask.id, { recurrence: e.target.value as Recurrence })}
-                    className="input-field !py-2 !text-sm"
-                  >
-                    <option value="none">One-time</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
+                    onChange={(v) => updateTask(editingTask.id, { recurrence: v as Recurrence })}
+                    className="!py-2 !text-sm"
+                    options={[
+                      { value: 'none', label: 'One-time' },
+                      { value: 'daily', label: 'Daily' },
+                      { value: 'weekly', label: 'Weekly' },
+                      { value: 'monthly', label: 'Monthly' },
+                    ]}
+                  />
                 </div>
               </div>
 

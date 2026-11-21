@@ -5,6 +5,7 @@ import { parseNaturalLanguage, type AIParseResult } from '../lib/nlp';
 import { formatIDR, parseIDRAmount } from '../lib/idr';
 import { isoToLocalDate, isoToLocalTimeInput, localDateTimeToUtcIso } from '../lib/dates';
 import type { Priority, TransactionType } from '../types/models';
+import { NativeSelect } from './NativeSelect';
 
 interface AIAssistantModalProps {
   open: boolean;
@@ -143,11 +144,16 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ open, onClos
   const filteredCategories = activeCategories.filter((c) => c.kind === (txType === 'income' ? 'income' : 'expense'));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-xl rounded-t-2xl md:rounded-2xl border shadow-2xl max-h-[90vh] overflow-y-auto animate-modal"
-        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+        className="w-full max-w-xl rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+        style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+        onClick={(e) => e.stopPropagation()}
       >
+        <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
         <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-teal-600 dark:text-teal-400" />
@@ -275,52 +281,40 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ open, onClos
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1">Wallet</label>
-                      <select
+                      <NativeSelect
+                        title="Select Wallet"
                         value={txWalletId}
-                        onChange={(e) => setTxWalletId(e.target.value)}
-                        className={`input-field ${uncertain.includes('wallet_id') && !txWalletId ? '!border-amber-500 !ring-2 !ring-amber-500/20' : ''}`}
-                      >
-                        <option value="">Select wallet...</option>
-                        {activeWallets.map((w) => (
-                          <option key={w.id} value={w.id}>
-                            {w.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setTxWalletId}
+                        placeholder="Select wallet..."
+                        highlightWarning={uncertain.includes('wallet_id') && !txWalletId}
+                        options={activeWallets.map((w) => ({ value: w.id, label: w.name, subtitle: w.type }))}
+                      />
                     </div>
                     {txType === 'transfer' ? (
                       <div>
                         <label className="block text-xs font-medium text-zinc-500 mb-1">To Wallet</label>
-                        <select
+                        <NativeSelect
+                          title="Destination Wallet"
                           value={txDestWalletId}
-                          onChange={(e) => setTxDestWalletId(e.target.value)}
-                          className={`input-field ${!txDestWalletId ? '!border-amber-500' : ''}`}
-                        >
-                          <option value="">Select destination...</option>
-                          {activeWallets
+                          onChange={setTxDestWalletId}
+                          placeholder="Select destination..."
+                          highlightWarning={!txDestWalletId}
+                          options={activeWallets
                             .filter((w) => w.id !== txWalletId)
-                            .map((w) => (
-                              <option key={w.id} value={w.id}>
-                                {w.name}
-                              </option>
-                            ))}
-                        </select>
+                            .map((w) => ({ value: w.id, label: w.name, subtitle: w.type }))}
+                        />
                       </div>
                     ) : (
                       <div>
                         <label className="block text-xs font-medium text-zinc-500 mb-1">Category</label>
-                        <select
+                        <NativeSelect
+                          title="Select Category"
                           value={txCategoryId}
-                          onChange={(e) => setTxCategoryId(e.target.value)}
-                          className={`input-field ${uncertain.includes('category_id') && !txCategoryId ? '!border-amber-500 !ring-2 !ring-amber-500/20' : ''}`}
-                        >
-                          <option value="">Select category...</option>
-                          {filteredCategories.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={setTxCategoryId}
+                          placeholder="Select category..."
+                          highlightWarning={uncertain.includes('category_id') && !txCategoryId}
+                          options={filteredCategories.map((c) => ({ value: c.id, label: c.name, dotColor: c.color }))}
+                        />
                       </div>
                     )}
                   </div>
@@ -367,25 +361,31 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ open, onClos
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1">Priority</label>
-                      <select
+                      <NativeSelect
+                        title="Select Priority"
                         value={taskPriority}
-                        onChange={(e) => setTaskPriority(e.target.value as Priority)}
-                        className="input-field"
-                      >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                      </select>
+                        onChange={(v) => setTaskPriority(v as Priority)}
+                        options={[
+                          { value: 'low', label: 'Low', dotColor: '#8B947D' },
+                          { value: 'medium', label: 'Medium', dotColor: '#709446' },
+                          { value: 'high', label: 'High', dotColor: '#E59A38' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1">Reminder</label>
-                      <select value={taskReminder} onChange={(e) => setTaskReminder(e.target.value)} className="input-field">
-                        <option value="">No reminder</option>
-                        <option value="0">At due time</option>
-                        <option value="15">15 min before</option>
-                        <option value="30">30 min before</option>
-                        <option value="60">1 hour before</option>
-                      </select>
+                      <NativeSelect
+                        title="Reminder Time"
+                        value={taskReminder}
+                        onChange={setTaskReminder}
+                        options={[
+                          { value: '', label: 'No reminder' },
+                          { value: '0', label: 'At due time' },
+                          { value: '15', label: '15 min before' },
+                          { value: '30', label: '30 min before' },
+                          { value: '60', label: '1 hour before' },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>

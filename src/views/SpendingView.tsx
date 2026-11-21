@@ -39,6 +39,7 @@ import { exportTransactionsToCsv } from '../lib/csv';
 import type { Category, CategoryKind, Transaction, TransactionType, WalletType } from '../types/models';
 import { TagPicker } from '../components/TagPicker';
 import { LinkPicker } from '../components/LinkPicker';
+import { NativeSelect } from '../components/NativeSelect';
 
 interface SpendingViewProps {
   onQuickAddExpense: () => void;
@@ -420,29 +421,33 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as 'all' | TransactionType)}
-              className="input-field !w-auto !py-1.5 !text-xs"
-            >
-              <option value="all">All types</option>
-              <option value="expense">Expenses</option>
-              <option value="income">Income</option>
-              <option value="transfer">Transfers</option>
-            </select>
-            <select
-              value={walletFilter}
-              onChange={(e) => setWalletFilter(e.target.value)}
-              className="input-field !w-auto !py-1.5 !text-xs"
-            >
-              <option value="all">All wallets</option>
-              {activeWallets.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.name}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
+            <div className="sm:w-40">
+              <NativeSelect
+                title="Filter by Type"
+                value={typeFilter}
+                onChange={(v) => setTypeFilter(v as 'all' | TransactionType)}
+                className="!py-2 !text-xs"
+                options={[
+                  { value: 'all', label: 'All types' },
+                  { value: 'expense', label: 'Expenses', dotColor: '#A64B3C' },
+                  { value: 'income', label: 'Income', dotColor: '#2D5A27' },
+                  { value: 'transfer', label: 'Transfers', dotColor: '#E59A38' },
+                ]}
+              />
+            </div>
+            <div className="sm:w-44">
+              <NativeSelect
+                title="Filter by Wallet"
+                value={walletFilter}
+                onChange={setWalletFilter}
+                className="!py-2 !text-xs"
+                options={[
+                  { value: 'all', label: 'All wallets' },
+                  ...activeWallets.map((w) => ({ value: w.id, label: w.name, subtitle: w.type })),
+                ]}
+              />
+            </div>
           </div>
 
           <div className="card divide-y overflow-hidden" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -809,15 +814,17 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                   className="input-field !py-2 !text-sm"
                   required
                 />
-                <select
+                <NativeSelect
+                  title="Wallet Type"
                   value={newWalletType}
-                  onChange={(e) => setNewWalletType(e.target.value as WalletType)}
-                  className="input-field !py-2 !text-sm"
-                >
-                  <option value="cash">Cash</option>
-                  <option value="bank">Bank</option>
-                  <option value="e-wallet">E-Wallet</option>
-                </select>
+                  onChange={(v) => setNewWalletType(v as WalletType)}
+                  className="!py-2 !text-sm"
+                  options={[
+                    { value: 'cash', label: 'Cash' },
+                    { value: 'bank', label: 'Bank' },
+                    { value: 'e-wallet', label: 'E-Wallet' },
+                  ]}
+                />
                 <input
                   type="text"
                   value={newWalletStart}
@@ -871,14 +878,16 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                   className="input-field !py-2 !text-sm"
                   required
                 />
-                <select
+                <NativeSelect
+                  title="Category Kind"
                   value={newCatKind}
-                  onChange={(e) => setNewCatKind(e.target.value as CategoryKind)}
-                  className="input-field !py-2 !text-sm"
-                >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                </select>
+                  onChange={(v) => setNewCatKind(v as CategoryKind)}
+                  className="!py-2 !text-sm"
+                  options={[
+                    { value: 'expense', label: 'Expense', dotColor: '#A64B3C' },
+                    { value: 'income', label: 'Income', dotColor: '#2D5A27' },
+                  ]}
+                />
               </div>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
@@ -915,19 +924,14 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                 &ldquo;{reassignTargetCat.name}&rdquo; has transactions attached. Choose a replacement category before deleting it.
               </p>
             </div>
-            <select
+            <NativeSelect
+              title="Replacement Category"
               value={reassignToId}
-              onChange={(e) => setReassignToId(e.target.value)}
-              className="input-field"
-            >
-              {activeCategories
+              onChange={setReassignToId}
+              options={activeCategories
                 .filter((c) => c.kind === reassignTargetCat.kind && c.id !== reassignTargetCat.id)
-                .map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-            </select>
+                .map((c) => ({ value: c.id, label: c.name, dotColor: c.color }))}
+            />
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setReassignTargetCat(null)} className="btn-secondary !min-h-[40px] !text-xs">
                 Cancel
@@ -947,11 +951,16 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
 
       {/* Edit Transaction Drawer Modal */}
       {editingTx && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+          onClick={() => setEditingTxId(null)}
+        >
           <div
-            className="w-full max-w-lg rounded-t-2xl md:rounded-2xl border shadow-2xl max-h-[90vh] overflow-y-auto animate-modal"
-            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+            className="w-full max-w-lg rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+            style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+            onClick={(e) => e.stopPropagation()}
           >
+            <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <h2 className="text-base font-semibold capitalize">Edit {editingTx.type}</h2>
               <div className="flex items-center gap-1">
@@ -1002,52 +1011,37 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                   <label className="block text-[11px] font-medium text-zinc-500 mb-1">
                     {editingTx.type === 'transfer' ? 'From wallet' : 'Wallet'}
                   </label>
-                  <select
+                  <NativeSelect
+                    title={editingTx.type === 'transfer' ? 'From Wallet' : 'Select Wallet'}
                     value={editingTx.wallet_id}
-                    onChange={(e) => updateTransaction(editingTx.id, { wallet_id: e.target.value })}
-                    className="input-field"
-                  >
-                    {activeWallets.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => updateTransaction(editingTx.id, { wallet_id: v })}
+                    options={activeWallets.map((w) => ({ value: w.id, label: w.name, subtitle: w.type }))}
+                  />
                 </div>
 
                 {editingTx.type === 'transfer' ? (
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-500 mb-1">To wallet</label>
-                    <select
+                    <NativeSelect
+                      title="Destination Wallet"
                       value={editingTx.destination_wallet_id || ''}
-                      onChange={(e) => updateTransaction(editingTx.id, { destination_wallet_id: e.target.value || null })}
-                      className="input-field"
-                    >
-                      {activeWallets
+                      onChange={(v) => updateTransaction(editingTx.id, { destination_wallet_id: v || null })}
+                      options={activeWallets
                         .filter((w) => w.id !== editingTx.wallet_id)
-                        .map((w) => (
-                          <option key={w.id} value={w.id}>
-                            {w.name}
-                          </option>
-                        ))}
-                    </select>
+                        .map((w) => ({ value: w.id, label: w.name, subtitle: w.type }))}
+                    />
                   </div>
                 ) : (
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-500 mb-1">Category</label>
-                    <select
+                    <NativeSelect
+                      title="Select Category"
                       value={editingTx.category_id || ''}
-                      onChange={(e) => updateTransaction(editingTx.id, { category_id: e.target.value || null })}
-                      className="input-field"
-                    >
-                      {activeCategories
+                      onChange={(v) => updateTransaction(editingTx.id, { category_id: v || null })}
+                      options={activeCategories
                         .filter((c) => c.kind === editingTx.type)
-                        .map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                    </select>
+                        .map((c) => ({ value: c.id, label: c.name, dotColor: c.color }))}
+                    />
                   </div>
                 )}
               </div>
