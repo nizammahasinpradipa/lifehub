@@ -1,6 +1,6 @@
 # LifeHub
 
-All-in-one personal workspace for **Tasks**, **Indonesian Rupiah (IDR) Expense Tracking & Budgets**, **Plain-Text Notes & Daily Journal**, **Cross-Module Links**, and **Natural-Language Quick Input** — built to run on both **PC and Android** with rock-solid auto-saving.
+All-in-one personal workspace for **Tasks**, **Indonesian Rupiah (IDR) Expense Tracking & Budgets**, **Plain-Text Notes & Daily Journal**, **Social Media Links (Project Copy Kit)**, **Cross-Module Links**, and **Natural-Language Quick Input** — protected by a **Passcode Verification Gate** and built to run on both **PC and Android** with rock-solid auto-saving.
 
 ## How Data Is Saved (Never Disappears on Close/Reopen)
 

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CheckSquare, FileText, Hash, Receipt, Search, X } from 'lucide-react';
+import { CheckSquare, FileText, Hash, Receipt, Search, Share2, X } from 'lucide-react';
 import { useLifeHub } from '../store/LifeHubContext';
 import { formatIDR } from '../lib/idr';
 import type { ItemType } from '../types/models';
@@ -10,14 +10,31 @@ interface SearchModalProps {
 }
 
 export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
-  const { activeTasks, activeTransactions, activeNotes, activeTags, getTagsForItem, navigateToItem } = useLifeHub();
+  const {
+    activeTasks,
+    activeTransactions,
+    activeNotes,
+    activeSocialLinks,
+    activeTags,
+    getTagsForItem,
+    navigateToItem,
+    setActiveTab,
+    notify,
+  } = useLifeHub();
   const [query, setQuery] = useState('');
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<'all' | ItemType>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | ItemType | 'social'>('all');
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const items: Array<{ type: ItemType; id: string; title: string; subtitle: string; tags: string[] }> = [];
+    const items: Array<{
+      type: ItemType | 'social';
+      id: string;
+      title: string;
+      subtitle: string;
+      tags: string[];
+      copyUrl?: string;
+    }> = [];
 
     if (typeFilter === 'all' || typeFilter === 'task') {
       for (const t of activeTasks) {
@@ -83,8 +100,29 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
       }
     }
 
+    if ((typeFilter === 'all' || typeFilter === 'social') && !selectedTagId) {
+      for (const s of activeSocialLinks) {
+        if (
+          !q ||
+          s.label.toLowerCase().includes(q) ||
+          s.handle.toLowerCase().includes(q) ||
+          s.url.toLowerCase().includes(q) ||
+          s.platform.toLowerCase().includes(q)
+        ) {
+          items.push({
+            type: 'social',
+            id: s.id,
+            title: s.label,
+            subtitle: `${s.handle ? `${s.handle} · ` : ''}${s.url}`,
+            tags: [],
+            copyUrl: s.url,
+          });
+        }
+      }
+    }
+
     return items.slice(0, 30);
-  }, [activeTasks, activeTransactions, activeNotes, getTagsForItem, query, selectedTagId, typeFilter]);
+  }, [activeTasks, activeTransactions, activeNotes, activeSocialLinks, getTagsForItem, query, selectedTagId, typeFilter]);
 
   if (!open) return null;
 
@@ -110,7 +148,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
         </div>
 
         <div className="px-4 py-2.5 flex flex-wrap items-center gap-1.5 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-          {(['all', 'task', 'transaction', 'note'] as const).map((f) => (
+          {(['all', 'task', 'transaction', 'note', 'social'] as const).map((f) => (
             <button
               key={f}
               type="button"
@@ -151,7 +189,15 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                 key={`${item.type}:${item.id}`}
                 type="button"
                 onClick={() => {
-                  navigateToItem(item.type, item.id);
+                  if (item.type === 'social') {
+                    if (item.copyUrl) {
+                      navigator.clipboard?.writeText(item.copyUrl);
+                      notify(`Copied ${item.title} URL`, 'success');
+                    }
+                    setActiveTab('socials');
+                  } else {
+                    navigateToItem(item.type, item.id);
+                  }
                   onClose();
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer"
@@ -160,6 +206,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                   {item.type === 'task' && <CheckSquare className="w-4 h-4 text-teal-600 dark:text-teal-400" />}
                   {item.type === 'transaction' && <Receipt className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
                   {item.type === 'note' && <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
+                  {item.type === 'social' && <Share2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{item.title}</p>

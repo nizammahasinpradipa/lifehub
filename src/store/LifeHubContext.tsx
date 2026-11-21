@@ -15,6 +15,9 @@ import type {
   Recurrence,
   RemoteAuthMeta,
   SecurityConfig,
+  SocialCategory,
+  SocialLink,
+  SocialPlatform,
   SupabaseConfig,
   SyncStatus,
   Tag,
@@ -119,6 +122,7 @@ interface LifeHubContextValue {
   activeTags: Tag[];
   activeTagAssignments: LifeHubData['tagAssignments'];
   activeLinks: ItemLink[];
+  activeSocialLinks: SocialLink[];
 
   // Helpers
   getWalletBalance: (walletId: string) => number;
@@ -184,6 +188,20 @@ interface LifeHubContextValue {
   setItemTags: (itemType: ItemType, itemId: string, tagIds: string[]) => void;
   addLink: (fromType: ItemType, fromId: string, toType: ItemType, toId: string) => void;
   removeLink: (linkId: string) => void;
+
+  // Social Media Links
+  addSocialLink: (input: {
+    platform: SocialPlatform;
+    label: string;
+    handle?: string;
+    url: string;
+    category?: SocialCategory;
+    notes?: string;
+    pinned?: boolean;
+  }) => SocialLink;
+  updateSocialLink: (id: string, patch: Partial<SocialLink>) => void;
+  deleteSocialLink: (id: string) => void;
+  togglePinSocialLink: (id: string) => void;
 
   // Preferences, Sync, Backup, Cloud
   setTheme: (theme: ThemePreference) => void;
@@ -573,6 +591,13 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const activeTags = useMemo(() => data.tags.filter((t) => !t.deleted_at), [data.tags]);
   const activeTagAssignments = useMemo(() => data.tagAssignments.filter((ta) => !ta.deleted_at), [data.tagAssignments]);
   const activeLinks = useMemo(() => data.links.filter((l) => !l.deleted_at), [data.links]);
+  const activeSocialLinks = useMemo(
+    () =>
+      (data.socialLinks || [])
+        .filter((s) => !s.deleted_at)
+        .sort((a, b) => Number(b.pinned) - Number(a.pinned) || a.label.localeCompare(b.label)),
+    [data.socialLinks]
+  );
 
   const getWalletBalance = useCallback(
     (walletId: string): number => {
@@ -1266,6 +1291,89 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     [commit]
   );
 
+  // ======================== SOCIAL MEDIA LINKS ========================
+  const addSocialLink: LifeHubContextValue['addSocialLink'] = useCallback(
+    (input) => {
+      const now = new Date().toISOString();
+      let cleanUrl = input.url.trim();
+      if (cleanUrl && input.platform === 'email' && !cleanUrl.startsWith('mailto:') && cleanUrl.includes('@')) {
+        cleanUrl = `mailto:${cleanUrl}`;
+      } else if (cleanUrl && !/^(https?:\/\/|mailto:|tel:)/i.test(cleanUrl)) {
+        cleanUrl = `https://${cleanUrl}`;
+      }
+
+      const item: SocialLink = {
+        id: uid('soc'),
+        user_id: dataRef.current.user.id || DEFAULT_USER_ID,
+        platform: input.platform,
+        label: input.label.trim(),
+        handle: input.handle?.trim() || '',
+        url: cleanUrl,
+        category: input.category || 'social',
+        notes: input.notes?.trim() || '',
+        pinned: Boolean(input.pinned),
+        created_at: now,
+        updated_at: now,
+        deleted_at: null,
+      };
+      commit((prev) => ({
+        ...prev,
+        socialLinks: [item, ...(prev.socialLinks || [])],
+      }));
+      return item;
+    },
+    [commit]
+  );
+
+  const updateSocialLink: LifeHubContextValue['updateSocialLink'] = useCallback(
+    (id, patch) => {
+      const now = new Date().toISOString();
+      const nextPatch = { ...patch };
+      if (typeof nextPatch.url === 'string') {
+        let cleanUrl = nextPatch.url.trim();
+        if (cleanUrl && nextPatch.platform === 'email' && !cleanUrl.startsWith('mailto:') && cleanUrl.includes('@')) {
+          cleanUrl = `mailto:${cleanUrl}`;
+        } else if (cleanUrl && !/^(https?:\/\/|mailto:|tel:)/i.test(cleanUrl)) {
+          cleanUrl = `https://${cleanUrl}`;
+        }
+        nextPatch.url = cleanUrl;
+      }
+      commit((prev) => ({
+        ...prev,
+        socialLinks: (prev.socialLinks || []).map((s) =>
+          s.id === id ? { ...s, ...nextPatch, updated_at: now } : s
+        ),
+      }));
+    },
+    [commit]
+  );
+
+  const deleteSocialLink: LifeHubContextValue['deleteSocialLink'] = useCallback(
+    (id) => {
+      const now = new Date().toISOString();
+      commit((prev) => ({
+        ...prev,
+        socialLinks: (prev.socialLinks || []).map((s) =>
+          s.id === id ? { ...s, deleted_at: now, updated_at: now } : s
+        ),
+      }));
+    },
+    [commit]
+  );
+
+  const togglePinSocialLink: LifeHubContextValue['togglePinSocialLink'] = useCallback(
+    (id) => {
+      const now = new Date().toISOString();
+      commit((prev) => ({
+        ...prev,
+        socialLinks: (prev.socialLinks || []).map((s) =>
+          s.id === id ? { ...s, pinned: !s.pinned, updated_at: now } : s
+        ),
+      }));
+    },
+    [commit]
+  );
+
   // ======================== PREFERENCES & BACKUP ========================
   const setTheme = useCallback(
     (theme: ThemePreference) => {
@@ -1654,6 +1762,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     activeTags,
     activeTagAssignments,
     activeLinks,
+    activeSocialLinks,
     getWalletBalance,
     getTagsForItem,
     getLinksForItem,
@@ -1681,6 +1790,10 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setItemTags,
     addLink,
     removeLink,
+    addSocialLink,
+    updateSocialLink,
+    deleteSocialLink,
+    togglePinSocialLink,
     setTheme,
     updateUserProfile,
     enableNotifications,

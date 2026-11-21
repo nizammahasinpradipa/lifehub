@@ -8,8 +8,37 @@ export type TransactionType = 'expense' | 'income' | 'transfer';
 export type NoteType = 'note' | 'journal';
 export type MoodRating = 1 | 2 | 3 | 4 | 5;
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type NavTab = 'home' | 'tasks' | 'spending' | 'notes' | 'settings';
+export type NavTab = 'home' | 'tasks' | 'spending' | 'notes' | 'socials' | 'settings';
 export type AutoLockMode = 'on-close' | '5m' | '15m' | '30m';
+
+export type SocialPlatform =
+  | 'github'
+  | 'instagram'
+  | 'linkedin'
+  | 'x'
+  | 'tiktok'
+  | 'youtube'
+  | 'discord'
+  | 'whatsapp'
+  | 'email'
+  | 'website'
+  | 'dribbble'
+  | 'behance'
+  | 'threads'
+  | 'facebook'
+  | 'other';
+
+export type SocialCategory = 'social' | 'dev' | 'design' | 'contact' | 'other';
+
+export interface SocialLink extends BaseEntity {
+  platform: SocialPlatform;
+  label: string;
+  handle: string;
+  url: string;
+  category: SocialCategory;
+  notes: string;
+  pinned: boolean;
+}
 
 export interface SecurityConfig {
   enabled: boolean;
@@ -140,6 +169,7 @@ export interface LifeHubData {
   tags: Tag[];
   tagAssignments: TagAssignment[];
   links: ItemLink[];
+  socialLinks: SocialLink[];
   preferences: AppPreferences;
   security: SecurityConfig | null;
 }

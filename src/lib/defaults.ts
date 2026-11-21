@@ -107,6 +107,7 @@ export function createInitialData(): LifeHubData {
     tags: [],
     tagAssignments: [],
     links: [],
+    socialLinks: [],
     preferences: {
       theme: 'system',
       default_wallet_id: 'wal_gopay',

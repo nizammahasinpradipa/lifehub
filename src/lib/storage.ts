@@ -140,6 +140,7 @@ export function normalizeData(input: Partial<LifeHubData>): LifeHubData {
     tags: Array.isArray(input.tags) ? input.tags : [],
     tagAssignments: Array.isArray(input.tagAssignments) ? input.tagAssignments : [],
     links: Array.isArray(input.links) ? input.links : [],
+    socialLinks: Array.isArray(input.socialLinks) ? input.socialLinks : [],
     preferences: { ...base.preferences, ...(input.preferences || {}) },
     security: input.security ?? null,
   };
@@ -194,6 +195,7 @@ export function mergeLifeHubData(local: LifeHubData, remote: LifeHubData): LifeH
     tags: mergeEntityList(local.tags, remote.tags),
     tagAssignments: mergeEntityList(local.tagAssignments, remote.tagAssignments),
     links: mergeEntityList(local.links, remote.links),
+    socialLinks: mergeEntityList(local.socialLinks || [], remote.socialLinks || []),
     preferences: { ...remote.preferences, ...local.preferences },
     security: mergedSecurity,
   };
