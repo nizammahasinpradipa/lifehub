@@ -423,8 +423,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
         <h2 className="text-base font-semibold">Appearance &amp; Profile</h2>
 
         <div className="space-y-2">
-          <p className="text-xs font-medium text-zinc-500">Theme</p>
-          <div className="grid grid-cols-3 gap-2">
+          <p className="text-xs font-medium text-[var(--text-muted)]">Theme</p>
+          <div className="grid grid-cols-3 gap-1 apple-segmented" style={{ backgroundColor: 'var(--bg-subtle)' }}>
             {(
               [
                 { id: 'system', label: 'System', Icon: Monitor },
@@ -438,12 +438,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
                   key={id}
                   type="button"
                   onClick={() => setTheme(id)}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-medium cursor-pointer transition-colors ${
-                    active
-                      ? 'border-teal-600 bg-teal-600/10 text-teal-700 dark:text-teal-300'
-                      : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  className={`apple-segmented-btn flex items-center justify-center gap-2 py-2 ${
+                    active ? 'active' : ''
                   }`}
-                  style={{ borderColor: active ? undefined : 'var(--border-subtle)' }}
                 >
                   <Icon className="w-4 h-4" />
                   {label}

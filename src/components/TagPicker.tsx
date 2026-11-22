@@ -42,8 +42,8 @@ export const TagPicker: React.FC<TagPickerProps> = ({ selectedTagIds, onChange, 
               onClick={() => toggle(tag.id)}
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                 active
-                  ? 'bg-teal-600 text-white dark:bg-teal-400 dark:text-zinc-950'
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  ? 'bg-[var(--primary)] text-[var(--primary-fg)]'
+                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:brightness-95'
               }`}
             >
               <Hash className="w-3 h-3" />

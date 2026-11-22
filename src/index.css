@@ -2,110 +2,134 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Map utility scales cleanly into the Modern-Retro Botanical palette (zero cold blue-grays) */
+/* Map utility scales cleanly into the Apple Warm Ember palette (zero cold grays or leftover greens) */
 @theme {
-  --color-teal-300: #d5e4a8;
-  --color-teal-400: #b8cf7a;
-  --color-teal-500: #709446;
-  --color-teal-600: #3d6329;
-  --color-teal-700: #233e1e;
+  /* Remap brand utilities to the exact Primary/Accent ember scale */
+  --color-teal-300: #ffa585;
+  --color-teal-400: #f87b50;
+  --color-teal-500: #ff7a00;
+  --color-teal-600: #e04e0c;
+  --color-teal-700: #c2410a;
 
-  /* Warm olive-tinted neutrals replacing default cold zinc grays (WCAG AA compliant) */
-  --color-zinc-50: #f7f6eb;
-  --color-zinc-100: #efeddc;
-  --color-zinc-200: #e2dfc9;
-  --color-zinc-300: #cbc8b0;
-  --color-zinc-400: #6e725e;
-  --color-zinc-500: #595e4b;
-  --color-zinc-600: #434837;
-  --color-zinc-700: #2f3a2a;
-  --color-zinc-800: #213022;
-  --color-zinc-900: #172318;
-  --color-zinc-950: #0f1911;
+  /* Warm stone-espresso neutrals aligned with #FFFFFF/#FFF1E6 (light) and #1F120E/#301F1A (dark) */
+  --color-zinc-50: #fff8f3;
+  --color-zinc-100: #fff1e6;
+  --color-zinc-200: #f3dfd0;
+  --color-zinc-300: #dec4b2;
+  --color-zinc-400: #9d877c;
+  --color-zinc-500: #76655c;
+  --color-zinc-600: #554740;
+  --color-zinc-700: #46322b;
+  --color-zinc-800: #392620;
+  --color-zinc-900: #2b1b16;
+  --color-zinc-950: #1f120e;
+
+  /* Exact semantic state tokens */
+  --color-emerald-400: #4ade80;
+  --color-emerald-600: #16a34a;
+  --color-amber-300: #fbbf24;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #d97706;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-rose-400: #f87171;
+  --color-rose-500: #dc2626;
+  --color-rose-600: #dc2626;
+  --color-rose-700: #b91c1c;
+  --color-sky-400: #60a5fa;
+  --color-sky-600: #2563eb;
 }
 
 /* ==========================================================================
-   Modern-Retro Botanical Wallet Theme (Olive Sage · Cream · Forest · Mustard)
+   LifeHub — Apple-Clean Warm Ember Design System
+   Light: bg #FFFFFF · surface #FFF1E6 · primary #E04E0C · accent #FF7A00 · text #1F1F1F
+   Dark:  bg #1F120E · surface #301F1A · primary #F87B50 · accent #F38339 · text #FFE4D7
    ========================================================================== */
 
 :root {
-  --bg-canvas: #e9ead2;
-  --bg-canvas-top: #cfd29f;
-  --bg-canvas-bottom: #f6f5ea;
-  --bg-surface: rgba(252, 251, 244, 0.95);
-  --bg-surface-solid: #fcfbf4;
-  --bg-glass: rgba(255, 253, 244, 0.88);
-  --bg-chartreuse: #dfe1a6;
-  --bg-forest: #233e1e;
-  --bg-subtle: #f1efe0;
-  --border-subtle: rgba(35, 62, 30, 0.12);
-  --border-glass: rgba(255, 255, 255, 0.78);
-  --border-strong: rgba(35, 62, 30, 0.24);
+  --bg-canvas: #ffffff;
+  --bg-sidebar: #fff8f3;
+  --bg-surface: #fff1e6;
+  --bg-surface-solid: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.82);
+  --bg-subtle: #ffe6d4;
+  --bg-input: #ffffff;
 
-  --text-primary: #1d2418;
-  --text-hero: #2b0a1b;
-  --text-secondary: #484d3d;
-  --text-muted: #595e4b;
+  --border-subtle: rgba(31, 31, 31, 0.08);
+  --border-strong: rgba(31, 31, 31, 0.16);
 
-  --accent: #233e1e;
-  --accent-hover: #1b3117;
-  --accent-grad-from: #709446;
-  --accent-grad-to: #1e5227;
-  --accent-soft: rgba(112, 148, 70, 0.2);
-  --accent-text: #233e1e;
+  --text-primary: #1f1f1f;
+  --text-hero: #1f1f1f;
+  --text-secondary: #554740;
+  --text-muted: #76655c;
 
-  --pill-sage: #c3d48e;
-  --pill-sage-text: #1c2c16;
-  --pill-mustard: #f4c95d;
-  --pill-mustard-text: #2b1808;
-  --currency-amber: #d9821f;
-  --wavy-terracotta: #d9af8b;
+  --primary: #e04e0c;
+  --primary-hover: #c94409;
+  --primary-fg: #ffffff;
+  --accent: #ff7a00;
+  --accent-soft: rgba(224, 78, 12, 0.1);
+  --accent-soft-hover: rgba(224, 78, 12, 0.16);
 
-  /* Motion tokens */
-  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur-fast: 130ms;
-  --dur-base: 190ms;
-  --dur-sheet: 250ms;
+  /* Light Mode State Palette */
+  --state-success: #16a34a;
+  --state-success-bg: rgba(22, 163, 74, 0.1);
+  --state-warning: #d97706;
+  --state-warning-bg: rgba(217, 119, 6, 0.12);
+  --state-danger: #dc2626;
+  --state-danger-bg: rgba(220, 38, 38, 0.1);
+  --state-info: #2563eb;
+  --state-info-bg: rgba(37, 99, 235, 0.1);
 
-  --shadow-card: 0 10px 26px -10px rgba(35, 62, 30, 0.12), 0 1px 3px rgba(35, 62, 30, 0.05);
-  --shadow-card-hover: 0 14px 32px -10px rgba(35, 62, 30, 0.16), 0 2px 6px rgba(35, 62, 30, 0.06);
+  /* Motion tokens (Apple crisp spring-out) */
+  --ease-apple: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur-base: 200ms;
+  --dur-sheet: 260ms;
+
+  --shadow-sm: 0 1px 2px rgba(31, 18, 14, 0.05);
+  --shadow-popover: 0 12px 32px -8px rgba(31, 18, 14, 0.14), 0 2px 6px rgba(31, 18, 14, 0.05);
+  --shadow-modal: 0 24px 60px -12px rgba(31, 18, 14, 0.24), 0 4px 14px rgba(31, 18, 14, 0.08);
 }
 
 .dark {
-  --bg-canvas: #121e15;
-  --bg-canvas-top: #182b1c;
-  --bg-canvas-bottom: #0d1610;
-  --bg-surface: rgba(25, 39, 28, 0.95);
-  --bg-surface-solid: #19271c;
-  --bg-glass: rgba(31, 49, 34, 0.88);
-  --bg-chartreuse: #2c3e24;
-  --bg-forest: #0e1d11;
-  --bg-subtle: #213325;
-  --border-subtle: rgba(223, 225, 166, 0.16);
-  --border-glass: rgba(223, 225, 166, 0.22);
-  --border-strong: rgba(223, 225, 166, 0.3);
+  --bg-canvas: #1f120e;
+  --bg-sidebar: #261712;
+  --bg-surface: #301f1a;
+  --bg-surface-solid: #301f1a;
+  --bg-surface-elevated: #3c2822;
+  --bg-glass: rgba(31, 18, 14, 0.8);
+  --bg-subtle: #3d2923;
+  --bg-input: #271813;
 
-  --text-primary: #f6f4e8;
-  --text-hero: #faf8ec;
-  --text-secondary: #c5cdb7;
-  --text-muted: #9fa98f;
+  --border-subtle: rgba(255, 228, 215, 0.1);
+  --border-strong: rgba(255, 228, 215, 0.2);
 
-  --accent: #b8cf7a;
-  --accent-hover: #cbe090;
-  --accent-grad-from: #8bb355;
-  --accent-grad-to: #4d7a31;
-  --accent-soft: rgba(184, 207, 122, 0.18);
-  --accent-text: #c9de8d;
+  --text-primary: #ffe4d7;
+  --text-hero: #ffe4d7;
+  --text-secondary: #d7b6a7;
+  --text-muted: #af8d7f;
 
-  --pill-sage: #38522d;
-  --pill-sage-text: #eef5d8;
-  --pill-mustard: #eab948;
-  --pill-mustard-text: #201507;
-  --currency-amber: #f4c95d;
-  --wavy-terracotta: #a78363;
+  --primary: #f87b50;
+  --primary-hover: #ff8e66;
+  --primary-fg: #1f120e;
+  --accent: #f38339;
+  --accent-soft: rgba(248, 123, 80, 0.16);
+  --accent-soft-hover: rgba(248, 123, 80, 0.24);
 
-  --shadow-card: 0 12px 28px -10px rgba(0, 0, 0, 0.48);
-  --shadow-card-hover: 0 16px 34px -10px rgba(0, 0, 0, 0.6);
+  /* Dark Mode State Palette */
+  --state-success: #4ade80;
+  --state-success-bg: rgba(74, 222, 128, 0.14);
+  --state-warning: #fbbf24;
+  --state-warning-bg: rgba(251, 191, 36, 0.14);
+  --state-danger: #f87171;
+  --state-danger-bg: rgba(248, 113, 113, 0.14);
+  --state-info: #60a5fa;
+  --state-info-bg: rgba(96, 165, 250, 0.14);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow-popover: 0 16px 36px -8px rgba(0, 0, 0, 0.52);
+  --shadow-modal: 0 28px 64px -12px rgba(0, 0, 0, 0.68);
 }
 
 * {
@@ -128,24 +152,23 @@ body,
   padding: 0;
   overscroll-behavior-y: none;
   background-color: var(--bg-canvas);
-  background-image: linear-gradient(180deg, var(--bg-canvas-top) 0%, var(--bg-canvas) 32%, var(--bg-canvas-bottom) 100%);
-  background-attachment: fixed;
   color: var(--text-primary);
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Plus Jakarta Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Browser surfaces themed from the palette (Impeccable craft floor) */
+/* Browser surfaces themed from palette (Impeccable Craft Floor) */
 ::selection {
-  background-color: var(--pill-sage);
-  color: var(--pill-sage-text);
+  background-color: var(--accent-soft-hover);
+  color: var(--text-primary);
 }
 
 input,
 textarea {
-  caret-color: var(--currency-amber);
+  caret-color: var(--primary);
 }
 
 a {
@@ -161,7 +184,7 @@ h3 {
 
 /* Visible, accessible keyboard focus indicator (WCAG 2.2 AA) */
 :focus-visible {
-  outline: 2px solid var(--accent-grad-from);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -169,7 +192,7 @@ h3 {
   outline: none;
 }
 
-/* Native Android feel: prevent accidental text selection on chrome while keeping content/inputs selectable */
+/* Native app feel: prevent accidental selection on UI chrome while keeping content/inputs selectable */
 body {
   -webkit-user-select: none;
   user-select: none;
@@ -184,7 +207,7 @@ pre,
   user-select: text;
 }
 
-/* Prevent Android / mobile browser auto-zoom on input focus (must be >= 16px) */
+/* Prevent mobile auto-zoom on input focus (must be >= 16px) */
 @media (max-width: 767px) {
   .input-field,
   input[type="text"],
@@ -199,7 +222,7 @@ pre,
   }
 }
 
-/* Hide fixed bottom bar & FAB cleanly when Android virtual keyboard is open */
+/* Hide fixed bottom bar & FAB cleanly when mobile virtual keyboard is open */
 body.keyboard-open .mobile-bottom-chrome {
   display: none !important;
 }
@@ -208,120 +231,93 @@ body.keyboard-open .mobile-bottom-chrome {
   font-variant-numeric: tabular-nums;
 }
 
-/* Signature frosted cream glass card with disciplined elevation */
+/* ==========================================================================
+   Apple Surface & Elevation Primitives (Declared once: hairline border, zero ghost-card mud)
+   ========================================================================== */
+
 .card {
   background-color: var(--bg-surface);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--border-glass);
-  box-shadow: var(--shadow-card);
-  border-radius: 20px;
-  transition: box-shadow var(--dur-base) var(--ease-out-expo), transform var(--dur-fast) var(--ease-out-expo);
-}
-
-.dark .card {
-  border-color: var(--border-subtle);
-  box-shadow: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-apple);
 }
 
 @media (hover: hover) {
   button.card:hover,
   a.card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card-hover);
-  }
-}
-
-/* Frosted Hero Wallet / Balance Card */
-.card-glass-hero {
-  background: linear-gradient(145deg, var(--bg-glass), var(--bg-surface));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--border-glass);
-  box-shadow: var(--shadow-card);
-  border-radius: 24px;
-}
-
-.dark .card-glass-hero {
-  border-color: var(--border-subtle);
-}
-
-/* Retro Chartreuse Highlight Card */
-.card-chartreuse {
-  background-color: var(--bg-chartreuse);
-  border: 1px solid var(--border-glass);
-  box-shadow: var(--shadow-card);
-  border-radius: 20px;
-}
-
-.dark .card-chartreuse {
-  border-color: var(--border-subtle);
-  box-shadow: none;
-}
-
-/* Deep Pine Forest Banner / Featured Card */
-.card-forest {
-  background: linear-gradient(135deg, #274421 0%, #183015 100%);
-  color: #fbfbf4;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 12px 26px -8px rgba(17, 45, 25, 0.35);
-  border-radius: 20px;
-  transition: transform var(--dur-fast) var(--ease-out-expo), filter var(--dur-fast) ease;
-}
-
-@media (hover: hover) {
-  button.card-forest:hover {
+    border-color: var(--border-strong);
     transform: translateY(-1px);
-    filter: brightness(1.04);
   }
 }
 
-/* Chunky Espresso-Plum Hero Numerals */
+.card-hero {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+}
+
+/* Authentic Apple translucent bar (used strictly for top/bottom navigation chrome) */
+.apple-chrome {
+  background-color: var(--bg-glass);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-color: var(--border-subtle);
+}
+
+/* Crisp Apple Numeric Display */
 .hero-amount {
   color: var(--text-hero);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 
-/* Signature Deep Pine Segmented Control Track */
-.retro-segmented {
-  background-color: var(--bg-forest);
-  border-radius: 9999px;
-  padding: 4px;
+/* ==========================================================================
+   Apple Segmented Control
+   ========================================================================== */
+
+.apple-segmented {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 3px;
 }
 
-.retro-segmented-btn {
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.5rem 0.875rem;
-  min-height: 36px;
-  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
+.apple-segmented-btn {
+  border-radius: 9px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.4375rem 0.875rem;
+  min-height: 34px;
+  transition: background-color var(--dur-fast) var(--ease-apple), color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   cursor: pointer;
-  color: rgba(251, 251, 244, 0.78);
+  color: var(--text-secondary);
 }
 
-.retro-segmented-btn:hover {
-  color: #fbfbf4;
+.apple-segmented-btn:hover:not(.active) {
+  color: var(--text-primary);
 }
 
-.retro-segmented-btn.active {
-  background-color: #fbfbf4;
-  color: #1c2f18;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+.apple-segmented-btn.active {
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Inputs */
+/* ==========================================================================
+   Apple Inputs & Form Controls
+   ========================================================================== */
+
 .input-field {
   width: 100%;
-  background-color: var(--bg-surface-solid);
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  padding: 0.65rem 0.95rem;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 0.625rem 0.875rem;
   font-size: 0.9375rem;
   color: var(--text-primary);
-  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease, background-color var(--dur-fast) ease;
   outline: none;
 }
 
@@ -330,38 +326,35 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 .input-field:focus {
-  border-color: var(--accent-grad-from);
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* Full-Pill Olive-to-Forest Gradient Primary Button */
+/* ==========================================================================
+   Apple Buttons (Consistent 12px rounded-xl vocabulary across every screen)
+   ========================================================================== */
+
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   min-height: 44px;
-  padding: 0.55rem 1.25rem;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, var(--accent-grad-from) 0%, var(--accent-grad-to) 100%);
-  color: #fbfbf4;
+  padding: 0.55rem 1.15rem;
+  border-radius: 12px;
+  background-color: var(--primary);
+  color: var(--primary-fg);
   font-weight: 600;
   font-size: 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 6px 16px -4px rgba(30, 82, 39, 0.35);
+  letter-spacing: -0.01em;
+  border: none;
   cursor: pointer;
-  transition: filter var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo), opacity var(--dur-fast) ease;
-}
-
-.dark .btn-primary {
-  color: #102011;
-  font-weight: 700;
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-apple), opacity var(--dur-fast) ease;
 }
 
 @media (hover: hover) {
   .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.06);
-    transform: translateY(-1px);
+    background-color: var(--primary-hover);
   }
 }
 
@@ -370,89 +363,60 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 .btn-primary:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-/* Signature Sage Pill Button */
-.btn-sage {
+/* iOS Tinted Button (signature Apple secondary CTA) */
+.btn-tinted {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
   min-height: 44px;
-  padding: 0.5rem 1.1rem;
-  border-radius: 9999px;
-  background-color: var(--pill-sage);
-  color: var(--pill-sage-text);
+  padding: 0.55rem 1.1rem;
+  border-radius: 12px;
+  background-color: var(--accent-soft);
+  color: var(--primary);
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
   border: none;
   cursor: pointer;
-  transition: filter var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo);
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-apple);
 }
 
 @media (hover: hover) {
-  .btn-sage:hover {
-    filter: brightness(0.96);
-    transform: translateY(-1px);
+  .btn-tinted:hover:not(:disabled) {
+    background-color: var(--accent-soft-hover);
   }
 }
 
-.btn-sage:active {
-  transform: scale(0.97);
-}
-
-/* Signature Mustard Gold Pill Button */
-.btn-mustard {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  min-height: 44px;
-  padding: 0.5rem 1.1rem;
-  border-radius: 9999px;
-  background-color: var(--pill-mustard);
-  color: var(--pill-mustard-text);
-  font-weight: 600;
-  font-size: 0.8125rem;
-  border: none;
-  cursor: pointer;
-  transition: filter var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo);
-}
-
-@media (hover: hover) {
-  .btn-mustard:hover {
-    filter: brightness(0.97);
-    transform: translateY(-1px);
-  }
-}
-
-.btn-mustard:active {
-  transform: scale(0.97);
+.btn-tinted:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   min-height: 44px;
   padding: 0.5rem 0.95rem;
-  border-radius: 9999px;
-  background-color: var(--bg-subtle);
+  border-radius: 12px;
+  background-color: var(--bg-surface-elevated);
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.8125rem;
   border: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo);
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-apple);
 }
 
 @media (hover: hover) {
   .btn-secondary:hover:not(:disabled) {
+    background-color: var(--bg-subtle);
     border-color: var(--border-strong);
-    transform: translateY(-1px);
   }
 }
 
@@ -461,7 +425,7 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 .btn-secondary:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -472,11 +436,11 @@ body.keyboard-open .mobile-bottom-chrome {
   gap: 0.375rem;
   min-height: 36px;
   padding: 0.375rem 0.65rem;
-  border-radius: 9999px;
+  border-radius: 10px;
   background: transparent;
   color: var(--text-secondary);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   border: none;
   cursor: pointer;
   transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
@@ -487,25 +451,41 @@ body.keyboard-open .mobile-bottom-chrome {
   color: var(--text-primary);
 }
 
-/* Decorative retro terracotta wavy underline */
-.wavy-divider {
-  height: 8px;
-  width: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8' viewBox='0 0 24 8'%3E%3Cpath d='M0 4 Q 6 0, 12 4 T 24 4' fill='none' stroke='%23D9AF8B' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: repeat-x;
-  background-position: center;
-  opacity: 0.85;
+/* ==========================================================================
+   Semantic State Helpers (Exact Light/Dark Palette)
+   ========================================================================== */
+
+.text-state-success {
+  color: var(--state-success);
+}
+.text-state-warning {
+  color: var(--state-warning);
+}
+.text-state-danger {
+  color: var(--state-danger);
+}
+.text-state-info {
+  color: var(--state-info);
 }
 
-/* Botanical Splash Background (AuthGate) */
-.retro-botanical-bg {
-  background:
-    radial-gradient(circle at 12% 10%, rgba(180, 173, 94, 0.38) 0%, transparent 48%),
-    radial-gradient(circle at 88% 85%, rgba(180, 173, 94, 0.45) 0%, transparent 52%),
-    linear-gradient(155deg, #112d19 0%, #244020 48%, #4e5624 100%);
+.badge-success {
+  background-color: var(--state-success-bg);
+  color: var(--state-success);
+}
+.badge-warning {
+  background-color: var(--state-warning-bg);
+  color: var(--state-warning);
+}
+.badge-danger {
+  background-color: var(--state-danger-bg);
+  color: var(--state-danger);
+}
+.badge-info {
+  background-color: var(--state-info-bg);
+  color: var(--state-info);
 }
 
-/* Safe area padding for Android / iOS bottom tabs & top notches */
+/* Safe area padding for iOS/Android bottom tabs & top notches */
 .pb-safe {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
@@ -523,13 +503,13 @@ body.keyboard-open .mobile-bottom-chrome {
   scrollbar-width: none;
 }
 
-/* Reading measure helper for notes & emails */
+/* Comfortable prose measure for notes & email reader */
 .prose-measure {
   max-width: 68ch;
   overflow-wrap: anywhere;
 }
 
-/* Smooth themed scrollbar */
+/* Subtle native-style scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -547,7 +527,7 @@ body.keyboard-open .mobile-bottom-chrome {
 @keyframes modalIn {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.985);
+    transform: translateY(8px) scale(0.985);
   }
   to {
     opacity: 1;
@@ -557,7 +537,7 @@ body.keyboard-open .mobile-bottom-chrome {
 
 @keyframes sheetUp {
   from {
-    opacity: 0.4;
+    opacity: 0.5;
     transform: translateY(100%);
   }
   to {
@@ -569,7 +549,7 @@ body.keyboard-open .mobile-bottom-chrome {
 @keyframes pageFade {
   from {
     opacity: 0;
-    transform: translateY(5px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -578,18 +558,18 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 .animate-modal {
-  animation: modalIn var(--dur-base) var(--ease-out-expo);
+  animation: modalIn var(--dur-base) var(--ease-apple);
 }
 
 .animate-sheet {
-  animation: sheetUp var(--dur-sheet) var(--ease-out-expo);
+  animation: sheetUp var(--dur-sheet) var(--ease-apple);
 }
 
 .animate-page {
-  animation: pageFade var(--dur-base) var(--ease-out-expo);
+  animation: pageFade var(--dur-fast) var(--ease-apple);
 }
 
-/* Respect prefers-reduced-motion across all animations & transitions (WCAG / UI-UX Pro Max CRITICAL) */
+/* Respect prefers-reduced-motion across all animations & transitions */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

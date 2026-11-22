@@ -58,9 +58,9 @@ export const LinkPicker: React.FC<LinkPickerProps> = ({ itemType, itemId }) => {
   }, [activeTasks, activeTransactions, activeNotes, itemType, itemId, query, links]);
 
   const iconFor = (t: ItemType) => {
-    if (t === 'task') return <CheckSquare className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />;
-    if (t === 'transaction') return <Receipt className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />;
-    return <FileText className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />;
+    if (t === 'task') return <CheckSquare className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />;
+    if (t === 'transaction') return <Receipt className="w-3.5 h-3.5 text-state-warning" />;
+    return <FileText className="w-3.5 h-3.5 text-state-info" />;
   };
 
   return (

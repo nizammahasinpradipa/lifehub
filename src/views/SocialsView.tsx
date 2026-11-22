@@ -36,8 +36,8 @@ const PLATFORMS: PlatformMeta[] = [
   { id: 'x', label: 'X (Twitter)', short: 'X', color: '#18181B', defaultCategory: 'social', placeholder: 'https://x.com/username' },
   { id: 'tiktok', label: 'TikTok', short: 'TT', color: '#0F172A', defaultCategory: 'social', placeholder: 'https://tiktok.com/@username' },
   { id: 'youtube', label: 'YouTube', short: 'YT', color: '#DC2626', defaultCategory: 'social', placeholder: 'https://youtube.com/@channel' },
-  { id: 'website', label: 'Portfolio / Website', short: 'WEB', color: '#0F766E', defaultCategory: 'dev', placeholder: 'https://yourdomain.com' },
-  { id: 'email', label: 'Email', short: '@', color: '#0284C7', defaultCategory: 'contact', placeholder: 'you@example.com' },
+  { id: 'website', label: 'Portfolio / Website', short: 'WEB', color: '#E04E0C', defaultCategory: 'dev', placeholder: 'https://yourdomain.com' },
+  { id: 'email', label: 'Email', short: '@', color: '#2563EB', defaultCategory: 'contact', placeholder: 'you@example.com' },
   { id: 'whatsapp', label: 'WhatsApp', short: 'WA', color: '#16A34A', defaultCategory: 'contact', placeholder: 'https://wa.me/628123456789' },
   { id: 'discord', label: 'Discord', short: 'DC', color: '#5865F2', defaultCategory: 'social', placeholder: 'https://discord.com/users/...' },
   { id: 'dribbble', label: 'Dribbble', short: 'DR', color: '#EA4C89', defaultCategory: 'design', placeholder: 'https://dribbble.com/username' },
@@ -365,11 +365,11 @@ export const SocialsView: React.FC = () => {
               key={f.id}
               type="button"
               onClick={() => setCategoryFilter(f.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors shrink-0 ${
-                categoryFilter === f.id
-                  ? 'bg-[#233E1E] text-[#FBFBF4] dark:bg-[#C3D48E] dark:text-[#162613]'
-                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:brightness-95'
-              }`}
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors shrink-0"
+              style={{
+                backgroundColor: categoryFilter === f.id ? 'var(--primary)' : 'var(--bg-surface)',
+                color: categoryFilter === f.id ? 'var(--primary-fg)' : 'var(--text-secondary)',
+              }}
             >
               {f.label}
             </button>
@@ -543,10 +543,21 @@ export const SocialsView: React.FC = () => {
 
       {/* Add / Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-[3px] p-0 md:p-4"
+          onClick={() => setModalOpen(false)}
+        >
           <div
-            className="w-full max-w-lg rounded-t-2xl md:rounded-2xl border shadow-2xl max-h-[92vh] overflow-y-auto animate-modal"
-            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+            className="w-full max-w-lg rounded-t-[24px] md:rounded-[20px] border max-h-[92vh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+            style={{
+              backgroundColor: 'var(--bg-surface-elevated)',
+              borderColor: 'var(--border-subtle)',
+              boxShadow: 'var(--shadow-modal)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Social Link"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <h2 className="text-base font-semibold">{editingItem ? 'Edit Social Link' : 'Add Social Link'}</h2>

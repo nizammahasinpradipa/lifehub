@@ -483,7 +483,7 @@ export const EmailView: React.FC = () => {
       {(accessToken || messages.length > 0) && (
         <>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
-            <div className="flex items-center gap-1 retro-segmented overflow-x-auto no-scrollbar max-w-full">
+            <div className="flex items-center gap-1 apple-segmented overflow-x-auto no-scrollbar max-w-full">
               {(
                 [
                   { id: 'INBOX', label: 'Inbox' },
@@ -497,7 +497,7 @@ export const EmailView: React.FC = () => {
                   key={f.id}
                   type="button"
                   onClick={() => setFolder(f.id)}
-                  className={`retro-segmented-btn shrink-0 !px-3.5 !py-1.5 ${
+                  className={`apple-segmented-btn shrink-0 !px-3.5 !py-1.5 ${
                     folder === f.id ? 'active' : ''
                   }`}
                 >
@@ -722,10 +722,21 @@ export const EmailView: React.FC = () => {
 
       {/* Compose / Reply Modal */}
       {composeOpen && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-[3px] p-0 md:p-4"
+          onClick={() => setComposeOpen(false)}
+        >
           <div
-            className="w-full max-w-lg rounded-t-2xl md:rounded-2xl border shadow-2xl animate-modal"
-            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+            className="w-full max-w-lg rounded-t-[24px] md:rounded-[20px] border animate-sheet md:animate-modal pb-safe"
+            style={{
+              backgroundColor: 'var(--bg-surface-elevated)',
+              borderColor: 'var(--border-subtle)',
+              boxShadow: 'var(--shadow-modal)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Compose email"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <h2 className="text-base font-semibold">{composeThreadId ? 'Reply via Gmail' : 'New Email'}</h2>

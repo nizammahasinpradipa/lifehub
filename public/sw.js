@@ -1,5 +1,5 @@
-const CACHE_NAME = 'lifehub-app-v3';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest?v=3', '/logo.svg', '/logo-192.png', '/logo-512.png'];
+const CACHE_NAME = 'lifehub-app-v4';
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest?v=4', '/logo.svg?v=4', '/logo-192.png?v=4', '/logo-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

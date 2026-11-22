@@ -48,7 +48,7 @@ interface SpendingViewProps {
 
 type SpendingTab = 'transactions' | 'budgets' | 'reports' | 'manage';
 
-const CAT_COLORS = ['#233E1E', '#709446', '#E59A38', '#C3834C', '#B94E48', '#527A34', '#6B6E5C'];
+const CAT_COLORS = ['#E04E0C', '#FF7A00', '#D97706', '#16A34A', '#2563EB', '#DC2626', '#8C6B5D'];
 
 export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, onOpenReceipt }) => {
   const {
@@ -353,7 +353,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
 
       {/* Clean Single-Row Sub-Tabs + Desktop Month Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="grid grid-cols-4 sm:flex items-center gap-1 retro-segmented w-full sm:w-auto">
+        <div className="grid grid-cols-4 sm:flex items-center gap-1 apple-segmented w-full sm:w-auto">
           {(
             [
               { id: 'transactions', label: 'Log' },
@@ -366,7 +366,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
               key={t.id}
               type="button"
               onClick={() => setSubTab(t.id)}
-              className={`retro-segmented-btn text-center !px-2 sm:!px-4 ${
+              className={`apple-segmented-btn text-center !px-2 sm:!px-4 ${
                 subTab === t.id ? 'active' : ''
               }`}
             >
@@ -400,20 +400,20 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
       {subTab === 'transactions' && (
         <div className="space-y-3.5">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            <div className="card-chartreuse p-4">
-              <p className="text-[11px] font-semibold text-[var(--text-secondary)]">Spent</p>
-              <p className="text-base sm:text-lg font-extrabold tabular-nums mt-0.5 text-[#A64B3C] dark:text-[#E8927C]">
+            <div className="card p-4">
+              <p className="text-[11px] font-medium text-[var(--text-muted)]">Spent</p>
+              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5 text-state-danger">
                 {formatIDR(monthTotals.expense)}
               </p>
             </div>
             <div className="card p-4">
-              <p className="text-[11px] font-semibold text-[var(--text-muted)]">Income</p>
-              <p className="text-base sm:text-lg font-extrabold tabular-nums mt-0.5 text-[#2D5A27] dark:text-[#B8CF7A]">
+              <p className="text-[11px] font-medium text-[var(--text-muted)]">Income</p>
+              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5 text-state-success">
                 {formatIDR(monthTotals.income)}
               </p>
             </div>
             <div className="hidden sm:block card p-4">
-              <p className="text-[11px] font-semibold text-[var(--text-muted)]">Net</p>
+              <p className="text-[11px] font-medium text-[var(--text-muted)]">Net</p>
               <p className="text-base sm:text-lg hero-amount mt-0.5">
                 {formatIDR(monthTotals.net, { signed: true })}
               </p>
@@ -430,9 +430,9 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                 className="!py-2 !text-xs"
                 options={[
                   { value: 'all', label: 'All types' },
-                  { value: 'expense', label: 'Expenses', dotColor: '#A64B3C' },
-                  { value: 'income', label: 'Income', dotColor: '#2D5A27' },
-                  { value: 'transfer', label: 'Transfers', dotColor: '#E59A38' },
+                  { value: 'expense', label: 'Expenses', dotColor: '#DC2626' },
+                  { value: 'income', label: 'Income', dotColor: '#16A34A' },
+                  { value: 'transfer', label: 'Transfers', dotColor: '#D97706' },
                 ]}
               />
             </div>
@@ -478,11 +478,19 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                     style={{ borderColor: 'var(--border-subtle)' }}
                   >
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-[#F4F0C8] dark:bg-[#2B3C23]"
+                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor:
+                          tx.type === 'income'
+                            ? 'var(--state-success-bg)'
+                            : tx.type === 'transfer'
+                            ? 'var(--state-warning-bg)'
+                            : 'var(--state-danger-bg)',
+                      }}
                     >
-                      {tx.type === 'expense' && <ArrowUpRight className="w-4 h-4 text-[#A64B3C] dark:text-[#E8927C]" />}
-                      {tx.type === 'income' && <ArrowDownLeft className="w-4 h-4 text-[#2D5A27] dark:text-[#B8CF7A]" />}
-                      {tx.type === 'transfer' && <ArrowLeftRight className="w-4 h-4 text-[#B87822] dark:text-[#F4C95D]" />}
+                      {tx.type === 'expense' && <ArrowUpRight className="w-4 h-4 text-state-danger" />}
+                      {tx.type === 'income' && <ArrowDownLeft className="w-4 h-4 text-state-success" />}
+                      {tx.type === 'transfer' && <ArrowLeftRight className="w-4 h-4 text-state-warning" />}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -520,12 +528,12 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                     </div>
 
                     <span
-                      className={`text-sm font-bold tabular-nums shrink-0 ${
+                      className={`text-sm font-semibold tabular-nums shrink-0 ${
                         tx.type === 'income'
-                          ? 'text-[#2D5A27] dark:text-[#B8CF7A]'
+                          ? 'text-state-success'
                           : tx.type === 'transfer'
-                          ? 'text-[#B87822] dark:text-[#F4C95D]'
-                          : 'text-[#A64B3C] dark:text-[#E8927C]'
+                          ? 'text-state-warning'
+                          : 'text-state-danger'
                       }`}
                     >
                       {tx.type === 'income' ? '+' : tx.type === 'expense' ? '-' : ''}
@@ -564,13 +572,13 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                       <span className="text-sm font-semibold">{cat.name}</span>
                     </div>
                     {isOver && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#B94E48]/15 text-[#A64B3C] dark:text-[#E8927C]">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full badge-danger">
                         <AlertTriangle className="w-3 h-3" />
                         {pct}% · Over budget
                       </span>
                     )}
                     {isWarn && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#F4C95D]/35 text-[#6E470A] dark:text-[#F4C95D]">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full badge-warning">
                         <AlertTriangle className="w-3 h-3" />
                         {pct}% · Approaching limit
                       </span>
@@ -591,7 +599,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                           className="h-full rounded-full transition-all duration-300"
                           style={{
                             width: `${barPct}%`,
-                            backgroundColor: isOver ? '#B94E48' : isWarn ? '#E59A38' : cat.color,
+                            backgroundColor: isOver ? 'var(--state-danger)' : isWarn ? 'var(--state-warning)' : cat.color,
                           }}
                         />
                       </div>
@@ -716,7 +724,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                       }}
                       itemStyle={{ color: 'var(--text-primary)' }}
                     />
-                    <Bar dataKey="amount" fill="#233E1E" radius={[0, 10, 10, 0]} />
+                    <Bar dataKey="amount" fill="var(--primary)" radius={[0, 8, 8, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -746,8 +754,8 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                     }}
                     itemStyle={{ color: 'var(--text-primary)' }}
                   />
-                  <Bar dataKey="Expense" fill="#233E1E" radius={[8, 8, 0, 0]} />
-                  <Bar dataKey="Income" fill="#C3D48E" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="Expense" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Income" fill="var(--state-success)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -914,8 +922,8 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                   onChange={(v) => setNewCatKind(v as CategoryKind)}
                   className="!py-2 !text-sm"
                   options={[
-                    { value: 'expense', label: 'Expense', dotColor: '#A64B3C' },
-                    { value: 'income', label: 'Income', dotColor: '#2D5A27' },
+                    { value: 'expense', label: 'Expense', dotColor: '#DC2626' },
+                    { value: 'income', label: 'Income', dotColor: '#16A34A' },
                   ]}
                 />
               </div>
@@ -982,15 +990,22 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
       {/* Edit Transaction Drawer Modal */}
       {editingTx && (
         <div
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-[3px] p-0 md:p-4"
           onClick={() => setEditingTxId(null)}
         >
           <div
-            className="w-full max-w-lg rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
-            style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+            className="w-full max-w-lg rounded-t-[24px] md:rounded-[20px] border max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+            style={{
+              backgroundColor: 'var(--bg-surface-elevated)',
+              borderColor: 'var(--border-subtle)',
+              boxShadow: 'var(--shadow-modal)',
+            }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edit transaction"
           >
-            <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
+            <div className="md:hidden w-9 h-1 rounded-full bg-[var(--border-strong)] mx-auto mt-3" />
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <h2 className="text-base font-semibold capitalize">Edit {editingTx.type}</h2>
               <div className="flex items-center gap-1">

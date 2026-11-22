@@ -41,7 +41,6 @@ export const AuthGate: React.FC = () => {
     if (mode !== 'recover') {
       setMode(hasExistingAccount ? 'signin' : 'signup');
     }
-    // Only adjust initial default once on provider detection
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasExistingAccount]);
 
@@ -60,7 +59,6 @@ export const AuthGate: React.FC = () => {
   const [recoveryBanner, setRecoveryBanner] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState(false);
 
-  // Inline Cloud Sync configuration drawer (for syncing PC & Android over internet)
   const [showCloudSetup, setShowCloudSetup] = useState(false);
   const [sbUrl, setSbUrl] = useState(supabaseConfig?.url || '');
   const [sbKey, setSbKey] = useState(supabaseConfig?.anonKey || '');
@@ -171,63 +169,80 @@ export const AuthGate: React.FC = () => {
   const renderProviderBadge = () => {
     if (availableProvider === 'cloud') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-[#FBFBF4] border border-white/20 backdrop-blur-sm">
-          <Cloud className="w-3.5 h-3.5 text-[#F4C95D]" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium badge-success">
+          <Cloud className="w-3.5 h-3.5" />
           Cloud Account · Syncs PC &amp; Android anywhere
         </span>
       );
     }
     if (availableProvider === 'lan') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-[#FBFBF4] border border-white/20 backdrop-blur-sm">
-          <Wifi className="w-3.5 h-3.5 text-[#C3D48E]" />
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium badge-info">
+          <Wifi className="w-3.5 h-3.5" />
           Wi-Fi Account · Syncs PC &amp; Android on same network
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/15 text-[#FBFBF4]/90 border border-white/20 backdrop-blur-sm">
-        <HardDrive className="w-3.5 h-3.5 text-[#F4C95D]" />
+      <span
+        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border"
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          borderColor: 'var(--border-subtle)',
+          color: 'var(--text-secondary)',
+        }}
+      >
+        <HardDrive className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
         Device Account · Connect Cloud below to sync
       </span>
     );
   };
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-10 retro-botanical-bg">
+    <div
+      className="min-h-dvh flex flex-col items-center justify-center px-4 py-10"
+      style={{ backgroundColor: 'var(--bg-canvas)' }}
+    >
       <div className="w-full max-w-md space-y-5 animate-modal">
-        {/* Brand Header (inspired by the cream squircle badge over botanical forest) */}
+        {/* Clean Apple-Style Brand Header */}
         <div className="flex flex-col items-center text-center space-y-2.5">
-          <div className="w-16 h-16 rounded-[22px] shadow-xl flex items-center justify-center relative">
-            <AppLogo className="w-16 h-16" />
-            <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#233E1E] bg-[#F4C95D] text-[#2B1808]">
+          <div className="relative">
+            <AppLogo className="w-16 h-16 rounded-[18px] shadow-md" />
+            <span
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2"
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: 'var(--bg-canvas)',
+                color: 'var(--primary)',
+              }}
+            >
               <Lock className="w-3 h-3" />
             </span>
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-[#FBFBF4]">LifeHub</h1>
-            <p className="text-xs text-[#FBFBF4]/75 mt-0.5">
+            <h1 className="text-2xl font-bold tracking-tight">LifeHub</h1>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               One private account for your PC and Android
             </p>
           </div>
           <div className="pt-0.5">{renderProviderBadge()}</div>
         </div>
 
-        {/* Recovery Key Notice (if local account created) */}
+        {/* Recovery Key Notice */}
         {recoveryBanner && (
-          <div className="card p-5 space-y-3 border-teal-600/40">
+          <div className="card p-5 space-y-3" style={{ borderColor: 'var(--primary)' }}>
             <div className="flex items-start gap-2.5">
-              <ShieldCheck className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
+              <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 text-state-success" />
               <div>
                 <p className="text-sm font-semibold">Save your Recovery Key</p>
-                <p className="text-xs text-zinc-500 mt-0.5">
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                   Keep this code safe in case you forget your password on this device.
                 </p>
               </div>
             </div>
             <div
               className="p-3 rounded-xl border flex items-center justify-between gap-2"
-              style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-subtle)' }}
+              style={{ backgroundColor: 'var(--bg-input)', borderColor: 'var(--border-subtle)' }}
             >
               <code className="text-sm font-mono font-bold tracking-wider">{recoveryBanner}</code>
               <button
@@ -239,7 +254,7 @@ export const AuthGate: React.FC = () => {
                 }}
                 className="btn-secondary !min-h-[32px] !px-2.5 !text-xs"
               >
-                {copiedKey ? <Check className="w-3.5 h-3.5 text-teal-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedKey ? <Check className="w-3.5 h-3.5 text-state-success" /> : <Copy className="w-3.5 h-3.5" />}
                 Copy
               </button>
             </div>
@@ -249,7 +264,7 @@ export const AuthGate: React.FC = () => {
         {/* Main Account Card */}
         <div className="card p-6 space-y-4">
           {mode !== 'recover' && (
-            <div className="grid grid-cols-2 gap-1 retro-segmented">
+            <div className="grid grid-cols-2 gap-1 apple-segmented" style={{ backgroundColor: 'var(--bg-subtle)' }}>
               <button
                 type="button"
                 onClick={() => {
@@ -257,7 +272,7 @@ export const AuthGate: React.FC = () => {
                   setError(null);
                   setInfoMsg(null);
                 }}
-                className={`retro-segmented-btn ${mode === 'signin' ? 'active' : ''}`}
+                className={`apple-segmented-btn ${mode === 'signin' ? 'active' : ''}`}
               >
                 Sign In
               </button>
@@ -268,7 +283,7 @@ export const AuthGate: React.FC = () => {
                   setError(null);
                   setInfoMsg(null);
                 }}
-                className={`retro-segmented-btn ${mode === 'signup' ? 'active' : ''}`}
+                className={`apple-segmented-btn ${mode === 'signup' ? 'active' : ''}`}
               >
                 Create Account
               </button>
@@ -276,14 +291,14 @@ export const AuthGate: React.FC = () => {
           )}
 
           {error && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs">
+            <div className="flex items-start gap-2 p-3 rounded-xl badge-danger text-xs">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {infoMsg && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-teal-600/10 text-teal-700 dark:text-teal-300 text-xs">
+            <div className="flex items-start gap-2 p-3 rounded-xl badge-info text-xs">
               <Mail className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{infoMsg}</span>
             </div>
@@ -292,7 +307,7 @@ export const AuthGate: React.FC = () => {
           {mode === 'signin' && (
             <form onSubmit={handleSignIn} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1">Email</label>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -306,7 +321,7 @@ export const AuthGate: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1">Password</label>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -321,7 +336,7 @@ export const AuthGate: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-zinc-400 hover:text-zinc-600 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -329,12 +344,13 @@ export const AuthGate: React.FC = () => {
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-xs text-zinc-500 cursor-pointer">
+              <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
-                  className="w-4 h-4 accent-teal-600 rounded"
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: 'var(--primary)' }}
                 />
                 <span>Keep me signed in on this device</span>
               </label>
@@ -360,7 +376,7 @@ export const AuthGate: React.FC = () => {
                       setError(null);
                       setMode('recover');
                     }}
-                    className="text-xs text-zinc-500 hover:text-teal-700 dark:hover:text-teal-400 cursor-pointer"
+                    className="text-xs text-[var(--text-muted)] hover:underline cursor-pointer"
                   >
                     Forgot password? Use Recovery Key
                   </button>
@@ -372,7 +388,7 @@ export const AuthGate: React.FC = () => {
           {mode === 'signup' && (
             <form onSubmit={handleSignUp} className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1">Display name</label>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Display name</label>
                 <input
                   type="text"
                   value={displayName}
@@ -384,7 +400,7 @@ export const AuthGate: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1">Email *</label>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Email *</label>
                 <input
                   type="email"
                   value={email}
@@ -397,7 +413,7 @@ export const AuthGate: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1">
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                   Password (min 6 characters) *
                 </label>
                 <div className="relative">
@@ -413,7 +429,7 @@ export const AuthGate: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-zinc-400 hover:text-zinc-600 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
                     aria-label="Toggle password visibility"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -422,7 +438,7 @@ export const AuthGate: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1">Confirm password *</label>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Confirm password *</label>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
@@ -434,12 +450,13 @@ export const AuthGate: React.FC = () => {
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-xs text-zinc-500 cursor-pointer pt-0.5">
+              <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)] cursor-pointer pt-0.5">
                 <input
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
-                  className="w-4 h-4 accent-teal-600 rounded"
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: 'var(--primary)' }}
                 />
                 <span>Keep me signed in on this device</span>
               </label>
@@ -507,23 +524,25 @@ export const AuthGate: React.FC = () => {
           )}
         </div>
 
-        {/* Cloud Sync Connection Drawer (so PC & Android can sync anywhere over internet) */}
+        {/* Cloud Sync Connection Drawer */}
         <div className="card p-4 space-y-3">
           <button
             type="button"
             onClick={() => setShowCloudSetup((s) => !s)}
-            className="w-full flex items-center justify-between text-xs font-medium text-zinc-600 dark:text-zinc-300 cursor-pointer"
+            className="w-full flex items-center justify-between text-xs font-medium text-[var(--text-secondary)] cursor-pointer"
           >
             <span className="inline-flex items-center gap-2">
-              <Cloud className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+              <Cloud className="w-4 h-4" style={{ color: 'var(--primary)' }} />
               {supabaseConfig ? 'Cloud Sync Server Connected (Supabase)' : 'Connect Cloud Sync (PC ↔ Android anywhere)'}
             </span>
-            <span className="text-teal-700 dark:text-teal-400">{showCloudSetup ? 'Hide' : 'Configure'}</span>
+            <span className="font-semibold" style={{ color: 'var(--primary)' }}>
+              {showCloudSetup ? 'Hide' : 'Configure'}
+            </span>
           </button>
 
           {showCloudSetup && (
             <form onSubmit={handleSaveCloud} className="space-y-2.5 pt-2 border-t animate-modal" style={{ borderColor: 'var(--border-subtle)' }}>
-              <p className="text-[11px] text-zinc-500 leading-relaxed">
+              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
                 Paste your free Supabase Project URL and Anon Key once on PC and Android (after running <code className="font-mono">supabase/schema.sql</code>) to sync one account over Wi-Fi or mobile data.
               </p>
               <input
@@ -550,7 +569,7 @@ export const AuthGate: React.FC = () => {
                       saveCloudConfig(null);
                       notify('Switched off Cloud Sync', 'neutral');
                     }}
-                    className="btn-ghost !text-xs text-rose-600"
+                    className="btn-ghost !text-xs text-state-danger"
                   >
                     Disconnect
                   </button>

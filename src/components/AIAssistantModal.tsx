@@ -145,15 +145,22 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ open, onClos
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-[3px] p-0 md:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
-        style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+        className="w-full max-w-xl rounded-t-[24px] md:rounded-[20px] border max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+        style={{
+          backgroundColor: 'var(--bg-surface-elevated)',
+          borderColor: 'var(--border-subtle)',
+          boxShadow: 'var(--shadow-modal)',
+        }}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Quick Assistant"
       >
-        <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
+        <div className="md:hidden w-9 h-1 rounded-full bg-[var(--border-strong)] mx-auto mt-3" />
         <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-teal-600 dark:text-teal-400" />
@@ -366,9 +373,9 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ open, onClos
                         value={taskPriority}
                         onChange={(v) => setTaskPriority(v as Priority)}
                         options={[
-                          { value: 'low', label: 'Low', dotColor: '#8B947D' },
-                          { value: 'medium', label: 'Medium', dotColor: '#709446' },
-                          { value: 'high', label: 'High', dotColor: '#E59A38' },
+                          { value: 'low', label: 'Low', dotColor: '#2563EB' },
+                          { value: 'medium', label: 'Medium', dotColor: '#D97706' },
+                          { value: 'high', label: 'High', dotColor: '#DC2626' },
                         ]}
                       />
                     </div>

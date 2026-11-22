@@ -72,7 +72,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const openTasksCount = activeTasks.filter((t) => !t.parent_task_id && t.status === 'todo').length;
   const isMoreTabActive = activeTab === 'email' || activeTab === 'socials' || activeTab === 'settings';
 
-  // Android native feel: hide fixed bottom tab bar & FAB smoothly while virtual keyboard is open
+  // Mobile native feel: hide fixed bottom tab bar & FAB smoothly while virtual keyboard is open
   useEffect(() => {
     const isTextInput = (el: EventTarget | null) => {
       if (!(el instanceof HTMLElement)) return false;
@@ -132,7 +132,7 @@ export const Layout: React.FC<LayoutProps> = ({
             setMoreOpen(false);
             setActiveTab('settings');
           }}
-          className="inline-flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 font-medium hover:underline cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs text-state-danger font-medium hover:underline cursor-pointer"
           title={syncStatus.error || 'Sync failed'}
         >
           <WifiOff className="w-3.5 h-3.5 shrink-0" />
@@ -142,7 +142,7 @@ export const Layout: React.FC<LayoutProps> = ({
     }
     if (syncStatus.state === 'synced-cloud') {
       return (
-        <span className="inline-flex items-center gap-1.5 text-xs text-teal-700 dark:text-teal-300">
+        <span className="inline-flex items-center gap-1.5 text-xs text-state-success font-medium">
           <Cloud className="w-3.5 h-3.5" />
           Cloud synced
         </span>
@@ -150,7 +150,7 @@ export const Layout: React.FC<LayoutProps> = ({
     }
     if (syncStatus.state === 'synced-lan') {
       return (
-        <span className="inline-flex items-center gap-1.5 text-xs text-teal-700 dark:text-teal-300">
+        <span className="inline-flex items-center gap-1.5 text-xs text-state-success font-medium">
           <Wifi className="w-3.5 h-3.5" />
           PC &amp; Phone synced
         </span>
@@ -158,7 +158,7 @@ export const Layout: React.FC<LayoutProps> = ({
     }
     if (syncStatus.state === 'offline') {
       return (
-        <span className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+        <span className="inline-flex items-center gap-1.5 text-xs text-state-warning font-medium">
           <WifiOff className="w-3.5 h-3.5" />
           Saved offline
         </span>
@@ -171,7 +171,7 @@ export const Layout: React.FC<LayoutProps> = ({
           setMoreOpen(false);
           setActiveTab('settings');
         }}
-        className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+        className="inline-flex items-center gap-1.5 text-xs text-state-warning hover:underline cursor-pointer"
         title="Local only — connect Cloud Sync in Settings to sync PC and Android"
       >
         <HardDrive className="w-3.5 h-3.5" />
@@ -189,39 +189,41 @@ export const Layout: React.FC<LayoutProps> = ({
     <div className="min-h-dvh flex flex-col md:flex-row">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:bg-[#233E1E] focus:text-[#FBFBF4] focus:text-sm focus:font-semibold"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:text-sm focus:font-semibold"
+        style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-fg)' }}
       >
         Skip to main content
       </a>
-      {/* Desktop Left Sidebar */}
+
+      {/* macOS-Style Left Sidebar */}
       <aside
-        className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 border-r px-4 py-5 select-none backdrop-blur-md"
-        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+        className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 border-r px-3.5 py-5 select-none"
+        style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border-subtle)' }}
       >
-        <div className="flex items-center justify-between px-2 mb-6">
+        <div className="flex items-center justify-between px-2 mb-5">
           <button
             type="button"
             onClick={() => setActiveTab('home')}
             className="flex items-center gap-2.5 cursor-pointer"
           >
-            <AppLogo className="w-9 h-9 rounded-xl shadow-sm shrink-0" />
+            <AppLogo className="w-8 h-8 rounded-[10px] shrink-0" />
             <div className="text-left">
-              <p className="text-base font-extrabold tracking-tight leading-none">LifeHub</p>
+              <p className="text-[15px] font-bold tracking-tight leading-none">LifeHub</p>
               <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Personal workspace</p>
             </div>
           </button>
         </div>
 
-        <button type="button" onClick={onQuickAdd} className="btn-primary w-full mb-3">
+        <button type="button" onClick={onQuickAdd} className="btn-primary w-full mb-2.5 !min-h-[40px]">
           <Plus className="w-4 h-4" />
           Quick Add
         </button>
 
-        <div className="grid grid-cols-2 gap-1.5 mb-6">
+        <div className="grid grid-cols-2 gap-1.5 mb-5">
           <button
             type="button"
             onClick={onOpenSearch}
-            className="btn-secondary !min-h-[38px] !text-xs !px-3 justify-between"
+            className="btn-secondary !min-h-[36px] !text-xs !px-2.5 justify-between"
             title="Search (Ctrl+K)"
           >
             <span className="inline-flex items-center gap-1.5">
@@ -233,7 +235,7 @@ export const Layout: React.FC<LayoutProps> = ({
           <button
             type="button"
             onClick={onOpenAI}
-            className="btn-mustard !min-h-[38px] !text-xs !px-3"
+            className="btn-tinted !min-h-[36px] !text-xs !px-2.5"
             title="AI Natural Language Input"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -241,7 +243,7 @@ export const Layout: React.FC<LayoutProps> = ({
           </button>
         </div>
 
-        <nav className="space-y-1 flex-1" aria-label="Primary">
+        <nav className="space-y-0.5 flex-1" aria-label="Primary">
           {DESKTOP_NAV.map(({ id, label, Icon }) => {
             const active = activeTab === id;
             return (
@@ -250,23 +252,24 @@ export const Layout: React.FC<LayoutProps> = ({
                 type="button"
                 onClick={() => setActiveTab(id)}
                 aria-current={active ? 'page' : undefined}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
-                  active
-                    ? 'bg-[#233E1E] text-[#FBFBF4] dark:bg-[#C3D48E] dark:text-[#162613] shadow-sm'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-                }`}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13.5px] transition-colors cursor-pointer"
+                style={{
+                  backgroundColor: active ? 'var(--accent-soft)' : 'transparent',
+                  color: active ? 'var(--primary)' : 'var(--text-secondary)',
+                  fontWeight: active ? 600 : 500,
+                }}
               >
-                <span className="flex items-center gap-3">
-                  <Icon className="w-4 h-4" />
+                <span className="flex items-center gap-2.5">
+                  <Icon className="w-[17px] h-[17px]" />
                   {label}
                 </span>
                 {id === 'tasks' && openTasksCount > 0 && (
                   <span
-                    className={`text-xs tabular-nums px-2 py-0.5 rounded-full ${
-                      active
-                        ? 'bg-white/20 text-current'
-                        : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
-                    }`}
+                    className="text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: active ? 'var(--primary)' : 'var(--bg-subtle)',
+                      color: active ? 'var(--primary-fg)' : 'var(--text-secondary)',
+                    }}
                   >
                     {openTasksCount}
                   </span>
@@ -276,17 +279,20 @@ export const Layout: React.FC<LayoutProps> = ({
           })}
         </nav>
 
-        <div className="pt-4 border-t space-y-2" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="pt-3.5 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
           {account && (
             <div
-              className="flex items-center gap-2.5 px-3 py-2 rounded-2xl"
-              style={{ backgroundColor: 'var(--bg-subtle)' }}
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl mb-1"
+              style={{ backgroundColor: 'var(--bg-surface)' }}
             >
-              <div className="w-8 h-8 rounded-full bg-[#233E1E] text-[#F4C95D] text-xs font-extrabold flex items-center justify-center shrink-0 uppercase">
+              <div
+                className="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 uppercase"
+                style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-fg)' }}
+              >
                 {(account.displayName || account.email)[0]}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold truncate leading-tight">{account.displayName}</p>
+                <p className="text-xs font-semibold truncate leading-tight">{account.displayName}</p>
                 <p className="text-[11px] text-[var(--text-muted)] truncate">{account.email}</p>
               </div>
             </div>
@@ -294,45 +300,41 @@ export const Layout: React.FC<LayoutProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
-              activeTab === 'settings'
-                ? 'bg-[#233E1E] text-[#FBFBF4] dark:bg-[#C3D48E] dark:text-[#162613]'
-                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-            }`}
+            aria-current={activeTab === 'settings' ? 'page' : undefined}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13.5px] transition-colors cursor-pointer"
+            style={{
+              backgroundColor: activeTab === 'settings' ? 'var(--accent-soft)' : 'transparent',
+              color: activeTab === 'settings' ? 'var(--primary)' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'settings' ? 600 : 500,
+            }}
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-[17px] h-[17px]" />
             Settings &amp; Sync
           </button>
           <button
             type="button"
             onClick={lockNow}
-            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-full text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13.5px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors cursor-pointer"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-[17px] h-[17px]" />
             Sign Out / Lock
           </button>
-          <div className="px-3 py-0.5">{renderSyncBadge()}</div>
+          <div className="px-3 pt-1">{renderSyncBadge()}</div>
         </div>
       </aside>
 
-      {/* Clean Minimal Mobile Top Bar */}
-      <header
-        className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 min-h-[56px] pt-safe border-b backdrop-blur-md"
-        style={{
-          backgroundColor: 'color-mix(in srgb, var(--bg-surface) 92%, transparent)',
-          borderColor: 'var(--border-subtle)',
-        }}
-      >
+      {/* Clean Apple Translucent Mobile Top Bar */}
+      <header className="apple-chrome md:hidden sticky top-0 z-30 flex items-center justify-between px-4 min-h-[54px] pt-safe border-b">
         <div className="flex items-center gap-2.5">
-          {activeTab === 'home' && <AppLogo className="w-7 h-7 rounded-lg shadow-xs shrink-0" />}
-          <span className="font-bold text-lg tracking-tight">{TAB_TITLES[activeTab]}</span>
+          {activeTab === 'home' && <AppLogo className="w-7 h-7 rounded-[8px] shrink-0" />}
+          <span className="font-semibold text-[17px] tracking-tight">{TAB_TITLES[activeTab]}</span>
         </div>
 
         <button
           type="button"
           onClick={onOpenSearch}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-full text-xs font-semibold text-[var(--text-secondary)] border cursor-pointer"
-          style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-subtle)' }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium text-[var(--text-secondary)] border cursor-pointer transition-colors"
+          style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
           aria-label="Search everything"
         >
           <Search className="w-3.5 h-3.5" aria-hidden="true" />
@@ -342,12 +344,12 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* Main Content Area */}
       <main id="main-content" className="flex-1 md:pl-64 pb-28 md:pb-12">
-        <div key={activeTab} className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-page">
+        <div key={activeTab} className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8 animate-page">
           {children}
         </div>
       </main>
 
-      {/* Single Primary Floating Quick-Add Button on Android/Mobile */}
+      {/* Single Primary Floating Quick-Add Button on Mobile */}
       {activeTab !== 'settings' && (
         <button
           type="button"
@@ -355,23 +357,24 @@ export const Layout: React.FC<LayoutProps> = ({
             haptic('tap');
             onQuickAdd();
           }}
-          className="mobile-bottom-chrome md:hidden fixed right-4 bottom-20 z-30 w-14 h-14 rounded-2xl shadow-xl flex items-center justify-center transition-transform active:scale-90 text-[#FBFBF4]"
+          className="mobile-bottom-chrome md:hidden fixed right-4 bottom-[74px] z-30 w-13 h-13 rounded-full flex items-center justify-center transition-transform active:scale-92"
           style={{
-            background: 'linear-gradient(135deg, var(--accent-grad-from) 0%, var(--accent-grad-to) 100%)',
+            backgroundColor: 'var(--primary)',
+            color: 'var(--primary-fg)',
+            boxShadow: 'var(--shadow-popover)',
           }}
           aria-label="Quick Add"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-6 h-6" strokeWidth={2.25} />
         </button>
       )}
 
-      {/* Material-3 Style 5-Tab Mobile Bottom Bar (Home, Tasks, Spending, Notes, More) */}
+      {/* Apple iOS-Style Translucent 5-Tab Mobile Bottom Bar */}
       <nav
-        className="mobile-bottom-chrome md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe backdrop-blur-lg"
-        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+        className="apple-chrome mobile-bottom-chrome md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe"
         aria-label="Bottom Navigation"
       >
-        <div className="grid grid-cols-5 px-1.5 pt-1.5">
+        <div className="grid grid-cols-5 px-1 pt-1.5">
           {MOBILE_PRIMARY_TABS.map(({ id, label, Icon }) => {
             const active = activeTab === id && !moreOpen;
             return (
@@ -384,20 +387,14 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   setActiveTab(id);
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[52px] rounded-2xl transition-colors ${
-                  active
-                    ? 'text-[#233E1E] dark:text-[#C3D48E] font-bold'
-                    : 'text-[var(--text-muted)]'
-                }`}
+                className="flex flex-col items-center justify-center gap-1 py-1 min-h-[48px] transition-colors cursor-pointer"
+                style={{
+                  color: active ? 'var(--primary)' : 'var(--text-muted)',
+                  fontWeight: active ? 600 : 500,
+                }}
               >
-                <span
-                  className={`px-4 py-1 rounded-full transition-colors ${
-                    active ? 'bg-[#C3D48E]/55 dark:bg-[#C3D48E]/20' : ''
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                </span>
-                <span className="text-[11px] leading-none">{label}</span>
+                <Icon className="w-[21px] h-[21px]" />
+                <span className="text-[10.5px] leading-none">{label}</span>
               </button>
             );
           })}
@@ -408,47 +405,51 @@ export const Layout: React.FC<LayoutProps> = ({
               haptic('tap');
               setMoreOpen((o) => !o);
             }}
-            className={`flex flex-col items-center justify-center gap-1 py-1 min-h-[52px] rounded-2xl transition-colors relative ${
-              moreOpen || isMoreTabActive
-                ? 'text-[#233E1E] dark:text-[#C3D48E] font-bold'
-                : 'text-[var(--text-muted)]'
-            }`}
+            className="flex flex-col items-center justify-center gap-1 py-1 min-h-[48px] transition-colors relative cursor-pointer"
+            style={{
+              color: moreOpen || isMoreTabActive ? 'var(--primary)' : 'var(--text-muted)',
+              fontWeight: moreOpen || isMoreTabActive ? 600 : 500,
+            }}
           >
-            <span
-              className={`px-4 py-1 rounded-full transition-colors ${
-                moreOpen || isMoreTabActive ? 'bg-[#C3D48E]/55 dark:bg-[#C3D48E]/20' : ''
-              }`}
-            >
-              <Menu className="w-5 h-5" />
-            </span>
-            <span className="text-[11px] leading-none">More</span>
+            <Menu className="w-[21px] h-[21px]" />
+            <span className="text-[10.5px] leading-none">More</span>
             {(syncStatus.state === 'error' || syncStatus.error) && (
-              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-4" />
+              <span
+                className="w-2 h-2 rounded-full absolute top-1.5 right-4"
+                style={{ backgroundColor: 'var(--state-danger)' }}
+              />
             )}
           </button>
         </div>
       </nav>
 
-      {/* Clean Android "More" Bottom Sheet Menu */}
+      {/* Clean iOS-Style "More" Bottom Sheet Menu */}
       {moreOpen && (
         <div
-          className="md:hidden fixed inset-0 z-50 flex items-end bg-black/45 backdrop-blur-[2px]"
+          className="md:hidden fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-[3px]"
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="w-full rounded-t-3xl border-t p-5 pb-safe space-y-4 animate-sheet max-h-[85dvh] overflow-y-auto"
-            style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+            className="w-full rounded-t-[24px] border-t p-5 pb-safe space-y-4 animate-sheet max-h-[85dvh] overflow-y-auto"
+            style={{
+              backgroundColor: 'var(--bg-surface-elevated)',
+              borderColor: 'var(--border-subtle)',
+              boxShadow: 'var(--shadow-modal)',
+            }}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-label="More options"
           >
-            <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700 mx-auto" />
+            <div className="w-9 h-1 rounded-full bg-[var(--border-strong)] mx-auto" />
 
             {/* Account & Sync Strip */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-teal-600 text-white text-sm font-bold flex items-center justify-center shrink-0 uppercase">
+                <div
+                  className="w-10 h-10 rounded-full text-sm font-bold flex items-center justify-center shrink-0 uppercase"
+                  style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-fg)' }}
+                >
                   {(account?.displayName || account?.email || 'O')[0]}
                 </div>
                 <div className="min-w-0">
@@ -459,53 +460,56 @@ export const Layout: React.FC<LayoutProps> = ({
               <button
                 type="button"
                 onClick={() => setMoreOpen(false)}
-                className="p-2 rounded-xl text-zinc-400"
+                className="p-2 rounded-full text-[var(--text-muted)]"
+                style={{ backgroundColor: 'var(--bg-surface)' }}
                 aria-label="Close menu"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Extra Sections */}
-            <div className="space-y-1.5">
+            {/* Grouped Extra Sections */}
+            <div
+              className="rounded-2xl border divide-y overflow-hidden"
+              style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+            >
               <button
                 type="button"
                 onClick={() => navigateFromMore('email')}
-                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl transition-colors"
-                style={{ backgroundColor: 'var(--bg-subtle)' }}
+                className="w-full flex items-center justify-between px-4 py-3.5 transition-colors"
               >
                 <span className="flex items-center gap-3 text-sm font-medium">
-                  <Mail className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                  <Mail className="w-5 h-5" style={{ color: 'var(--primary)' }} />
                   Email (Gmail)
                 </span>
-                <ChevronRight className="w-4 h-4 text-zinc-400" />
+                <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
               </button>
 
               <button
                 type="button"
                 onClick={() => navigateFromMore('socials')}
-                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl transition-colors"
-                style={{ backgroundColor: 'var(--bg-subtle)' }}
+                className="w-full flex items-center justify-between px-4 py-3.5 transition-colors"
+                style={{ borderColor: 'var(--border-subtle)' }}
               >
                 <span className="flex items-center gap-3 text-sm font-medium">
-                  <Share2 className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                  <Share2 className="w-5 h-5" style={{ color: 'var(--primary)' }} />
                   Socials &amp; Project Links
                 </span>
-                <ChevronRight className="w-4 h-4 text-zinc-400" />
+                <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
               </button>
             </div>
 
             {/* Smart Tools */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => {
                   setMoreOpen(false);
                   onOpenAI();
                 }}
-                className="btn-secondary !justify-start !px-3.5"
+                className="btn-tinted !justify-start !px-3.5"
               >
-                <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <Sparkles className="w-4 h-4" />
                 Ask AI
               </button>
               <button
@@ -516,23 +520,26 @@ export const Layout: React.FC<LayoutProps> = ({
                 }}
                 className="btn-secondary !justify-start !px-3.5"
               >
-                <Camera className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <Camera className="w-4 h-4" style={{ color: 'var(--primary)' }} />
                 Scan Receipt
               </button>
             </div>
 
             {/* Settings & Sign Out */}
-            <div className="pt-2 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div
+              className="rounded-2xl border divide-y overflow-hidden"
+              style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+            >
               <button
                 type="button"
                 onClick={() => navigateFromMore('settings')}
-                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-medium"
+                className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-medium"
               >
                 <span className="flex items-center gap-3">
-                  <Settings className="w-5 h-5 text-zinc-500" />
+                  <Settings className="w-5 h-5 text-[var(--text-secondary)]" />
                   Settings &amp; Sync
                 </span>
-                <ChevronRight className="w-4 h-4 text-zinc-400" />
+                <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
               </button>
 
               <button
@@ -541,7 +548,8 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   lockNow();
                 }}
-                className="w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-medium text-rose-600 dark:text-rose-400"
+                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-state-danger"
+                style={{ borderColor: 'var(--border-subtle)' }}
               >
                 <LogOut className="w-5 h-5" />
                 Sign Out / Lock App

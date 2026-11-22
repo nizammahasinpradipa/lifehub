@@ -29,7 +29,7 @@ import { NativeSelect } from '../components/NativeSelect';
 
 type TaskFilter = 'today' | 'upcoming' | 'overdue' | 'all' | 'completed';
 
-const PROJECT_COLORS = ['#0F766E', '#2563EB', '#D97706', '#7C3AED', '#E11D48', '#475569'];
+const PROJECT_COLORS = ['#E04E0C', '#2563EB', '#16A34A', '#D97706', '#DC2626', '#8C6B5D'];
 
 export const TasksView: React.FC = () => {
   const {
@@ -274,11 +274,11 @@ export const TasksView: React.FC = () => {
               key={item.id}
               type="button"
               onClick={() => setFilter(item.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer shrink-0 ${
-                filter === item.id
-                  ? 'bg-[#233E1E] text-[#FBFBF4] dark:bg-[#C3D48E] dark:text-[#162613]'
-                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:brightness-95'
-              }`}
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer shrink-0"
+              style={{
+                backgroundColor: filter === item.id ? 'var(--primary)' : 'var(--bg-surface)',
+                color: filter === item.id ? 'var(--primary-fg)' : 'var(--text-secondary)',
+              }}
             >
               {item.label}
             </button>
@@ -377,23 +377,27 @@ export const TasksView: React.FC = () => {
                 key={task.id}
                 className="flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/30"
                 style={{
-                  backgroundColor: overdue ? 'rgba(225, 29, 72, 0.035)' : undefined,
+                  backgroundColor: overdue ? 'var(--state-danger-bg)' : undefined,
                   borderColor: 'var(--border-subtle)',
                 }}
               >
                 <button
                   type="button"
                   onClick={() => handleToggle(task.id)}
-                  className={`mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center shrink-0 cursor-pointer transition-colors ${
-                    task.status === 'done'
-                      ? 'bg-teal-600 border-teal-600 text-white'
-                      : overdue
-                      ? 'border-rose-500 hover:bg-rose-500/10'
-                      : 'border-zinc-300 dark:border-zinc-600 hover:border-teal-600'
-                  }`}
+                  className="mt-0.5 w-5 h-5 rounded-full border-[1.75px] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+                  style={{
+                    backgroundColor: task.status === 'done' ? 'var(--primary)' : 'transparent',
+                    borderColor:
+                      task.status === 'done'
+                        ? 'var(--primary)'
+                        : overdue
+                        ? 'var(--state-danger)'
+                        : 'var(--border-strong)',
+                    color: 'var(--primary-fg)',
+                  }}
                   aria-label={task.status === 'done' ? `Reopen ${task.title}` : `Complete ${task.title}`}
                 >
-                  {task.status === 'done' && <Check className="w-3.5 h-3.5" />}
+                  {task.status === 'done' && <Check className="w-3 h-3" strokeWidth={2.5} />}
                 </button>
 
                 <button
@@ -542,15 +546,22 @@ export const TasksView: React.FC = () => {
       {/* Task Detail / Edit Drawer Modal */}
       {editingTask && (
         <div
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-[3px] p-0 md:p-4"
           onClick={() => setEditingTaskId(null)}
         >
           <div
-            className="w-full max-w-xl rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
-            style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+            className="w-full max-w-xl rounded-t-[24px] md:rounded-[20px] border max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+            style={{
+              backgroundColor: 'var(--bg-surface-elevated)',
+              borderColor: 'var(--border-subtle)',
+              boxShadow: 'var(--shadow-modal)',
+            }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edit task"
           >
-            <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
+            <div className="md:hidden w-9 h-1 rounded-full bg-[var(--border-strong)] mx-auto mt-3" />
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
               <button
                 type="button"
@@ -637,9 +648,9 @@ export const TasksView: React.FC = () => {
                     onChange={(v) => updateTask(editingTask.id, { priority: v as Priority })}
                     className="!py-2 !text-sm"
                     options={[
-                      { value: 'low', label: 'Low', dotColor: '#8B947D' },
-                      { value: 'medium', label: 'Medium', dotColor: '#709446' },
-                      { value: 'high', label: 'High', dotColor: '#E59A38' },
+                      { value: 'low', label: 'Low', dotColor: '#2563EB' },
+                      { value: 'medium', label: 'Medium', dotColor: '#D97706' },
+                      { value: 'high', label: 'High', dotColor: '#DC2626' },
                     ]}
                   />
                 </div>

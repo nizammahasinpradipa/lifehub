@@ -159,20 +159,24 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/45 backdrop-blur-[2px] p-0 md:p-4"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-[3px] p-0 md:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
-        style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+        className="w-full max-w-lg rounded-t-[24px] md:rounded-[20px] border max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
+        style={{
+          backgroundColor: 'var(--bg-surface-elevated)',
+          borderColor: 'var(--border-subtle)',
+          boxShadow: 'var(--shadow-modal)',
+        }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Quick Add"
       >
-        <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
+        <div className="md:hidden w-9 h-1 rounded-full bg-[var(--border-strong)] mx-auto mt-3" />
         <div className="flex items-center justify-between px-5 pt-3.5 md:pt-4 pb-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-          <div className="flex items-center gap-1 retro-segmented">
+          <div className="flex items-center gap-1 apple-segmented">
             {(
               [
                 { id: 'task', label: 'Task', Icon: CheckSquare },
@@ -184,7 +188,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                 key={id}
                 type="button"
                 onClick={() => setTab(id)}
-                className={`retro-segmented-btn inline-flex items-center gap-1.5 !px-3 !py-1.5 ${
+                className={`apple-segmented-btn inline-flex items-center gap-1.5 !px-3 !py-1.5 ${
                   tab === id ? 'active' : ''
                 }`}
               >
@@ -201,7 +205,8 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                 onClose();
                 onOpenAI();
               }}
-              className="btn-ghost !text-xs !px-2.5 text-teal-700 dark:text-teal-300"
+              className="btn-ghost !text-xs !px-2.5"
+              style={{ color: 'var(--primary)' }}
               title="Use AI natural language input"
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -244,9 +249,9 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                     onChange={(v) => setTaskPriority(v as Priority)}
                     className="!py-2 !text-sm"
                     options={[
-                      { value: 'low', label: 'Low', dotColor: '#8B947D' },
-                      { value: 'medium', label: 'Medium', dotColor: '#709446' },
-                      { value: 'high', label: 'High', dotColor: '#E59A38' },
+                      { value: 'low', label: 'Low', dotColor: '#2563EB' },
+                      { value: 'medium', label: 'Medium', dotColor: '#D97706' },
+                      { value: 'high', label: 'High', dotColor: '#DC2626' },
                     ]}
                   />
                 </div>
@@ -326,7 +331,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
           {tab === 'expense' && (
             <form onSubmit={handleSaveTx} className="space-y-3.5">
               <div className="flex items-center justify-between gap-2">
-                <div className="grid grid-cols-3 gap-1 p-1 rounded-xl flex-1" style={{ backgroundColor: 'var(--bg-subtle)' }}>
+                <div className="grid grid-cols-3 gap-1 apple-segmented flex-1">
                   {(['expense', 'income', 'transfer'] as TransactionType[]).map((t) => (
                     <button
                       key={t}
@@ -338,8 +343,8 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                           if (firstCat) setTxCategoryId(firstCat.id);
                         }
                       }}
-                      className={`py-2 rounded-lg text-xs font-medium capitalize cursor-pointer transition-colors ${
-                        txType === t ? 'bg-white dark:bg-zinc-800 shadow-sm text-teal-700 dark:text-teal-300' : 'text-zinc-500'
+                      className={`apple-segmented-btn capitalize text-center !px-2 ${
+                        txType === t ? 'active' : ''
                       }`}
                     >
                       {t}

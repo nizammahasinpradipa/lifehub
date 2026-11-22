@@ -13,23 +13,23 @@ export const AppLogo: React.FC<AppLogoProps> = ({ className = 'w-8 h-8' }) => (
     aria-label="LifeHub Logo"
   >
     <defs>
-      <linearGradient id="lifehubLogoGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#355B2B" />
-        <stop offset="100%" stopColor="#193116" />
+      <linearGradient id="lifehubLogoGrad" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#FF7A00" />
+        <stop offset="100%" stopColor="#E04E0C" />
       </linearGradient>
     </defs>
-    <rect width="64" height="64" rx="18" fill="url(#lifehubLogoGrad)" />
+    <rect width="64" height="64" rx="16" fill="url(#lifehubLogoGrad)" />
     <rect
-      x="1.5"
-      y="1.5"
-      width="61"
-      height="61"
-      rx="16.5"
-      stroke="#DFE1A6"
-      strokeOpacity="0.34"
-      strokeWidth="1.5"
+      x="1"
+      y="1"
+      width="62"
+      height="62"
+      rx="15"
+      stroke="#FFFFFF"
+      strokeOpacity="0.22"
+      strokeWidth="1"
     />
-    <path d="M20 16H30.5V39.5H45V48.5H20V16Z" fill="#FBFBF4" />
-    <circle cx="42" cy="22" r="5.5" fill="#F4C95D" />
+    <path d="M20.5 16.5H30V40H44.5V48H20.5V16.5Z" fill="#FFFFFF" />
+    <circle cx="42" cy="22" r="5" fill="#FFF1E6" />
   </svg>
 );

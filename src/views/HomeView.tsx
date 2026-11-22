@@ -32,12 +32,12 @@ interface HomeViewProps {
   onOpenReceipt: () => void;
 }
 
-const MOOD_META: Record<number, { label: string; color: string }> = {
-  1: { label: 'Tough', color: '#B94E48' },
-  2: { label: 'Low', color: '#D97736' },
-  3: { label: 'Okay', color: '#E59A38' },
-  4: { label: 'Good', color: '#709446' },
-  5: { label: 'Great', color: '#233E1E' },
+const MOOD_META: Record<number, { label: string; colorVar: string }> = {
+  1: { label: 'Tough', colorVar: 'var(--state-danger)' },
+  2: { label: 'Low', colorVar: 'var(--primary)' },
+  3: { label: 'Okay', colorVar: 'var(--state-warning)' },
+  4: { label: 'Good', colorVar: 'var(--state-info)' },
+  5: { label: 'Great', colorVar: 'var(--state-success)' },
 };
 
 export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpenReceipt }) => {
@@ -63,7 +63,6 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
   const isBrandNew =
     activeTasks.length === 0 && activeTransactions.length === 0 && activeNotes.length === 0;
 
-  // Overdue + Today's parent tasks (overdue sorted above today's)
   const { overdueTasks, todayTasks } = useMemo(() => {
     const parents = activeTasks.filter((t) => !t.parent_task_id && t.status === 'todo');
     const overdue = parents
@@ -78,7 +77,6 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
     return { overdueTasks: overdue, todayTasks: dueToday };
   }, [activeTasks, data.user.timezone]);
 
-  // Monthly spending & budget summary + top 3 categories
   const spendingSummary = useMemo(() => {
     const monthExpenses = activeTransactions.filter(
       (tx) => tx.type === 'expense' && tx.date.startsWith(currentMonth)
@@ -99,7 +97,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
       .map(([catId, amount]) => ({
         id: catId,
         name: catMap.get(catId)?.name || 'Other',
-        color: catMap.get(catId)?.color || '#709446',
+        color: catMap.get(catId)?.color || '#E04E0C',
         amount,
       }))
       .sort((a, b) => b.amount - a.amount)
@@ -110,7 +108,6 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
     return { totalSpent, totalBudget, topCategories, totalBalance };
   }, [activeTransactions, activeBudgets, activeCategories, activeWallets, currentMonth, getWalletBalance]);
 
-  // Journal today + last 7 days mood
   const journalSummary = useMemo(() => {
     const journals = activeNotes.filter((n) => n.type === 'journal');
     const byDate = new Map(journals.map((j) => [j.journal_date || '', j]));
@@ -136,29 +133,30 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Greeting */}
+      {/* Calm Apple Greeting */}
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">
+          <h1 className="text-[22px] sm:text-[28px] font-bold tracking-[-0.025em] leading-tight">
             {getGreeting(data.user.timezone)}
             {data.user.display_name && data.user.display_name !== 'Owner'
               ? `, ${data.user.display_name}`
               : ''}
           </h1>
-          <p className="text-xs font-medium text-[var(--text-muted)] mt-0.5">{formatFullDate(today)}</p>
+          <p className="text-xs font-medium text-[var(--text-muted)] mt-1">{formatFullDate(today)}</p>
         </div>
       </div>
 
-      {/* Signature Frosted Cream Hero Wallet Balance Card (inspired by Paperpillar Gryn Wallet) */}
-      <section className="card-glass-hero p-5 sm:p-6 space-y-4">
+      {/* Apple Wallet Hero Card */}
+      <section className="card-hero p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold text-[var(--text-secondary)]">
-            Primary Wallet Balance ({activeWallets.length})
+          <p className="text-xs font-medium text-[var(--text-secondary)]">
+            Total Balance · {activeWallets.length} {activeWallets.length === 1 ? 'wallet' : 'wallets'}
           </p>
           <button
             type="button"
             onClick={() => setActiveTab('spending')}
-            className="text-xs font-semibold text-[#233E1E] dark:text-[#C3D48E] hover:underline cursor-pointer"
+            className="text-xs font-semibold hover:underline cursor-pointer"
+            style={{ color: 'var(--primary)' }}
           >
             All wallets →
           </button>
@@ -166,10 +164,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
 
         <div className="flex items-center gap-3">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-lg sm:text-xl font-extrabold" style={{ color: 'var(--currency-amber)' }}>
+            <span className="text-lg sm:text-xl font-bold" style={{ color: 'var(--accent)' }}>
               {spendingSummary.totalBalance < 0 ? '-Rp' : 'Rp'}
             </span>
-            <span className="hero-amount text-3xl sm:text-4xl">
+            <span className="hero-amount text-3xl sm:text-[38px] leading-none">
               {hideBalance ? '••••••••' : formattedBalanceDigits}
             </span>
           </div>
@@ -177,9 +175,9 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
           <button
             type="button"
             onClick={() => setHideBalance((h) => !h)}
-            className="w-9 h-9 rounded-full flex items-center justify-center border cursor-pointer transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center border cursor-pointer transition-colors"
             style={{
-              backgroundColor: 'var(--bg-subtle)',
+              backgroundColor: 'var(--bg-surface-elevated)',
               borderColor: 'var(--border-subtle)',
               color: 'var(--text-secondary)',
             }}
@@ -190,30 +188,30 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
           </button>
         </div>
 
-        {/* Signature Sage + Mustard Action Pills (strictly equal width, height, and single-line on Android) */}
+        {/* Balanced Apple Action Controls */}
         <div className="grid grid-cols-[1fr_1fr_auto] sm:flex sm:items-center gap-2 pt-1">
           <button
             type="button"
             onClick={() => onQuickAdd('task')}
-            className="btn-sage !h-11 !min-h-[44px] !px-3 sm:!px-5 whitespace-nowrap !text-xs sm:!text-[13px]"
+            className="btn-primary !h-11 !min-h-[44px] !px-3.5 sm:!px-5 whitespace-nowrap !text-xs sm:!text-[13.5px]"
           >
-            <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <CheckSquare className="w-4 h-4 shrink-0" />
             <span>Add Task</span>
           </button>
           <button
             type="button"
             onClick={() => onQuickAdd('expense')}
-            className="btn-mustard !h-11 !min-h-[44px] !px-3 sm:!px-5 whitespace-nowrap !text-xs sm:!text-[13px]"
+            className="btn-tinted !h-11 !min-h-[44px] !px-3.5 sm:!px-5 whitespace-nowrap !text-xs sm:!text-[13.5px]"
           >
-            <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <Receipt className="w-4 h-4 shrink-0" />
             <span>Expense</span>
           </button>
           <button
             type="button"
             onClick={onOpenReceipt}
-            className="w-11 h-11 rounded-full flex items-center justify-center border cursor-pointer transition-transform active:scale-95 shrink-0"
+            className="w-11 h-11 rounded-xl flex items-center justify-center border cursor-pointer transition-colors active:scale-95 shrink-0"
             style={{
-              backgroundColor: 'var(--bg-surface-solid)',
+              backgroundColor: 'var(--bg-surface-elevated)',
               borderColor: 'var(--border-subtle)',
               color: 'var(--text-primary)',
             }}
@@ -225,22 +223,30 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
         </div>
       </section>
 
-      {/* Signature Deep Pine Forest Quick AI Banner */}
+      {/* Clean Apple Quick AI Strip */}
       <button
         type="button"
         onClick={onOpenAI}
-        className="card-forest w-full p-4 sm:px-5 flex items-center justify-between gap-3 text-left cursor-pointer transition-transform active:scale-[0.99]"
+        className="card w-full p-3.5 sm:px-5 flex items-center justify-between gap-3 text-left cursor-pointer active:scale-[0.995]"
       >
-        <div className="min-w-0">
-          <p className="text-sm font-bold flex items-center gap-1.5 text-[#FBFBF4]">
-            <Sparkles className="w-4 h-4 text-[#F4C95D] shrink-0" />
-            Quick Natural Capture
-          </p>
-          <p className="text-xs text-[#FBFBF4]/70 truncate mt-0.5">
-            Type &ldquo;spent 50k on lunch with GoPay&rdquo; or ask your spending
-          </p>
+        <div className="flex items-center gap-3 min-w-0">
+          <span
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--primary)' }}
+          >
+            <Sparkles className="w-4 h-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold leading-tight">Quick Natural Capture</p>
+            <p className="text-xs text-[var(--text-secondary)] truncate mt-0.5">
+              Type &ldquo;spent 50k on lunch with GoPay&rdquo; or ask your spending
+            </p>
+          </div>
         </div>
-        <span className="px-3.5 py-2 rounded-full bg-[#FBFBF4] text-[#1C2F18] text-xs font-bold shrink-0">
+        <span
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0"
+          style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--primary)' }}
+        >
           Ask AI
         </span>
       </button>
@@ -249,7 +255,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
       {isBrandNew && (
         <div className="card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold">Welcome to LifeHub</p>
+            <p className="text-sm font-semibold">Welcome to LifeHub</p>
             <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
               Start adding your own items above, or load sample data to preview charts and budgets.
             </p>
@@ -264,11 +270,14 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
         {/* Today's Tasks & Overdue */}
         <section className="card p-5 lg:col-span-7 flex flex-col">
-          <div className="flex items-center justify-between mb-2">
+          <div
+            className="flex items-center justify-between pb-3 mb-3 border-b"
+            style={{ borderColor: 'var(--border-subtle)' }}
+          >
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold">Today&apos;s Focus</h2>
+              <h2 className="text-[15px] font-semibold tracking-tight">Today&apos;s Focus</h2>
               {overdueTasks.length > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/12 text-rose-700 dark:text-rose-400">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold badge-danger">
                   <AlertCircle className="w-3 h-3" />
                   {overdueTasks.length} overdue
                 </span>
@@ -277,19 +286,22 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
             <button
               type="button"
               onClick={() => setActiveTab('tasks')}
-              className="btn-ghost !text-xs text-[#233E1E] dark:text-[#C3D48E]"
+              className="btn-ghost !text-xs !px-2"
+              style={{ color: 'var(--primary)' }}
             >
               See all
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="wavy-divider mb-3" />
-
           {overdueTasks.length === 0 && todayTasks.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-7 text-center">
               <p className="text-sm text-[var(--text-secondary)]">No tasks due today.</p>
-              <button type="button" onClick={() => onQuickAdd('task')} className="btn-sage mt-3 !min-h-[36px] !text-xs">
+              <button
+                type="button"
+                onClick={() => onQuickAdd('task')}
+                className="btn-tinted mt-3 !min-h-[36px] !text-xs"
+              >
                 <Plus className="w-3.5 h-3.5" />
                 Add a task
               </button>
@@ -301,25 +313,33 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
                 return (
                   <div
                     key={task.id}
-                    className="flex items-center gap-3 px-3.5 py-3 rounded-2xl border transition-colors"
+                    className="flex items-center gap-3 px-3.5 py-3 rounded-xl border transition-colors"
                     style={{
-                      backgroundColor: overdue ? 'rgba(185, 78, 72, 0.08)' : 'var(--bg-subtle)',
-                      borderColor: overdue ? 'rgba(185, 78, 72, 0.25)' : 'transparent',
+                      backgroundColor: overdue ? 'var(--state-danger-bg)' : 'var(--bg-surface-elevated)',
+                      borderColor: overdue ? 'transparent' : 'var(--border-subtle)',
                     }}
                   >
                     <button
                       type="button"
                       onClick={() => toggleTaskStatus(task.id)}
-                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 cursor-pointer transition-colors"
-                      style={{ borderColor: overdue ? '#B94E48' : 'var(--border-strong)' }}
+                      className="w-5 h-5 rounded-full border-[1.75px] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+                      style={{
+                        borderColor: overdue ? 'var(--state-danger)' : 'var(--border-strong)',
+                      }}
                       aria-label={`Mark ${task.title} complete`}
                     >
-                      {task.status === 'done' && <Check className="w-3 h-3 text-[#233E1E]" />}
+                      {task.status === 'done' && (
+                        <Check className="w-3 h-3" style={{ color: 'var(--primary)' }} />
+                      )}
                     </button>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold truncate">{task.title}</p>
+                      <p className="text-sm font-medium truncate">{task.title}</p>
                       {task.due_at && (
-                        <p className={`text-xs ${overdue ? 'text-rose-700 dark:text-rose-400 font-medium' : 'text-[var(--text-muted)]'}`}>
+                        <p
+                          className={`text-xs ${
+                            overdue ? 'text-state-danger font-medium' : 'text-[var(--text-muted)]'
+                          }`}
+                        >
                           {overdue ? 'Overdue · ' : ''}
                           {formatDueAt(task.due_at, data.user.timezone)}
                         </p>
@@ -328,10 +348,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
                     <span
                       className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${
                         task.priority === 'high'
-                          ? 'bg-[#F4C95D]/40 text-[#2B1808] dark:text-[#F4C95D]'
+                          ? 'badge-danger'
                           : task.priority === 'medium'
-                          ? 'bg-[#C3D48E]/45 text-[#1C2C16] dark:text-[#C3D48E]'
-                          : 'bg-black/5 dark:bg-white/10 text-[var(--text-muted)]'
+                          ? 'badge-warning'
+                          : 'badge-info'
                       }`}
                     >
                       {task.priority}
@@ -343,26 +363,30 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
           )}
         </section>
 
-        {/* Retro Chartreuse Monthly Spending Card */}
-        <section className="card-chartreuse p-5 lg:col-span-5 flex flex-col justify-between gap-4">
+        {/* Monthly Spending Summary Card */}
+        <section className="card p-5 lg:col-span-5 flex flex-col justify-between gap-4">
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-base font-bold">This Month&apos;s Spending</h2>
+            <div
+              className="flex items-center justify-between pb-3 mb-3 border-b"
+              style={{ borderColor: 'var(--border-subtle)' }}
+            >
+              <h2 className="text-[15px] font-semibold tracking-tight">This Month&apos;s Spending</h2>
               <button
                 type="button"
                 onClick={() => setActiveTab('spending')}
-                className="text-xs font-bold text-[#233E1E] dark:text-[#F4C95D] hover:underline cursor-pointer"
+                className="text-xs font-semibold hover:underline cursor-pointer"
+                style={{ color: 'var(--primary)' }}
               >
                 Details →
               </button>
             </div>
 
-            <div className="flex items-baseline justify-between gap-2 mt-1">
-              <p className="hero-amount text-2xl sm:text-3xl">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="hero-amount text-2xl sm:text-[28px]">
                 {formatIDR(spendingSummary.totalSpent)}
               </p>
               {spendingSummary.totalBudget > 0 && (
-                <p className="text-xs font-medium text-[var(--text-secondary)] tabular-nums">
+                <p className="text-xs font-medium text-[var(--text-muted)] tabular-nums">
                   of {formatIDR(spendingSummary.totalBudget)}
                 </p>
               )}
@@ -370,17 +394,20 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
 
             {spendingSummary.totalBudget > 0 ? (
               <div className="mt-3 space-y-1.5">
-                <div className="h-2.5 w-full rounded-full overflow-hidden bg-black/10 dark:bg-white/10">
+                <div
+                  className="h-2 w-full rounded-full overflow-hidden"
+                  style={{ backgroundColor: 'var(--bg-subtle)' }}
+                >
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
                       width: `${budgetPct}%`,
                       backgroundColor:
                         spendingSummary.totalSpent >= spendingSummary.totalBudget
-                          ? '#B94E48'
+                          ? 'var(--state-danger)'
                           : budgetPct >= 80
-                          ? '#E59A38'
-                          : '#233E1E',
+                          ? 'var(--state-warning)'
+                          : 'var(--primary)',
                     }}
                   />
                 </div>
@@ -391,19 +418,22 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
                 </p>
               </div>
             ) : (
-              <p className="text-xs text-[var(--text-secondary)] mt-1.5">No monthly budgets set yet.</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1.5">No monthly budgets set yet.</p>
             )}
 
             {spendingSummary.topCategories.length > 0 && (
-              <div className="mt-4 pt-3.5 border-t space-y-2 border-black/10 dark:border-white/10">
-                <p className="text-xs font-semibold text-[var(--text-secondary)]">Top categories</p>
+              <div
+                className="mt-4 pt-3.5 border-t space-y-2.5"
+                style={{ borderColor: 'var(--border-subtle)' }}
+              >
+                <p className="text-xs font-medium text-[var(--text-muted)]">Top categories</p>
                 {spendingSummary.topCategories.map((cat) => (
                   <div key={cat.id} className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2 font-medium">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
                       <span>{cat.name}</span>
                     </span>
-                    <span className="font-bold tabular-nums">{formatIDR(cat.amount)}</span>
+                    <span className="font-semibold tabular-nums">{formatIDR(cat.amount)}</span>
                   </div>
                 ))}
               </div>
@@ -415,7 +445,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
         <section className="card p-5 lg:col-span-12">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-base font-bold">Daily Journal &amp; Mood</h2>
+              <h2 className="text-[15px] font-semibold tracking-tight">Daily Journal &amp; Mood</h2>
               <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 {journalSummary.todayEntry && (journalSummary.todayEntry.body || journalSummary.todayEntry.mood)
                   ? `Today's entry updated${journalSummary.todayEntry.mood ? ` · Mood: ${MOOD_META[journalSummary.todayEntry.mood].label}` : ''}`
@@ -425,9 +455,9 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
             <button
               type="button"
               onClick={() => setActiveTab('notes')}
-              className="btn-secondary !min-h-[38px] !text-xs self-start sm:self-auto"
+              className="btn-secondary !min-h-[36px] !text-xs self-start sm:self-auto"
             >
-              <BookOpen className="w-3.5 h-3.5" />
+              <BookOpen className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
               {journalSummary.todayEntry ? "Open today's journal" : "Write today's journal"}
             </button>
           </div>
@@ -441,19 +471,19 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
                   key={d.date}
                   type="button"
                   onClick={() => setActiveTab('notes')}
-                  className="flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition-colors cursor-pointer"
+                  className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border transition-colors cursor-pointer"
                   style={{
-                    backgroundColor: isToday ? 'var(--bg-chartreuse)' : 'var(--bg-subtle)',
-                    borderColor: isToday ? 'var(--accent)' : 'transparent',
+                    backgroundColor: isToday ? 'var(--accent-soft)' : 'var(--bg-surface-elevated)',
+                    borderColor: isToday ? 'var(--primary)' : 'var(--border-subtle)',
                   }}
                   title={mood ? `${d.date}: ${mood}/5 (${MOOD_META[mood].label})` : `${d.date}: No mood logged`}
                 >
-                  <span className="text-[11px] font-semibold text-[var(--text-secondary)]">{d.dayShort}</span>
+                  <span className="text-[11px] font-medium text-[var(--text-secondary)]">{d.dayShort}</span>
                   <div
-                    className="w-7 h-7 rounded-full mt-1.5 flex items-center justify-center text-xs font-extrabold"
+                    className="w-7 h-7 rounded-full mt-1.5 flex items-center justify-center text-xs font-bold"
                     style={{
-                      backgroundColor: mood ? MOOD_META[mood].color : 'var(--border-subtle)',
-                      color: mood ? '#FBFBF4' : 'var(--text-muted)',
+                      backgroundColor: mood ? MOOD_META[mood].colorVar : 'var(--bg-subtle)',
+                      color: mood ? 'var(--primary-fg)' : 'var(--text-muted)',
                     }}
                   >
                     {mood ?? '–'}

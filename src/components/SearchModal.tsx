@@ -128,12 +128,16 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 backdrop-blur-[2px] pt-10 md:pt-20 px-4"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-[3px] pt-10 md:pt-20 px-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl rounded-3xl border shadow-2xl overflow-hidden animate-modal"
-        style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+        className="w-full max-w-xl rounded-[20px] border overflow-hidden animate-modal"
+        style={{
+          backgroundColor: 'var(--bg-surface-elevated)',
+          borderColor: 'var(--border-subtle)',
+          boxShadow: 'var(--shadow-modal)',
+        }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -160,11 +164,11 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
               key={f}
               type="button"
               onClick={() => setTypeFilter(f)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize cursor-pointer transition-colors ${
-                typeFilter === f
-                  ? 'bg-teal-600 text-white dark:bg-teal-400 dark:text-zinc-950'
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
-              }`}
+              className="px-2.5 py-1 rounded-lg text-xs font-medium capitalize cursor-pointer transition-colors"
+              style={{
+                backgroundColor: typeFilter === f ? 'var(--primary)' : 'var(--bg-surface)',
+                color: typeFilter === f ? 'var(--primary-fg)' : 'var(--text-secondary)',
+              }}
             >
               {f === 'transaction' ? 'Spending' : f === 'all' ? 'All' : `${f}s`}
             </button>

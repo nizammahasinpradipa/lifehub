@@ -15,26 +15,27 @@ export const ToastContainer: React.FC = () => {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border animate-modal"
+          className="pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border animate-modal"
           style={{
-            backgroundColor: 'var(--bg-surface)',
+            backgroundColor: 'var(--bg-surface-elevated)',
             borderColor:
               toast.tone === 'warning'
-                ? '#f59e0b'
+                ? 'var(--state-warning)'
                 : toast.tone === 'success'
-                ? 'var(--accent)'
-                : 'var(--border-subtle)',
+                ? 'var(--state-success)'
+                : 'var(--border-strong)',
             color: 'var(--text-primary)',
+            boxShadow: 'var(--shadow-popover)',
           }}
         >
-          {toast.tone === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-teal-600 dark:text-teal-400" />}
-          {toast.tone === 'warning' && <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />}
-          {(!toast.tone || toast.tone === 'neutral') && <Info className="w-4 h-4 shrink-0 text-zinc-400" />}
+          {toast.tone === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-state-success" />}
+          {toast.tone === 'warning' && <AlertTriangle className="w-4 h-4 shrink-0 text-state-warning" />}
+          {(!toast.tone || toast.tone === 'neutral') && <Info className="w-4 h-4 shrink-0 text-state-info" />}
           <span className="text-sm font-medium flex-1 leading-snug">{toast.message}</span>
           <button
             type="button"
             onClick={() => dismissToast(toast.id)}
-            className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400"
+            className="p-1 rounded-lg hover:bg-[var(--bg-subtle)] text-[var(--text-muted)] cursor-pointer"
             aria-label="Dismiss notification"
           >
             <X className="w-3.5 h-3.5" />

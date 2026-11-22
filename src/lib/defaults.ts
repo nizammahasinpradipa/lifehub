@@ -48,15 +48,15 @@ export function createInitialData(): LifeHubData {
   ];
 
   const categories = [
-    { id: 'cat_food', name: 'Food', kind: 'expense' as const, icon: 'utensils', color: '#233E1E' },
-    { id: 'cat_transport', name: 'Transport', kind: 'expense' as const, icon: 'car', color: '#709446' },
-    { id: 'cat_bills', name: 'Bills', kind: 'expense' as const, icon: 'zap', color: '#E59A38' },
-    { id: 'cat_shopping', name: 'Shopping', kind: 'expense' as const, icon: 'shopping-bag', color: '#C3834C' },
-    { id: 'cat_health', name: 'Health', kind: 'expense' as const, icon: 'heart', color: '#B94E48' },
-    { id: 'cat_other', name: 'Other', kind: 'expense' as const, icon: 'circle-dot', color: '#6B6E5C' },
-    { id: 'cat_salary', name: 'Salary', kind: 'income' as const, icon: 'briefcase', color: '#233E1E' },
-    { id: 'cat_freelance', name: 'Freelance', kind: 'income' as const, icon: 'laptop', color: '#709446' },
-    { id: 'cat_income_other', name: 'Other Income', kind: 'income' as const, icon: 'plus-circle', color: '#6B6E5C' },
+    { id: 'cat_food', name: 'Food', kind: 'expense' as const, icon: 'utensils', color: '#E04E0C' },
+    { id: 'cat_transport', name: 'Transport', kind: 'expense' as const, icon: 'car', color: '#FF7A00' },
+    { id: 'cat_bills', name: 'Bills', kind: 'expense' as const, icon: 'zap', color: '#D97706' },
+    { id: 'cat_shopping', name: 'Shopping', kind: 'expense' as const, icon: 'shopping-bag', color: '#2563EB' },
+    { id: 'cat_health', name: 'Health', kind: 'expense' as const, icon: 'heart', color: '#DC2626' },
+    { id: 'cat_other', name: 'Other', kind: 'expense' as const, icon: 'circle-dot', color: '#8C6B5D' },
+    { id: 'cat_salary', name: 'Salary', kind: 'income' as const, icon: 'briefcase', color: '#16A34A' },
+    { id: 'cat_freelance', name: 'Freelance', kind: 'income' as const, icon: 'laptop', color: '#2563EB' },
+    { id: 'cat_income_other', name: 'Other Income', kind: 'income' as const, icon: 'plus-circle', color: '#D97706' },
   ].map((c) => ({
     ...c,
     user_id: DEFAULT_USER_ID,
@@ -70,7 +70,7 @@ export function createInitialData(): LifeHubData {
       id: 'proj_personal',
       user_id: DEFAULT_USER_ID,
       name: 'Personal',
-      color: '#0F766E',
+      color: '#E04E0C',
       created_at: seedTs,
       updated_at: seedTs,
       deleted_at: null,

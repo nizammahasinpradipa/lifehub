@@ -35,12 +35,12 @@ import { LinkPicker } from '../components/LinkPicker';
 
 type NotesTab = 'journal' | 'notes' | 'mood';
 
-const MOODS: Array<{ value: MoodRating; label: string; color: string }> = [
-  { value: 1, label: 'Tough', color: '#B94E48' },
-  { value: 2, label: 'Low', color: '#D97736' },
-  { value: 3, label: 'Okay', color: '#E59A38' },
-  { value: 4, label: 'Good', color: '#709446' },
-  { value: 5, label: 'Great', color: '#233E1E' },
+const MOODS: Array<{ value: MoodRating; label: string; colorVar: string; bgVar: string }> = [
+  { value: 1, label: 'Tough', colorVar: 'var(--state-danger)', bgVar: 'var(--state-danger-bg)' },
+  { value: 2, label: 'Low', colorVar: 'var(--primary)', bgVar: 'var(--accent-soft)' },
+  { value: 3, label: 'Okay', colorVar: 'var(--state-warning)', bgVar: 'var(--state-warning-bg)' },
+  { value: 4, label: 'Good', colorVar: 'var(--state-info)', bgVar: 'var(--state-info-bg)' },
+  { value: 5, label: 'Great', colorVar: 'var(--state-success)', bgVar: 'var(--state-success-bg)' },
 ];
 
 export const NotesView: React.FC = () => {
@@ -177,9 +177,9 @@ export const NotesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Sub-Tabs (full-width deep pine segmented bar) */}
+      {/* Sub-Tabs (Apple Segmented Control) */}
       <div className="flex items-center justify-between gap-2">
-        <div className="grid grid-cols-3 sm:flex items-center gap-1 retro-segmented flex-1 sm:flex-none">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 apple-segmented flex-1 sm:flex-none">
           {(
             [
               { id: 'journal', label: 'Journal', Icon: BookOpen },
@@ -191,7 +191,7 @@ export const NotesView: React.FC = () => {
               key={id}
               type="button"
               onClick={() => setSubTab(id)}
-              className={`retro-segmented-btn inline-flex items-center justify-center gap-1.5 !px-2.5 sm:!px-4 ${
+              className={`apple-segmented-btn inline-flex items-center justify-center gap-1.5 !px-2.5 sm:!px-4 ${
                 subTab === id ? 'active' : ''
               }`}
             >
@@ -274,15 +274,15 @@ export const NotesView: React.FC = () => {
                     }}
                     className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border transition-all cursor-pointer"
                     style={{
-                      backgroundColor: active ? `${m.color}18` : 'var(--bg-subtle)',
-                      borderColor: active ? m.color : 'transparent',
+                      backgroundColor: active ? m.bgVar : 'var(--bg-surface-elevated)',
+                      borderColor: active ? m.colorVar : 'var(--border-subtle)',
                     }}
                   >
                     <span
                       className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
                       style={{
-                        backgroundColor: active ? m.color : 'var(--border-subtle)',
-                        color: active ? '#ffffff' : 'var(--text-secondary)',
+                        backgroundColor: active ? m.colorVar : 'var(--bg-subtle)',
+                        color: active ? 'var(--primary-fg)' : 'var(--text-secondary)',
                       }}
                     >
                       {m.value}
@@ -538,9 +538,9 @@ export const NotesView: React.FC = () => {
                   <Line
                     type="monotone"
                     dataKey="mood"
-                    stroke="#233E1E"
+                    stroke="var(--primary)"
                     strokeWidth={2.5}
-                    dot={{ r: 4, fill: '#709446' }}
+                    dot={{ r: 4, fill: 'var(--accent)' }}
                     connectNulls
                   />
                 </LineChart>
@@ -575,7 +575,7 @@ export const NotesView: React.FC = () => {
                       {moodMeta && (
                         <span
                           className="text-xs font-medium px-2 py-0.5 rounded-full"
-                          style={{ backgroundColor: `${moodMeta.color}18`, color: moodMeta.color }}
+                          style={{ backgroundColor: moodMeta.bgVar, color: moodMeta.colorVar }}
                         >
                           {moodMeta.value}/5 · {moodMeta.label}
                         </span>

@@ -1033,7 +1033,7 @@ export const LifeHubProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // ======================== CATEGORIES ========================
   const addCategory: LifeHubContextValue['addCategory'] = useCallback(
-    (name, kind, color = '#0F766E') => {
+    (name, kind, color = '#E04E0C') => {
       const now = new Date().toISOString();
       const category: Category = {
         id: uid('cat'),
