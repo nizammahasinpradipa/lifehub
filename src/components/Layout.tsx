@@ -587,10 +587,16 @@ export const Layout: React.FC<LayoutProps> = ({
           <button
             type="button"
             onClick={onOpenSearch}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="hover-sidebar-item group w-full flex items-center justify-between px-2.5 py-2 rounded-2xl text-xs font-medium text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] cursor-pointer"
+            style={{ transitionDelay: sidebarOpen ? `${DESKTOP_NAV.length * 26}ms` : '0ms' }}
           >
-            <span className="flex items-center gap-2.5">
-              <Search className="w-4 h-4" />
+            <span className="flex items-center gap-3">
+              <span
+                className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-6"
+                style={{ backgroundColor: 'rgba(165, 178, 235, 0.16)', color: 'var(--text-primary)' }}
+              >
+                <Search className="w-3.5 h-3.5" />
+              </span>
               Search
             </span>
             <kbd className="text-[10px] opacity-75 font-sans">⌘K</kbd>
@@ -600,14 +606,23 @@ export const Layout: React.FC<LayoutProps> = ({
             type="button"
             onClick={() => setActiveTab('settings')}
             aria-current={activeTab === 'settings' ? 'page' : undefined}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer"
+            className="hover-sidebar-item group w-full flex items-center gap-3 px-2.5 py-2 rounded-2xl text-xs hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] cursor-pointer"
             style={{
-              backgroundColor: activeTab === 'settings' ? 'var(--accent-soft)' : 'transparent',
+              transitionDelay: sidebarOpen ? `${(DESKTOP_NAV.length + 1) * 26}ms` : '0ms',
+              backgroundColor: activeTab === 'settings' ? 'rgba(154, 217, 242, 0.20)' : undefined,
               color: activeTab === 'settings' ? 'var(--text-primary)' : 'var(--text-muted)',
               fontWeight: activeTab === 'settings' ? 600 : 500,
             }}
           >
-            <Settings className="w-4 h-4" />
+            <span
+              className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
+              style={{
+                backgroundColor: activeTab === 'settings' ? '#9AD9F2' : 'rgba(154, 217, 242, 0.18)',
+                color: activeTab === 'settings' ? '#1D1F2A' : 'var(--text-primary)',
+              }}
+            >
+              <Settings className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-90" />
+            </span>
             Settings
           </button>
 
@@ -620,7 +635,7 @@ export const Layout: React.FC<LayoutProps> = ({
               <button
                 type="button"
                 onClick={lockNow}
-                className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] cursor-pointer"
+                className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] transition-all duration-200 hover:scale-110 cursor-pointer"
                 title="Sign Out / Lock"
                 aria-label="Sign Out / Lock"
               >

@@ -708,6 +708,13 @@ body.keyboard-open .mobile-bottom-chrome {
   transform: translateX(0);
 }
 
+@media (hover: hover) {
+  .hover-sidebar.is-open .hover-sidebar-item:hover {
+    transform: translateX(4px);
+    transition-delay: 0ms !important;
+  }
+}
+
 /* Floating mobile pill dock */
 .floating-dock {
   background-color: color-mix(in srgb, var(--bg-surface) 90%, transparent);
