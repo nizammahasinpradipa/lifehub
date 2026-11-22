@@ -327,18 +327,26 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
         </div>
       </div>
 
-      {/* Wallets Balance Strip: 1 compact horizontal row on Android, grid on PC */}
+      {/* Wallets Balance Strip: color-coded matte badges */}
       <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-2.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
         {activeWallets.map((w) => {
           const bal = getWalletBalance(w.id);
+          const badgeColor =
+            w.type === 'cash' ? '#DDDE68' : w.type === 'bank' ? '#A5B2EB' : '#9AD9F2';
           return (
             <div
               key={w.id}
-              className="card p-3.5 sm:p-4 flex flex-col justify-between gap-1.5 min-w-[165px] sm:min-w-0 shrink-0 snap-start"
+              className="card p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-[165px] sm:min-w-0 shrink-0 snap-start"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-medium text-zinc-500 truncate">{w.name}</span>
-                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 shrink-0">
+                <span className="inline-flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)] truncate">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: badgeColor }} />
+                  <span className="truncate">{w.name}</span>
+                </span>
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0"
+                  style={{ backgroundColor: `${badgeColor}28`, color: 'var(--text-primary)' }}
+                >
                   {w.type}
                 </span>
               </div>

@@ -35,12 +35,12 @@ import { LinkPicker } from '../components/LinkPicker';
 
 type NotesTab = 'journal' | 'notes' | 'mood';
 
-const MOODS: Array<{ value: MoodRating; label: string; colorVar: string; bgVar: string }> = [
-  { value: 1, label: 'Tough', colorVar: 'var(--state-danger)', bgVar: 'var(--state-danger-bg)' },
-  { value: 2, label: 'Low', colorVar: 'var(--primary)', bgVar: 'var(--accent-soft)' },
-  { value: 3, label: 'Okay', colorVar: 'var(--state-warning)', bgVar: 'var(--state-warning-bg)' },
-  { value: 4, label: 'Good', colorVar: 'var(--state-info)', bgVar: 'var(--state-info-bg)' },
-  { value: 5, label: 'Great', colorVar: 'var(--state-success)', bgVar: 'var(--state-success-bg)' },
+const MOODS: Array<{ value: MoodRating; label: string; swatch: string; tint: string }> = [
+  { value: 1, label: 'Tough', swatch: '#E89AA2', tint: 'rgba(232, 154, 162, 0.22)' },
+  { value: 2, label: 'Low', swatch: '#DA935D', tint: 'rgba(218, 147, 93, 0.22)' },
+  { value: 3, label: 'Okay', swatch: '#A5B2EB', tint: 'rgba(165, 178, 235, 0.22)' },
+  { value: 4, label: 'Good', swatch: '#9AD9F2', tint: 'rgba(154, 217, 242, 0.22)' },
+  { value: 5, label: 'Great', swatch: '#DDDE68', tint: 'rgba(221, 222, 104, 0.24)' },
 ];
 
 export const NotesView: React.FC = () => {
@@ -267,17 +267,18 @@ export const NotesView: React.FC = () => {
                       upsertJournalEntry(journalDate, { mood: active ? null : m.value });
                       markSaved();
                     }}
-                    className="flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border transition-all cursor-pointer"
+                    className="flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition-all cursor-pointer"
                     style={{
-                      backgroundColor: active ? m.bgVar : 'var(--bg-surface-elevated)',
-                      borderColor: active ? m.colorVar : 'var(--border-subtle)',
+                      backgroundColor: active ? m.swatch : m.tint,
+                      borderColor: active ? m.swatch : 'transparent',
+                      color: active ? '#1D1F2A' : 'var(--text-primary)',
                     }}
                   >
                     <span
                       className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
                       style={{
-                        backgroundColor: active ? m.colorVar : 'var(--bg-subtle)',
-                        color: active ? 'var(--primary-fg)' : 'var(--text-secondary)',
+                        backgroundColor: active ? 'rgba(29, 31, 42, 0.14)' : m.swatch,
+                        color: '#1D1F2A',
                       }}
                     >
                       {m.value}
@@ -569,8 +570,8 @@ export const NotesView: React.FC = () => {
                       <span className="text-sm font-medium">{entry.journal_date}</span>
                       {moodMeta && (
                         <span
-                          className="text-xs font-medium px-2 py-0.5 rounded-full"
-                          style={{ backgroundColor: moodMeta.bgVar, color: moodMeta.colorVar }}
+                          className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                          style={{ backgroundColor: moodMeta.swatch, color: '#1D1F2A' }}
                         >
                           {moodMeta.value}/5 · {moodMeta.label}
                         </span>

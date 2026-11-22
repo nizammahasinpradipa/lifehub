@@ -33,20 +33,32 @@ interface LayoutProps {
   onOpenReceipt: () => void;
 }
 
-const DESKTOP_NAV: Array<{ id: NavTab; label: string; Icon: React.FC<{ className?: string }> }> = [
-  { id: 'home', label: 'Home', Icon: Home },
-  { id: 'tasks', label: 'Tasks', Icon: CheckSquare },
-  { id: 'spending', label: 'Spending', Icon: Wallet },
-  { id: 'notes', label: 'Notes', Icon: FileText },
-  { id: 'email', label: 'Email', Icon: Mail },
-  { id: 'socials', label: 'Socials', Icon: Share2 },
+const DESKTOP_NAV: Array<{
+  id: NavTab;
+  label: string;
+  Icon: React.FC<{ className?: string }>;
+  swatch: string;
+  tint: string;
+}> = [
+  { id: 'home', label: 'Home', Icon: Home, swatch: '#A5B2EB', tint: 'rgba(165, 178, 235, 0.18)' },
+  { id: 'tasks', label: 'Tasks', Icon: CheckSquare, swatch: '#C6A8F5', tint: 'rgba(198, 168, 245, 0.18)' },
+  { id: 'spending', label: 'Spending', Icon: Wallet, swatch: '#DA935D', tint: 'rgba(218, 147, 93, 0.20)' },
+  { id: 'notes', label: 'Notes', Icon: FileText, swatch: '#DDDE68', tint: 'rgba(221, 222, 104, 0.20)' },
+  { id: 'email', label: 'Email', Icon: Mail, swatch: '#9AD9F2', tint: 'rgba(154, 217, 242, 0.20)' },
+  { id: 'socials', label: 'Socials', Icon: Share2, swatch: '#E89AA2', tint: 'rgba(232, 154, 162, 0.20)' },
 ];
 
-const MOBILE_PRIMARY_TABS: Array<{ id: NavTab; label: string; Icon: React.FC<{ className?: string }> }> = [
-  { id: 'home', label: 'Home', Icon: Home },
-  { id: 'tasks', label: 'Tasks', Icon: CheckSquare },
-  { id: 'spending', label: 'Spending', Icon: Wallet },
-  { id: 'notes', label: 'Notes', Icon: FileText },
+const MOBILE_PRIMARY_TABS: Array<{
+  id: NavTab;
+  label: string;
+  Icon: React.FC<{ className?: string }>;
+  swatch: string;
+  tint: string;
+}> = [
+  { id: 'home', label: 'Home', Icon: Home, swatch: '#A5B2EB', tint: 'rgba(165, 178, 235, 0.24)' },
+  { id: 'tasks', label: 'Tasks', Icon: CheckSquare, swatch: '#C6A8F5', tint: 'rgba(198, 168, 245, 0.24)' },
+  { id: 'spending', label: 'Spending', Icon: Wallet, swatch: '#DA935D', tint: 'rgba(218, 147, 93, 0.24)' },
+  { id: 'notes', label: 'Notes', Icon: FileText, swatch: '#DDDE68', tint: 'rgba(221, 222, 104, 0.24)' },
 ];
 
 const TAB_TITLES: Record<NavTab, string> = {
@@ -215,7 +227,7 @@ export const Layout: React.FC<LayoutProps> = ({
         </button>
 
         <nav className="space-y-1 flex-1" aria-label="Primary">
-          {DESKTOP_NAV.map(({ id, label, Icon }) => {
+          {DESKTOP_NAV.map(({ id, label, Icon, swatch, tint }) => {
             const active = activeTab === id;
             return (
               <button
@@ -225,21 +237,29 @@ export const Layout: React.FC<LayoutProps> = ({
                 aria-current={active ? 'page' : undefined}
                 className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors cursor-pointer"
                 style={{
-                  backgroundColor: active ? 'var(--accent-soft)' : 'transparent',
+                  backgroundColor: active ? tint : 'transparent',
                   color: active ? 'var(--text-primary)' : 'var(--text-muted)',
                   fontWeight: active ? 600 : 500,
                 }}
               >
                 <span className="flex items-center gap-3">
-                  <Icon className="w-[18px] h-[18px]" />
+                  <span
+                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+                    style={{
+                      backgroundColor: active ? swatch : tint,
+                      color: active ? '#1D1F2A' : 'var(--text-primary)',
+                    }}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </span>
                   {label}
                 </span>
                 {id === 'tasks' && openTasksCount > 0 && (
                   <span
                     className="text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-full"
                     style={{
-                      backgroundColor: active ? 'var(--sw-wisteria)' : 'var(--bg-subtle)',
-                      color: active ? '#1D1F2A' : 'var(--text-secondary)',
+                      backgroundColor: swatch,
+                      color: '#1D1F2A',
                     }}
                   >
                     {openTasksCount}
@@ -349,7 +369,7 @@ export const Layout: React.FC<LayoutProps> = ({
         aria-label="Bottom Navigation"
       >
         <div className="grid grid-cols-5 px-1.5 pt-1.5">
-          {MOBILE_PRIMARY_TABS.map(({ id, label, Icon }) => {
+          {MOBILE_PRIMARY_TABS.map(({ id, label, Icon, swatch }) => {
             const active = activeTab === id && !moreOpen;
             return (
               <button
@@ -369,11 +389,16 @@ export const Layout: React.FC<LayoutProps> = ({
               >
                 <span
                   className="px-3.5 py-1 rounded-full transition-colors"
-                  style={{ backgroundColor: active ? 'var(--accent-soft)' : 'transparent' }}
+                  style={{
+                    backgroundColor: active ? swatch : 'transparent',
+                    color: active ? '#1D1F2A' : undefined,
+                  }}
                 >
                   <Icon className="w-[19px] h-[19px]" />
                 </span>
-                <span className="text-[10.5px] leading-none">{label}</span>
+                <span className="text-[10.5px] leading-none" style={{ opacity: active ? 1 : 0.85 }}>
+                  {label}
+                </span>
               </button>
             );
           })}
@@ -455,11 +480,13 @@ export const Layout: React.FC<LayoutProps> = ({
               <button
                 type="button"
                 onClick={() => navigateFromMore('email')}
-                className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl"
                 style={{ backgroundColor: 'var(--bg-subtle)' }}
               >
                 <span className="flex items-center gap-3 text-sm font-medium">
-                  <Mail className="w-4 h-4 text-state-info" />
+                  <span className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#9AD9F2] text-[#1D1F2A]">
+                    <Mail className="w-4 h-4" />
+                  </span>
                   Email (Gmail)
                 </span>
                 <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
@@ -468,11 +495,13 @@ export const Layout: React.FC<LayoutProps> = ({
               <button
                 type="button"
                 onClick={() => navigateFromMore('socials')}
-                className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl"
                 style={{ backgroundColor: 'var(--bg-subtle)' }}
               >
                 <span className="flex items-center gap-3 text-sm font-medium">
-                  <Share2 className="w-4 h-4 text-state-info" />
+                  <span className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#E89AA2] text-[#1D1F2A]">
+                    <Share2 className="w-4 h-4" />
+                  </span>
                   Socials &amp; Links
                 </span>
                 <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
@@ -486,7 +515,7 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   onOpenAI();
                 }}
-                className="btn-tinted !justify-start !px-4"
+                className="bento-lavender rounded-2xl px-4 py-3 flex items-center gap-2 text-sm font-semibold"
               >
                 <Sparkles className="w-4 h-4" />
                 Ask AI
@@ -497,7 +526,7 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   onOpenReceipt();
                 }}
-                className="btn-secondary !justify-start !px-4"
+                className="bento-lime rounded-2xl px-4 py-3 flex items-center gap-2 text-sm font-semibold"
               >
                 <Camera className="w-4 h-4" />
                 Scan Receipt

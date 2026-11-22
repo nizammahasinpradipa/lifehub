@@ -123,8 +123,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
         </div>
       </div>
 
-      {/* Calm Balance Card */}
-      <section className="card p-5 sm:p-6 space-y-4">
+      {/* Calm Balance Card with subtle pastel ambient wash */}
+      <section className="card-balance p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-[var(--text-muted)]">
             Total balance · {activeWallets.length} {activeWallets.length === 1 ? 'wallet' : 'wallets'}
@@ -147,7 +147,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
           <button
             type="button"
             onClick={() => onQuickAdd('task')}
-            className="btn-primary !min-h-[42px] !text-xs sm:!text-sm"
+            className="bento-wisteria rounded-[14px] min-h-[42px] px-4 inline-flex items-center justify-center gap-2 font-semibold text-xs sm:text-sm cursor-pointer transition-transform active:scale-[0.98]"
           >
             <Plus className="w-4 h-4 shrink-0" />
             Add Task
@@ -155,21 +155,25 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
           <button
             type="button"
             onClick={() => onQuickAdd('expense')}
-            className="btn-secondary !min-h-[42px] !text-xs sm:!text-sm"
+            className="rounded-[14px] min-h-[42px] px-4 inline-flex items-center justify-center gap-2 font-semibold text-xs sm:text-sm cursor-pointer transition-transform active:scale-[0.98]"
+            style={{
+              backgroundColor: 'rgba(218, 147, 93, 0.22)',
+              color: 'var(--text-primary)',
+            }}
           >
-            <Receipt className="w-4 h-4 shrink-0" />
+            <Receipt className="w-4 h-4 shrink-0 text-[#DA935D]" />
             Log Expense
           </button>
         </div>
       </section>
 
-      {/* Signature 2x2 Matte Pastel Bento Grid (inspired by reference) */}
+      {/* Signature 2x2 Matte Pastel Bento Grid (matching all 4 reference phone accents) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Tile 1: Tasks Today (Wondrous Wisteria) */}
+        {/* Tile 1: Tasks Today (Soft Lavender) */}
         <button
           type="button"
           onClick={() => setActiveTab('tasks')}
-          className="bento-tile bento-wisteria flex flex-col justify-between min-h-[132px]"
+          className="bento-tile bento-lavender flex flex-col justify-between min-h-[132px]"
         >
           <div className="flex items-center justify-between w-full">
             <span className="text-xs font-semibold opacity-80">Tasks</span>
@@ -249,18 +253,18 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
           </div>
         </button>
 
-        {/* Tile 4: Quick Capture / AI & Receipt (Blue Suede Shoes) */}
-        <div className="bento-tile bento-suede flex flex-col justify-between min-h-[132px] !cursor-default">
+        {/* Tile 4: Quick Capture / AI & Receipt (Soft Sky) */}
+        <div className="bento-tile bento-sky flex flex-col justify-between min-h-[132px] !cursor-default">
           <div className="flex items-center justify-between w-full">
             <span className="text-xs font-semibold opacity-80">Capture</span>
             <button
               type="button"
               onClick={onOpenReceipt}
-              className="p-1.5 -m-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-1.5 -m-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer"
               aria-label="Scan receipt"
               title="Scan receipt"
             >
-              <Camera className="w-4 h-4 opacity-85" />
+              <Camera className="w-4 h-4 opacity-80" />
             </button>
           </div>
           <button
@@ -269,10 +273,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
             className="mt-3 text-left cursor-pointer group"
           >
             <p className="text-base sm:text-lg font-bold tracking-tight flex items-center gap-1.5 leading-snug">
-              <Sparkles className="w-4 h-4 text-[#DDDE68] shrink-0" />
+              <Sparkles className="w-4 h-4 shrink-0" />
               Ask AI
             </p>
-            <p className="text-[11px] opacity-75 mt-1 leading-snug">
+            <p className="text-[11px] font-medium opacity-75 mt-1 leading-snug">
               &ldquo;spent 50k lunch&rdquo;
             </p>
           </button>
@@ -352,6 +356,25 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
                       </p>
                     )}
                   </div>
+                  <span
+                    className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize shrink-0"
+                    style={{
+                      backgroundColor:
+                        task.priority === 'high'
+                          ? 'rgba(232, 154, 162, 0.22)'
+                          : task.priority === 'medium'
+                          ? 'rgba(218, 147, 93, 0.22)'
+                          : 'rgba(154, 217, 242, 0.20)',
+                      color:
+                        task.priority === 'high'
+                          ? 'var(--state-danger)'
+                          : task.priority === 'medium'
+                          ? 'var(--state-warning)'
+                          : 'var(--state-info)',
+                    }}
+                  >
+                    {task.priority}
+                  </span>
                 </div>
               );
             })}

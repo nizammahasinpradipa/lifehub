@@ -353,12 +353,12 @@ export const SocialsView: React.FC = () => {
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
           {(
             [
-              { id: 'all', label: 'All' },
-              { id: 'pinned', label: 'Pinned' },
-              { id: 'social', label: 'Social' },
-              { id: 'dev', label: 'Dev' },
-              { id: 'design', label: 'Design' },
-              { id: 'contact', label: 'Contact' },
+              { id: 'all', label: 'All', swatch: '#A5B2EB' },
+              { id: 'pinned', label: 'Pinned', swatch: '#DDDE68' },
+              { id: 'social', label: 'Social', swatch: '#E89AA2' },
+              { id: 'dev', label: 'Dev', swatch: '#9AD9F2' },
+              { id: 'design', label: 'Design', swatch: '#C6A8F5' },
+              { id: 'contact', label: 'Contact', swatch: '#DA935D' },
             ] as const
           ).map((f) => (
             <button
@@ -367,8 +367,8 @@ export const SocialsView: React.FC = () => {
               onClick={() => setCategoryFilter(f.id)}
               className="px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors shrink-0"
               style={{
-                backgroundColor: categoryFilter === f.id ? 'var(--primary)' : 'var(--bg-surface)',
-                color: categoryFilter === f.id ? 'var(--primary-fg)' : 'var(--text-secondary)',
+                backgroundColor: categoryFilter === f.id ? f.swatch : 'var(--bg-surface)',
+                color: categoryFilter === f.id ? '#1D1F2A' : 'var(--text-secondary)',
               }}
             >
               {f.label}

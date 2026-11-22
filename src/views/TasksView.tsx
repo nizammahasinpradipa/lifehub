@@ -258,11 +258,11 @@ export const TasksView: React.FC = () => {
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
           {(
             [
-              { id: 'today', label: 'Today' },
-              { id: 'upcoming', label: 'Upcoming' },
-              { id: 'overdue', label: `Overdue${overdueCount > 0 ? ` (${overdueCount})` : ''}` },
-              { id: 'all', label: 'All' },
-              { id: 'completed', label: 'Done' },
+              { id: 'today', label: 'Today', swatch: '#A5B2EB' },
+              { id: 'upcoming', label: 'Upcoming', swatch: '#9AD9F2' },
+              { id: 'overdue', label: `Overdue${overdueCount > 0 ? ` (${overdueCount})` : ''}`, swatch: '#E89AA2' },
+              { id: 'all', label: 'All', swatch: '#C6A8F5' },
+              { id: 'completed', label: 'Done', swatch: '#DDDE68' },
             ] as const
           ).map((item) => (
             <button
@@ -271,8 +271,8 @@ export const TasksView: React.FC = () => {
               onClick={() => setFilter(item.id)}
               className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer shrink-0"
               style={{
-                backgroundColor: filter === item.id ? 'var(--primary)' : 'var(--bg-surface)',
-                color: filter === item.id ? 'var(--primary-fg)' : 'var(--text-secondary)',
+                backgroundColor: filter === item.id ? item.swatch : 'var(--bg-surface)',
+                color: filter === item.id ? '#1D1F2A' : 'var(--text-secondary)',
               }}
             >
               {item.label}

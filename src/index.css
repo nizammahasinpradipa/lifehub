@@ -47,13 +47,16 @@
    ========================================================================== */
 
 :root {
-  /* Core reference swatches */
+  /* Core reference swatches + matching soft pastels from reference phones */
   --sw-rock: #2b2d3b;
   --sw-suede: #494c65;
   --sw-hide: #676386;
   --sw-wisteria: #a5b2eb;
   --sw-lime: #ddde68;
   --sw-orange: #da935d;
+  --sw-sky: #9ad9f2;
+  --sw-lavender: #c6a8f5;
+  --sw-rose: #e89aa2;
 
   /* Light Mode — Same calm theme, soft matte mist (zero glaring white) */
   --bg-canvas: #eff0f7;
@@ -290,9 +293,36 @@ body.keyboard-open .mobile-bottom-chrome {
   color: #202230;
 }
 
+.bento-sky {
+  background-color: var(--sw-sky);
+  color: #202230;
+}
+
+.bento-lavender {
+  background-color: var(--sw-lavender);
+  color: #202230;
+}
+
 .bento-suede {
   background-color: var(--sw-suede);
   color: #eef0f8;
+}
+
+/* Soft ambient hero card with gentle pastel wash (eye-friendly, zero glare) */
+.card-balance {
+  background:
+    radial-gradient(circle at 92% 12%, rgba(165, 178, 235, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 8% 95%, rgba(221, 222, 104, 0.12) 0%, transparent 45%),
+    var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 22px;
+}
+
+.dark .card-balance {
+  background:
+    radial-gradient(circle at 92% 12%, rgba(165, 178, 235, 0.14) 0%, transparent 48%),
+    radial-gradient(circle at 8% 95%, rgba(218, 147, 93, 0.11) 0%, transparent 45%),
+    var(--bg-surface);
 }
 
 /* Matte translucent navigation chrome */
