@@ -157,15 +157,10 @@ export const NotesView: React.FC = () => {
     <div className="space-y-4 sm:space-y-5">
       {/* Header */}
       <div className="hidden md:flex sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Notes &amp; Journal</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Plain-text notes and daily reflections — auto-saved as you type.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight">Notes &amp; Journal</h1>
         <div className="flex items-center gap-2">
           {autoSaveState === 'saved' && (
-            <span className="inline-flex items-center gap-1 text-xs text-teal-700 dark:text-teal-300">
+            <span className="inline-flex items-center gap-1 text-xs text-state-success">
               <Check className="w-3.5 h-3.5" />
               Saved
             </span>
@@ -177,9 +172,9 @@ export const NotesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Sub-Tabs (Apple Segmented Control) */}
+      {/* Sub-Tabs */}
       <div className="flex items-center justify-between gap-2">
-        <div className="grid grid-cols-3 sm:flex items-center gap-1 apple-segmented flex-1 sm:flex-none">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 segmented-track flex-1 sm:flex-none">
           {(
             [
               { id: 'journal', label: 'Journal', Icon: BookOpen },
@@ -191,7 +186,7 @@ export const NotesView: React.FC = () => {
               key={id}
               type="button"
               onClick={() => setSubTab(id)}
-              className={`apple-segmented-btn inline-flex items-center justify-center gap-1.5 !px-2.5 sm:!px-4 ${
+              className={`segmented-btn inline-flex items-center justify-center gap-1.5 !px-2.5 sm:!px-4 ${
                 subTab === id ? 'active' : ''
               }`}
             >

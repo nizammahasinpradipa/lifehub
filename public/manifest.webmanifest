@@ -1,13 +1,13 @@
 {
   "name": "LifeHub — Personal Tasks, Spending & Journal",
   "short_name": "LifeHub",
-  "description": "Clean personal workspace for daily tasks, Indonesian rupiah expenses, budgets, notes, Gmail, and socials.",
+  "description": "Calm personal workspace for daily tasks, Indonesian rupiah expenses, budgets, notes, Gmail, and socials.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#FFFFFF",
-  "theme_color": "#E04E0C",
+  "background_color": "#1D1F2A",
+  "theme_color": "#2B2D3B",
   "categories": ["productivity", "finance", "lifestyle"],
   "icons": [
     {

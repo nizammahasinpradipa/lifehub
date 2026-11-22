@@ -373,9 +373,9 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({ open, onClos
                         value={taskPriority}
                         onChange={(v) => setTaskPriority(v as Priority)}
                         options={[
-                          { value: 'low', label: 'Low', dotColor: '#2563EB' },
-                          { value: 'medium', label: 'Medium', dotColor: '#D97706' },
-                          { value: 'high', label: 'High', dotColor: '#DC2626' },
+                          { value: 'low', label: 'Low', dotColor: '#A5B2EB' },
+                          { value: 'medium', label: 'Medium', dotColor: '#DA935D' },
+                          { value: 'high', label: 'High', dotColor: '#E08A92' },
                         ]}
                       />
                     </div>

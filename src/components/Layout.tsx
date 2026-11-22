@@ -136,7 +136,7 @@ export const Layout: React.FC<LayoutProps> = ({
           title={syncStatus.error || 'Sync failed'}
         >
           <WifiOff className="w-3.5 h-3.5 shrink-0" />
-          Sync error — tap to fix
+          Sync issue
         </button>
       );
     }
@@ -152,7 +152,7 @@ export const Layout: React.FC<LayoutProps> = ({
       return (
         <span className="inline-flex items-center gap-1.5 text-xs text-state-success font-medium">
           <Wifi className="w-3.5 h-3.5" />
-          PC &amp; Phone synced
+          Wi-Fi synced
         </span>
       );
     }
@@ -160,7 +160,7 @@ export const Layout: React.FC<LayoutProps> = ({
       return (
         <span className="inline-flex items-center gap-1.5 text-xs text-state-warning font-medium">
           <WifiOff className="w-3.5 h-3.5" />
-          Saved offline
+          Offline
         </span>
       );
     }
@@ -171,11 +171,11 @@ export const Layout: React.FC<LayoutProps> = ({
           setMoreOpen(false);
           setActiveTab('settings');
         }}
-        className="inline-flex items-center gap-1.5 text-xs text-state-warning hover:underline cursor-pointer"
+        className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:underline cursor-pointer"
         title="Local only — connect Cloud Sync in Settings to sync PC and Android"
       >
         <HardDrive className="w-3.5 h-3.5" />
-        Local only (not synced)
+        Local device
       </button>
     );
   };
@@ -195,55 +195,26 @@ export const Layout: React.FC<LayoutProps> = ({
         Skip to main content
       </a>
 
-      {/* macOS-Style Left Sidebar */}
+      {/* Quiet, Slim Desktop Sidebar */}
       <aside
-        className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 border-r px-3.5 py-5 select-none"
+        className="hidden md:flex md:flex-col md:w-60 md:fixed md:inset-y-0 border-r px-4 py-6 select-none"
         style={{ backgroundColor: 'var(--bg-sidebar)', borderColor: 'var(--border-subtle)' }}
       >
-        <div className="flex items-center justify-between px-2 mb-5">
-          <button
-            type="button"
-            onClick={() => setActiveTab('home')}
-            className="flex items-center gap-2.5 cursor-pointer"
-          >
-            <AppLogo className="w-8 h-8 rounded-[10px] shrink-0" />
-            <div className="text-left">
-              <p className="text-[15px] font-bold tracking-tight leading-none">LifeHub</p>
-              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Personal workspace</p>
-            </div>
-          </button>
-        </div>
-
-        <button type="button" onClick={onQuickAdd} className="btn-primary w-full mb-2.5 !min-h-[40px]">
-          <Plus className="w-4 h-4" />
-          Quick Add
+        <button
+          type="button"
+          onClick={() => setActiveTab('home')}
+          className="flex items-center gap-2.5 px-2 mb-6 cursor-pointer"
+        >
+          <AppLogo className="w-8 h-8 rounded-[10px] shrink-0" />
+          <span className="text-base font-bold tracking-tight">LifeHub</span>
         </button>
 
-        <div className="grid grid-cols-2 gap-1.5 mb-5">
-          <button
-            type="button"
-            onClick={onOpenSearch}
-            className="btn-secondary !min-h-[36px] !text-xs !px-2.5 justify-between"
-            title="Search (Ctrl+K)"
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <Search className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-              Search
-            </span>
-            <kbd className="text-[10px] text-[var(--text-muted)] font-sans">⌘K</kbd>
-          </button>
-          <button
-            type="button"
-            onClick={onOpenAI}
-            className="btn-tinted !min-h-[36px] !text-xs !px-2.5"
-            title="AI Natural Language Input"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Ask AI
-          </button>
-        </div>
+        <button type="button" onClick={onQuickAdd} className="btn-primary w-full mb-5 !min-h-[42px]">
+          <Plus className="w-4 h-4" />
+          New
+        </button>
 
-        <nav className="space-y-0.5 flex-1" aria-label="Primary">
+        <nav className="space-y-1 flex-1" aria-label="Primary">
           {DESKTOP_NAV.map(({ id, label, Icon }) => {
             const active = activeTab === id;
             return (
@@ -252,23 +223,23 @@ export const Layout: React.FC<LayoutProps> = ({
                 type="button"
                 onClick={() => setActiveTab(id)}
                 aria-current={active ? 'page' : undefined}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13.5px] transition-colors cursor-pointer"
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors cursor-pointer"
                 style={{
                   backgroundColor: active ? 'var(--accent-soft)' : 'transparent',
-                  color: active ? 'var(--primary)' : 'var(--text-secondary)',
+                  color: active ? 'var(--text-primary)' : 'var(--text-muted)',
                   fontWeight: active ? 600 : 500,
                 }}
               >
-                <span className="flex items-center gap-2.5">
-                  <Icon className="w-[17px] h-[17px]" />
+                <span className="flex items-center gap-3">
+                  <Icon className="w-[18px] h-[18px]" />
                   {label}
                 </span>
                 {id === 'tasks' && openTasksCount > 0 && (
                   <span
                     className="text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-full"
                     style={{
-                      backgroundColor: active ? 'var(--primary)' : 'var(--bg-subtle)',
-                      color: active ? 'var(--primary-fg)' : 'var(--text-secondary)',
+                      backgroundColor: active ? 'var(--sw-wisteria)' : 'var(--bg-subtle)',
+                      color: active ? '#1D1F2A' : 'var(--text-secondary)',
                     }}
                   >
                     {openTasksCount}
@@ -279,77 +250,80 @@ export const Layout: React.FC<LayoutProps> = ({
           })}
         </nav>
 
-        <div className="pt-3.5 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
-          {account && (
-            <div
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl mb-1"
-              style={{ backgroundColor: 'var(--bg-surface)' }}
-            >
-              <div
-                className="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 uppercase"
-                style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-fg)' }}
-              >
-                {(account.displayName || account.email)[0]}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold truncate leading-tight">{account.displayName}</p>
-                <p className="text-[11px] text-[var(--text-muted)] truncate">{account.email}</p>
-              </div>
-            </div>
-          )}
+        <div className="pt-4 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
+          <button
+            type="button"
+            onClick={onOpenSearch}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-2.5">
+              <Search className="w-4 h-4" />
+              Search
+            </span>
+            <kbd className="text-[10px] opacity-75 font-sans">⌘K</kbd>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab('settings')}
             aria-current={activeTab === 'settings' ? 'page' : undefined}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13.5px] transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer"
             style={{
               backgroundColor: activeTab === 'settings' ? 'var(--accent-soft)' : 'transparent',
-              color: activeTab === 'settings' ? 'var(--primary)' : 'var(--text-secondary)',
+              color: activeTab === 'settings' ? 'var(--text-primary)' : 'var(--text-muted)',
               fontWeight: activeTab === 'settings' ? 600 : 500,
             }}
           >
-            <Settings className="w-[17px] h-[17px]" />
-            Settings &amp; Sync
+            <Settings className="w-4 h-4" />
+            Settings
           </button>
-          <button
-            type="button"
-            onClick={lockNow}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13.5px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors cursor-pointer"
-          >
-            <LogOut className="w-[17px] h-[17px]" />
-            Sign Out / Lock
-          </button>
-          <div className="px-3 pt-1">{renderSyncBadge()}</div>
+
+          {account && (
+            <div className="flex items-center justify-between gap-2 px-3 pt-2">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold truncate">{account.displayName}</p>
+                <div className="mt-0.5">{renderSyncBadge()}</div>
+              </div>
+              <button
+                type="button"
+                onClick={lockNow}
+                className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] cursor-pointer"
+                title="Sign Out / Lock"
+                aria-label="Sign Out / Lock"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
-      {/* Clean Apple Translucent Mobile Top Bar */}
-      <header className="apple-chrome md:hidden sticky top-0 z-30 flex items-center justify-between px-4 min-h-[54px] pt-safe border-b">
+      {/* Ultra-Simple Mobile Top Bar */}
+      <header className="app-chrome md:hidden sticky top-0 z-30 flex items-center justify-between px-4 min-h-[54px] pt-safe border-b">
         <div className="flex items-center gap-2.5">
-          {activeTab === 'home' && <AppLogo className="w-7 h-7 rounded-[8px] shrink-0" />}
+          {activeTab === 'home' && <AppLogo className="w-7 h-7 rounded-[9px] shrink-0" />}
           <span className="font-semibold text-[17px] tracking-tight">{TAB_TITLES[activeTab]}</span>
         </div>
 
         <button
           type="button"
           onClick={onOpenSearch}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-full text-xs font-medium text-[var(--text-secondary)] border cursor-pointer transition-colors"
-          style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--text-secondary)] cursor-pointer transition-colors"
+          style={{ backgroundColor: 'var(--bg-surface)' }}
           aria-label="Search everything"
         >
-          <Search className="w-3.5 h-3.5" aria-hidden="true" />
-          Search
+          <Search className="w-4 h-4" aria-hidden="true" />
         </button>
       </header>
 
       {/* Main Content Area */}
-      <main id="main-content" className="flex-1 md:pl-64 pb-28 md:pb-12">
-        <div key={activeTab} className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8 animate-page">
+      <main id="main-content" className="flex-1 md:pl-60 pb-28 md:pb-12">
+        <div key={activeTab} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-9 animate-page">
           {children}
         </div>
       </main>
 
-      {/* Single Primary Floating Quick-Add Button on Mobile */}
+      {/* Calm Floating Quick-Add Button on Mobile */}
       {activeTab !== 'settings' && (
         <button
           type="button"
@@ -357,10 +331,10 @@ export const Layout: React.FC<LayoutProps> = ({
             haptic('tap');
             onQuickAdd();
           }}
-          className="mobile-bottom-chrome md:hidden fixed right-4 bottom-[74px] z-30 w-13 h-13 rounded-full flex items-center justify-center transition-transform active:scale-92"
+          className="mobile-bottom-chrome md:hidden fixed right-4 bottom-[78px] z-30 w-13 h-13 rounded-2xl flex items-center justify-center transition-transform active:scale-92"
           style={{
-            backgroundColor: 'var(--primary)',
-            color: 'var(--primary-fg)',
+            backgroundColor: 'var(--sw-wisteria)',
+            color: '#1D1F2A',
             boxShadow: 'var(--shadow-popover)',
           }}
           aria-label="Quick Add"
@@ -369,12 +343,12 @@ export const Layout: React.FC<LayoutProps> = ({
         </button>
       )}
 
-      {/* Apple iOS-Style Translucent 5-Tab Mobile Bottom Bar */}
+      {/* Calm Matte 5-Tab Mobile Bottom Bar */}
       <nav
-        className="apple-chrome mobile-bottom-chrome md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe"
+        className="app-chrome mobile-bottom-chrome md:hidden fixed bottom-0 inset-x-0 z-30 border-t pb-safe"
         aria-label="Bottom Navigation"
       >
-        <div className="grid grid-cols-5 px-1 pt-1.5">
+        <div className="grid grid-cols-5 px-1.5 pt-1.5">
           {MOBILE_PRIMARY_TABS.map(({ id, label, Icon }) => {
             const active = activeTab === id && !moreOpen;
             return (
@@ -387,13 +361,18 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   setActiveTab(id);
                 }}
-                className="flex flex-col items-center justify-center gap-1 py-1 min-h-[48px] transition-colors cursor-pointer"
+                className="flex flex-col items-center justify-center gap-1 py-1 min-h-[50px] transition-colors cursor-pointer"
                 style={{
-                  color: active ? 'var(--primary)' : 'var(--text-muted)',
+                  color: active ? 'var(--text-primary)' : 'var(--text-muted)',
                   fontWeight: active ? 600 : 500,
                 }}
               >
-                <Icon className="w-[21px] h-[21px]" />
+                <span
+                  className="px-3.5 py-1 rounded-full transition-colors"
+                  style={{ backgroundColor: active ? 'var(--accent-soft)' : 'transparent' }}
+                >
+                  <Icon className="w-[19px] h-[19px]" />
+                </span>
                 <span className="text-[10.5px] leading-none">{label}</span>
               </button>
             );
@@ -405,13 +384,18 @@ export const Layout: React.FC<LayoutProps> = ({
               haptic('tap');
               setMoreOpen((o) => !o);
             }}
-            className="flex flex-col items-center justify-center gap-1 py-1 min-h-[48px] transition-colors relative cursor-pointer"
+            className="flex flex-col items-center justify-center gap-1 py-1 min-h-[50px] transition-colors relative cursor-pointer"
             style={{
-              color: moreOpen || isMoreTabActive ? 'var(--primary)' : 'var(--text-muted)',
+              color: moreOpen || isMoreTabActive ? 'var(--text-primary)' : 'var(--text-muted)',
               fontWeight: moreOpen || isMoreTabActive ? 600 : 500,
             }}
           >
-            <Menu className="w-[21px] h-[21px]" />
+            <span
+              className="px-3.5 py-1 rounded-full transition-colors"
+              style={{ backgroundColor: moreOpen || isMoreTabActive ? 'var(--accent-soft)' : 'transparent' }}
+            >
+              <Menu className="w-[19px] h-[19px]" />
+            </span>
             <span className="text-[10.5px] leading-none">More</span>
             {(syncStatus.state === 'error' || syncStatus.error) && (
               <span
@@ -423,16 +407,16 @@ export const Layout: React.FC<LayoutProps> = ({
         </div>
       </nav>
 
-      {/* Clean iOS-Style "More" Bottom Sheet Menu */}
+      {/* Clean Mobile "More" Bottom Sheet */}
       {moreOpen && (
         <div
-          className="md:hidden fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-[3px]"
+          className="md:hidden fixed inset-0 z-50 flex items-end bg-black/50 backdrop-blur-[3px]"
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="w-full rounded-t-[24px] border-t p-5 pb-safe space-y-4 animate-sheet max-h-[85dvh] overflow-y-auto"
+            className="w-full rounded-t-[26px] border-t p-5 pb-safe space-y-4 animate-sheet max-h-[85dvh] overflow-y-auto"
             style={{
-              backgroundColor: 'var(--bg-surface-elevated)',
+              backgroundColor: 'var(--bg-surface)',
               borderColor: 'var(--border-subtle)',
               boxShadow: 'var(--shadow-modal)',
             }}
@@ -443,12 +427,11 @@ export const Layout: React.FC<LayoutProps> = ({
           >
             <div className="w-9 h-1 rounded-full bg-[var(--border-strong)] mx-auto" />
 
-            {/* Account & Sync Strip */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div
                   className="w-10 h-10 rounded-full text-sm font-bold flex items-center justify-center shrink-0 uppercase"
-                  style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-fg)' }}
+                  style={{ backgroundColor: 'var(--sw-wisteria)', color: '#1D1F2A' }}
                 >
                   {(account?.displayName || account?.email || 'O')[0]}
                 </div>
@@ -461,25 +444,22 @@ export const Layout: React.FC<LayoutProps> = ({
                 type="button"
                 onClick={() => setMoreOpen(false)}
                 className="p-2 rounded-full text-[var(--text-muted)]"
-                style={{ backgroundColor: 'var(--bg-surface)' }}
+                style={{ backgroundColor: 'var(--bg-subtle)' }}
                 aria-label="Close menu"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Grouped Extra Sections */}
-            <div
-              className="rounded-2xl border divide-y overflow-hidden"
-              style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
-            >
+            <div className="space-y-1.5">
               <button
                 type="button"
                 onClick={() => navigateFromMore('email')}
-                className="w-full flex items-center justify-between px-4 py-3.5 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl"
+                style={{ backgroundColor: 'var(--bg-subtle)' }}
               >
                 <span className="flex items-center gap-3 text-sm font-medium">
-                  <Mail className="w-5 h-5" style={{ color: 'var(--primary)' }} />
+                  <Mail className="w-4 h-4 text-state-info" />
                   Email (Gmail)
                 </span>
                 <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
@@ -488,18 +468,17 @@ export const Layout: React.FC<LayoutProps> = ({
               <button
                 type="button"
                 onClick={() => navigateFromMore('socials')}
-                className="w-full flex items-center justify-between px-4 py-3.5 transition-colors"
-                style={{ borderColor: 'var(--border-subtle)' }}
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl"
+                style={{ backgroundColor: 'var(--bg-subtle)' }}
               >
                 <span className="flex items-center gap-3 text-sm font-medium">
-                  <Share2 className="w-5 h-5" style={{ color: 'var(--primary)' }} />
-                  Socials &amp; Project Links
+                  <Share2 className="w-4 h-4 text-state-info" />
+                  Socials &amp; Links
                 </span>
                 <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
               </button>
             </div>
 
-            {/* Smart Tools */}
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
@@ -507,7 +486,7 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   onOpenAI();
                 }}
-                className="btn-tinted !justify-start !px-3.5"
+                className="btn-tinted !justify-start !px-4"
               >
                 <Sparkles className="w-4 h-4" />
                 Ask AI
@@ -518,25 +497,21 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   onOpenReceipt();
                 }}
-                className="btn-secondary !justify-start !px-3.5"
+                className="btn-secondary !justify-start !px-4"
               >
-                <Camera className="w-4 h-4" style={{ color: 'var(--primary)' }} />
+                <Camera className="w-4 h-4" />
                 Scan Receipt
               </button>
             </div>
 
-            {/* Settings & Sign Out */}
-            <div
-              className="rounded-2xl border divide-y overflow-hidden"
-              style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
-            >
+            <div className="pt-2 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
               <button
                 type="button"
                 onClick={() => navigateFromMore('settings')}
-                className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-medium"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-medium"
               >
                 <span className="flex items-center gap-3">
-                  <Settings className="w-5 h-5 text-[var(--text-secondary)]" />
+                  <Settings className="w-4 h-4 text-[var(--text-muted)]" />
                   Settings &amp; Sync
                 </span>
                 <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
@@ -548,11 +523,10 @@ export const Layout: React.FC<LayoutProps> = ({
                   setMoreOpen(false);
                   lockNow();
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-state-danger"
-                style={{ borderColor: 'var(--border-subtle)' }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-state-danger"
               >
-                <LogOut className="w-5 h-5" />
-                Sign Out / Lock App
+                <LogOut className="w-4 h-4" />
+                Sign Out / Lock
               </button>
             </div>
           </div>

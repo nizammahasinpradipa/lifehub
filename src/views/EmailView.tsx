@@ -483,7 +483,7 @@ export const EmailView: React.FC = () => {
       {(accessToken || messages.length > 0) && (
         <>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
-            <div className="flex items-center gap-1 apple-segmented overflow-x-auto no-scrollbar max-w-full">
+            <div className="flex items-center gap-1 segmented-track overflow-x-auto no-scrollbar max-w-full">
               {(
                 [
                   { id: 'INBOX', label: 'Inbox' },
@@ -497,7 +497,7 @@ export const EmailView: React.FC = () => {
                   key={f.id}
                   type="button"
                   onClick={() => setFolder(f.id)}
-                  className={`apple-segmented-btn shrink-0 !px-3.5 !py-1.5 ${
+                  className={`segmented-btn shrink-0 !px-3.5 !py-1.5 ${
                     folder === f.id ? 'active' : ''
                   }`}
                 >

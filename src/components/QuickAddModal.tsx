@@ -176,7 +176,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
       >
         <div className="md:hidden w-9 h-1 rounded-full bg-[var(--border-strong)] mx-auto mt-3" />
         <div className="flex items-center justify-between px-5 pt-3.5 md:pt-4 pb-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-          <div className="flex items-center gap-1 apple-segmented">
+          <div className="flex items-center gap-1 segmented-track">
             {(
               [
                 { id: 'task', label: 'Task', Icon: CheckSquare },
@@ -188,7 +188,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                 key={id}
                 type="button"
                 onClick={() => setTab(id)}
-                className={`apple-segmented-btn inline-flex items-center gap-1.5 !px-3 !py-1.5 ${
+                className={`segmented-btn inline-flex items-center gap-1.5 !px-3 !py-1.5 ${
                   tab === id ? 'active' : ''
                 }`}
               >
@@ -249,9 +249,9 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                     onChange={(v) => setTaskPriority(v as Priority)}
                     className="!py-2 !text-sm"
                     options={[
-                      { value: 'low', label: 'Low', dotColor: '#2563EB' },
-                      { value: 'medium', label: 'Medium', dotColor: '#D97706' },
-                      { value: 'high', label: 'High', dotColor: '#DC2626' },
+                      { value: 'low', label: 'Low', dotColor: '#A5B2EB' },
+                      { value: 'medium', label: 'Medium', dotColor: '#DA935D' },
+                      { value: 'high', label: 'High', dotColor: '#E08A92' },
                     ]}
                   />
                 </div>
@@ -331,7 +331,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
           {tab === 'expense' && (
             <form onSubmit={handleSaveTx} className="space-y-3.5">
               <div className="flex items-center justify-between gap-2">
-                <div className="grid grid-cols-3 gap-1 apple-segmented flex-1">
+                <div className="grid grid-cols-3 gap-1 segmented-track flex-1">
                   {(['expense', 'income', 'transfer'] as TransactionType[]).map((t) => (
                     <button
                       key={t}
@@ -343,7 +343,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                           if (firstCat) setTxCategoryId(firstCat.id);
                         }
                       }}
-                      className={`apple-segmented-btn capitalize text-center !px-2 ${
+                      className={`segmented-btn capitalize text-center !px-2 ${
                         txType === t ? 'active' : ''
                       }`}
                     >

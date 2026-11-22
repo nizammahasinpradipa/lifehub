@@ -2,134 +2,142 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Map utility scales cleanly into the Apple Warm Ember palette (zero cold grays or leftover greens) */
+/* Map utility scales into the calm Black Rock · Wisteria · Succulent Lime · Persian Orange palette */
 @theme {
-  /* Remap brand utilities to the exact Primary/Accent ember scale */
-  --color-teal-300: #ffa585;
-  --color-teal-400: #f87b50;
-  --color-teal-500: #ff7a00;
-  --color-teal-600: #e04e0c;
-  --color-teal-700: #c2410a;
+  --color-teal-300: #c5cdf4;
+  --color-teal-400: #a5b2eb;
+  --color-teal-500: #676386;
+  --color-teal-600: #494c65;
+  --color-teal-700: #2b2d3b;
 
-  /* Warm stone-espresso neutrals aligned with #FFFFFF/#FFF1E6 (light) and #1F120E/#301F1A (dark) */
-  --color-zinc-50: #fff8f3;
-  --color-zinc-100: #fff1e6;
-  --color-zinc-200: #f3dfd0;
-  --color-zinc-300: #dec4b2;
-  --color-zinc-400: #9d877c;
-  --color-zinc-500: #76655c;
-  --color-zinc-600: #554740;
-  --color-zinc-700: #46322b;
-  --color-zinc-800: #392620;
-  --color-zinc-900: #2b1b16;
-  --color-zinc-950: #1f120e;
+  /* Cool slate-wisteria neutrals (zero harsh pure white or pitch black) */
+  --color-zinc-50: #f6f7fb;
+  --color-zinc-100: #ebedf6;
+  --color-zinc-200: #dcdfec;
+  --color-zinc-300: #c3c7dc;
+  --color-zinc-400: #8f93af;
+  --color-zinc-500: #676386;
+  --color-zinc-600: #494c65;
+  --color-zinc-700: #3a3d52;
+  --color-zinc-800: #313446;
+  --color-zinc-900: #2b2d3b;
+  --color-zinc-950: #1d1f2a;
 
-  /* Exact semantic state tokens */
-  --color-emerald-400: #4ade80;
-  --color-emerald-600: #16a34a;
-  --color-amber-300: #fbbf24;
-  --color-amber-400: #fbbf24;
-  --color-amber-500: #d97706;
-  --color-amber-600: #d97706;
-  --color-amber-700: #b45309;
-  --color-rose-400: #f87171;
-  --color-rose-500: #dc2626;
-  --color-rose-600: #dc2626;
-  --color-rose-700: #b91c1c;
-  --color-sky-400: #60a5fa;
-  --color-sky-600: #2563eb;
+  /* Muted state utilities harmonized with Succulent Lime, Persian Orange & Wisteria */
+  --color-emerald-400: #ddde68;
+  --color-emerald-600: #4f6b28;
+  --color-amber-300: #da935d;
+  --color-amber-400: #da935d;
+  --color-amber-500: #a65a26;
+  --color-amber-600: #a65a26;
+  --color-amber-700: #8a471b;
+  --color-rose-400: #e08a92;
+  --color-rose-500: #c9646f;
+  --color-rose-600: #b34855;
+  --color-rose-700: #993945;
+  --color-sky-400: #a5b2eb;
+  --color-sky-600: #4d5899;
 }
 
 /* ==========================================================================
-   LifeHub — Apple-Clean Warm Ember Design System
-   Light: bg #FFFFFF · surface #FFF1E6 · primary #E04E0C · accent #FF7A00 · text #1F1F1F
-   Dark:  bg #1F120E · surface #301F1A · primary #F87B50 · accent #F38339 · text #FFE4D7
+   LifeHub — Calm Bento UI System
+   Palette:
+     Black Rock #2B2D3B · Blue Suede Shoes #494C65 · Daemonette Hide #676386
+     Wondrous Wisteria #A5B2EB · Succulent Lime #DDDE68 · Persian Orange #DA935D
    ========================================================================== */
 
 :root {
-  --bg-canvas: #ffffff;
-  --bg-sidebar: #fff8f3;
-  --bg-surface: #fff1e6;
-  --bg-surface-solid: #ffffff;
-  --bg-surface-elevated: #ffffff;
-  --bg-glass: rgba(255, 255, 255, 0.82);
-  --bg-subtle: #ffe6d4;
-  --bg-input: #ffffff;
+  /* Core reference swatches */
+  --sw-rock: #2b2d3b;
+  --sw-suede: #494c65;
+  --sw-hide: #676386;
+  --sw-wisteria: #a5b2eb;
+  --sw-lime: #ddde68;
+  --sw-orange: #da935d;
 
-  --border-subtle: rgba(31, 31, 31, 0.08);
-  --border-strong: rgba(31, 31, 31, 0.16);
+  /* Light Mode — Same calm theme, soft matte mist (zero glaring white) */
+  --bg-canvas: #eff0f7;
+  --bg-sidebar: #e6e8f3;
+  --bg-surface: #f9fafd;
+  --bg-surface-solid: #f9fafd;
+  --bg-surface-elevated: #fafbfd;
+  --bg-glass: rgba(239, 240, 247, 0.88);
+  --bg-subtle: #e6e8f4;
+  --bg-input: #f1f2f8;
 
-  --text-primary: #1f1f1f;
-  --text-hero: #1f1f1f;
-  --text-secondary: #554740;
-  --text-muted: #76655c;
+  --border-subtle: rgba(43, 45, 59, 0.08);
+  --border-strong: rgba(43, 45, 59, 0.16);
 
-  --primary: #e04e0c;
-  --primary-hover: #c94409;
-  --primary-fg: #ffffff;
-  --accent: #ff7a00;
-  --accent-soft: rgba(224, 78, 12, 0.1);
-  --accent-soft-hover: rgba(224, 78, 12, 0.16);
+  --text-primary: #2b2d3b;
+  --text-hero: #2b2d3b;
+  --text-secondary: #494c65;
+  --text-muted: #676386;
 
-  /* Light Mode State Palette */
-  --state-success: #16a34a;
-  --state-success-bg: rgba(22, 163, 74, 0.1);
-  --state-warning: #d97706;
-  --state-warning-bg: rgba(217, 119, 6, 0.12);
-  --state-danger: #dc2626;
-  --state-danger-bg: rgba(220, 38, 38, 0.1);
-  --state-info: #2563eb;
-  --state-info-bg: rgba(37, 99, 235, 0.1);
+  --primary: #494c65;
+  --primary-hover: #3c3f55;
+  --primary-fg: #f9fafd;
+  --accent: #676386;
+  --accent-soft: rgba(165, 178, 235, 0.3);
+  --accent-soft-hover: rgba(165, 178, 235, 0.44);
 
-  /* Motion tokens (Apple crisp spring-out) */
-  --ease-apple: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Calm semantic states */
+  --state-success: #4f6b28;
+  --state-success-bg: rgba(221, 222, 104, 0.38);
+  --state-warning: #a65a26;
+  --state-warning-bg: rgba(218, 147, 93, 0.24);
+  --state-danger: #b34855;
+  --state-danger-bg: rgba(179, 72, 85, 0.12);
+  --state-info: #4d5899;
+  --state-info-bg: rgba(165, 178, 235, 0.28);
+
+  --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 140ms;
   --dur-base: 200ms;
-  --dur-sheet: 260ms;
+  --dur-sheet: 250ms;
 
-  --shadow-sm: 0 1px 2px rgba(31, 18, 14, 0.05);
-  --shadow-popover: 0 12px 32px -8px rgba(31, 18, 14, 0.14), 0 2px 6px rgba(31, 18, 14, 0.05);
-  --shadow-modal: 0 24px 60px -12px rgba(31, 18, 14, 0.24), 0 4px 14px rgba(31, 18, 14, 0.08);
+  --shadow-sm: 0 1px 2px rgba(43, 45, 59, 0.06);
+  --shadow-popover: 0 14px 34px -8px rgba(43, 45, 59, 0.16);
+  --shadow-modal: 0 24px 60px -12px rgba(43, 45, 59, 0.22);
 }
 
 .dark {
-  --bg-canvas: #1f120e;
-  --bg-sidebar: #261712;
-  --bg-surface: #301f1a;
-  --bg-surface-solid: #301f1a;
-  --bg-surface-elevated: #3c2822;
-  --bg-glass: rgba(31, 18, 14, 0.8);
-  --bg-subtle: #3d2923;
-  --bg-input: #271813;
+  /* Dark Mode — Soft matte Black Rock & Blue Suede (matches reference) */
+  --bg-canvas: #1d1f2a;
+  --bg-sidebar: #232533;
+  --bg-surface: #2b2d3b;
+  --bg-surface-solid: #2b2d3b;
+  --bg-surface-elevated: #343749;
+  --bg-glass: rgba(29, 31, 42, 0.88);
+  --bg-subtle: #373a4e;
+  --bg-input: #232533;
 
-  --border-subtle: rgba(255, 228, 215, 0.1);
-  --border-strong: rgba(255, 228, 215, 0.2);
+  --border-subtle: rgba(165, 178, 235, 0.09);
+  --border-strong: rgba(165, 178, 235, 0.18);
 
-  --text-primary: #ffe4d7;
-  --text-hero: #ffe4d7;
-  --text-secondary: #d7b6a7;
-  --text-muted: #af8d7f;
+  --text-primary: #eef0f8;
+  --text-hero: #eef0f8;
+  --text-secondary: #b4b8cf;
+  --text-muted: #9094b0;
 
-  --primary: #f87b50;
-  --primary-hover: #ff8e66;
-  --primary-fg: #1f120e;
-  --accent: #f38339;
-  --accent-soft: rgba(248, 123, 80, 0.16);
-  --accent-soft-hover: rgba(248, 123, 80, 0.24);
+  --primary: #a5b2eb;
+  --primary-hover: #b8c3f2;
+  --primary-fg: #1d1f2a;
+  --accent: #ddde68;
+  --accent-soft: rgba(165, 178, 235, 0.14);
+  --accent-soft-hover: rgba(165, 178, 235, 0.22);
 
-  /* Dark Mode State Palette */
-  --state-success: #4ade80;
-  --state-success-bg: rgba(74, 222, 128, 0.14);
-  --state-warning: #fbbf24;
-  --state-warning-bg: rgba(251, 191, 36, 0.14);
-  --state-danger: #f87171;
-  --state-danger-bg: rgba(248, 113, 113, 0.14);
-  --state-info: #60a5fa;
-  --state-info-bg: rgba(96, 165, 250, 0.14);
+  --state-success: #ddde68;
+  --state-success-bg: rgba(221, 222, 104, 0.14);
+  --state-warning: #da935d;
+  --state-warning-bg: rgba(218, 147, 93, 0.16);
+  --state-danger: #e08a92;
+  --state-danger-bg: rgba(224, 138, 146, 0.15);
+  --state-info: #a5b2eb;
+  --state-info-bg: rgba(165, 178, 235, 0.15);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
-  --shadow-popover: 0 16px 36px -8px rgba(0, 0, 0, 0.52);
-  --shadow-modal: 0 28px 64px -12px rgba(0, 0, 0, 0.68);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.22);
+  --shadow-popover: 0 16px 38px -8px rgba(10, 11, 18, 0.56);
+  --shadow-modal: 0 28px 64px -12px rgba(10, 11, 18, 0.72);
 }
 
 * {
@@ -153,14 +161,12 @@ body,
   overscroll-behavior-y: none;
   background-color: var(--bg-canvas);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Plus Jakarta Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Browser surfaces themed from palette (Impeccable Craft Floor) */
 ::selection {
   background-color: var(--accent-soft-hover);
   color: var(--text-primary);
@@ -182,9 +188,8 @@ h3 {
   text-wrap: balance;
 }
 
-/* Visible, accessible keyboard focus indicator (WCAG 2.2 AA) */
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--sw-wisteria);
   outline-offset: 2px;
 }
 
@@ -207,7 +212,7 @@ pre,
   user-select: text;
 }
 
-/* Prevent mobile auto-zoom on input focus (must be >= 16px) */
+/* Prevent mobile auto-zoom on input focus */
 @media (max-width: 767px) {
   .input-field,
   input[type="text"],
@@ -232,14 +237,14 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 /* ==========================================================================
-   Apple Surface & Elevation Primitives (Declared once: hairline border, zero ghost-card mud)
+   Calm Tonal Surfaces & Reference Bento Tiles
    ========================================================================== */
 
 .card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-apple);
+  border-radius: 20px;
+  transition: border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-calm);
 }
 
 @media (hover: hover) {
@@ -250,21 +255,54 @@ body.keyboard-open .mobile-bottom-chrome {
   }
 }
 
-.card-hero {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 20px;
+/* Signature Soft Matte Bento Tiles (inspired directly by reference mockup) */
+.bento-tile {
+  border-radius: 22px;
+  padding: 1.125rem;
+  text-align: left;
+  transition: transform var(--dur-fast) var(--ease-calm), filter var(--dur-fast) ease;
+  cursor: pointer;
 }
 
-/* Authentic Apple translucent bar (used strictly for top/bottom navigation chrome) */
-.apple-chrome {
+@media (hover: hover) {
+  .bento-tile:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.02);
+  }
+}
+
+.bento-tile:active {
+  transform: scale(0.985);
+}
+
+.bento-wisteria {
+  background-color: var(--sw-wisteria);
+  color: #202230;
+}
+
+.bento-lime {
+  background-color: var(--sw-lime);
+  color: #202230;
+}
+
+.bento-orange {
+  background-color: var(--sw-orange);
+  color: #202230;
+}
+
+.bento-suede {
+  background-color: var(--sw-suede);
+  color: #eef0f8;
+}
+
+/* Matte translucent navigation chrome */
+.app-chrome {
   background-color: var(--bg-glass);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(160%) blur(18px);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
   border-color: var(--border-subtle);
 }
 
-/* Crisp Apple Numeric Display */
 .hero-amount {
   color: var(--text-hero);
   font-weight: 700;
@@ -273,51 +311,55 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 /* ==========================================================================
-   Apple Segmented Control
+   Simple Pill Segmented Control (matching Friends / Global toggle in reference)
    ========================================================================== */
 
-.apple-segmented {
+.segmented-track {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  padding: 3px;
+  border-radius: 9999px;
+  padding: 4px;
 }
 
-.apple-segmented-btn {
-  border-radius: 9px;
+.segmented-btn {
+  border-radius: 9999px;
   font-size: 0.8125rem;
   font-weight: 500;
-  padding: 0.4375rem 0.875rem;
-  min-height: 34px;
-  transition: background-color var(--dur-fast) var(--ease-apple), color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  padding: 0.4375rem 0.9rem;
+  min-height: 36px;
+  transition: background-color var(--dur-fast) var(--ease-calm), color var(--dur-fast) ease;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
-.apple-segmented-btn:hover:not(.active) {
+.segmented-btn:hover:not(.active) {
   color: var(--text-primary);
 }
 
-.apple-segmented-btn.active {
-  background-color: var(--bg-surface-elevated);
-  color: var(--text-primary);
+.segmented-btn.active {
+  background-color: var(--sw-suede);
+  color: #eef0f8;
   font-weight: 600;
-  box-shadow: var(--shadow-sm);
+}
+
+.dark .segmented-btn.active {
+  background-color: var(--sw-wisteria);
+  color: #1d1f2a;
 }
 
 /* ==========================================================================
-   Apple Inputs & Form Controls
+   Calm Inputs & Unified Controls
    ========================================================================== */
 
 .input-field {
   width: 100%;
   background-color: var(--bg-input);
-  border: 1px solid var(--border-strong);
-  border-radius: 12px;
-  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 0.65rem 0.9rem;
   font-size: 0.9375rem;
   color: var(--text-primary);
-  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease, background-color var(--dur-fast) ease;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   outline: none;
 }
 
@@ -326,30 +368,26 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 .input-field:focus {
-  border-color: var(--primary);
+  border-color: var(--sw-wisteria);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* ==========================================================================
-   Apple Buttons (Consistent 12px rounded-xl vocabulary across every screen)
-   ========================================================================== */
-
+/* Buttons */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
   min-height: 44px;
-  padding: 0.55rem 1.15rem;
-  border-radius: 12px;
+  padding: 0.55rem 1.2rem;
+  border-radius: 14px;
   background-color: var(--primary);
   color: var(--primary-fg);
   font-weight: 600;
   font-size: 0.875rem;
-  letter-spacing: -0.01em;
   border: none;
   cursor: pointer;
-  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-apple), opacity var(--dur-fast) ease;
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-calm), opacity var(--dur-fast) ease;
 }
 
 @media (hover: hover) {
@@ -367,7 +405,6 @@ body.keyboard-open .mobile-bottom-chrome {
   cursor: not-allowed;
 }
 
-/* iOS Tinted Button (signature Apple secondary CTA) */
 .btn-tinted {
   display: inline-flex;
   align-items: center;
@@ -375,15 +412,14 @@ body.keyboard-open .mobile-bottom-chrome {
   gap: 0.45rem;
   min-height: 44px;
   padding: 0.55rem 1.1rem;
-  border-radius: 12px;
+  border-radius: 14px;
   background-color: var(--accent-soft);
-  color: var(--primary);
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 0.875rem;
-  letter-spacing: -0.01em;
   border: none;
   cursor: pointer;
-  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-apple);
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-calm);
 }
 
 @media (hover: hover) {
@@ -402,20 +438,19 @@ body.keyboard-open .mobile-bottom-chrome {
   justify-content: center;
   gap: 0.45rem;
   min-height: 44px;
-  padding: 0.5rem 0.95rem;
-  border-radius: 12px;
-  background-color: var(--bg-surface-elevated);
+  padding: 0.5rem 1rem;
+  border-radius: 14px;
+  background-color: var(--bg-subtle);
   color: var(--text-primary);
   font-weight: 500;
   font-size: 0.8125rem;
   border: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-apple);
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-calm);
 }
 
 @media (hover: hover) {
   .btn-secondary:hover:not(:disabled) {
-    background-color: var(--bg-subtle);
     border-color: var(--border-strong);
   }
 }
@@ -435,8 +470,8 @@ body.keyboard-open .mobile-bottom-chrome {
   justify-content: center;
   gap: 0.375rem;
   min-height: 36px;
-  padding: 0.375rem 0.65rem;
-  border-radius: 10px;
+  padding: 0.375rem 0.7rem;
+  border-radius: 12px;
   background: transparent;
   color: var(--text-secondary);
   font-size: 0.8125rem;
@@ -451,10 +486,7 @@ body.keyboard-open .mobile-bottom-chrome {
   color: var(--text-primary);
 }
 
-/* ==========================================================================
-   Semantic State Helpers (Exact Light/Dark Palette)
-   ========================================================================== */
-
+/* Semantic State Helpers */
 .text-state-success {
   color: var(--state-success);
 }
@@ -485,7 +517,7 @@ body.keyboard-open .mobile-bottom-chrome {
   color: var(--state-info);
 }
 
-/* Safe area padding for iOS/Android bottom tabs & top notches */
+/* Safe areas & utilities */
 .pb-safe {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
@@ -503,13 +535,11 @@ body.keyboard-open .mobile-bottom-chrome {
   scrollbar-width: none;
 }
 
-/* Comfortable prose measure for notes & email reader */
 .prose-measure {
   max-width: 68ch;
   overflow-wrap: anywhere;
 }
 
-/* Subtle native-style scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -558,18 +588,17 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 .animate-modal {
-  animation: modalIn var(--dur-base) var(--ease-apple);
+  animation: modalIn var(--dur-base) var(--ease-calm);
 }
 
 .animate-sheet {
-  animation: sheetUp var(--dur-sheet) var(--ease-apple);
+  animation: sheetUp var(--dur-sheet) var(--ease-calm);
 }
 
 .animate-page {
-  animation: pageFade var(--dur-fast) var(--ease-apple);
+  animation: pageFade var(--dur-fast) var(--ease-calm);
 }
 
-/* Respect prefers-reduced-motion across all animations & transitions */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

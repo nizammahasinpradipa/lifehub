@@ -29,7 +29,7 @@ import { NativeSelect } from '../components/NativeSelect';
 
 type TaskFilter = 'today' | 'upcoming' | 'overdue' | 'all' | 'completed';
 
-const PROJECT_COLORS = ['#E04E0C', '#2563EB', '#16A34A', '#D97706', '#DC2626', '#8C6B5D'];
+const PROJECT_COLORS = ['#A5B2EB', '#DDDE68', '#DA935D', '#676386', '#E08A92', '#494C65'];
 
 export const TasksView: React.FC = () => {
   const {
@@ -191,12 +191,7 @@ export const TasksView: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-5">
       <div className="hidden md:flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Capture in one step, organize by project, and focus on today.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
         <button
           type="button"
           onClick={() => setShowAddProject((s) => !s)}
@@ -648,9 +643,9 @@ export const TasksView: React.FC = () => {
                     onChange={(v) => updateTask(editingTask.id, { priority: v as Priority })}
                     className="!py-2 !text-sm"
                     options={[
-                      { value: 'low', label: 'Low', dotColor: '#2563EB' },
-                      { value: 'medium', label: 'Medium', dotColor: '#D97706' },
-                      { value: 'high', label: 'High', dotColor: '#DC2626' },
+                      { value: 'low', label: 'Low', dotColor: '#A5B2EB' },
+                      { value: 'medium', label: 'Medium', dotColor: '#DA935D' },
+                      { value: 'high', label: 'High', dotColor: '#E08A92' },
                     ]}
                   />
                 </div>

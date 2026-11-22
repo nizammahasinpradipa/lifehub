@@ -48,7 +48,7 @@ interface SpendingViewProps {
 
 type SpendingTab = 'transactions' | 'budgets' | 'reports' | 'manage';
 
-const CAT_COLORS = ['#E04E0C', '#FF7A00', '#D97706', '#16A34A', '#2563EB', '#DC2626', '#8C6B5D'];
+const CAT_COLORS = ['#DA935D', '#A5B2EB', '#DDDE68', '#676386', '#E08A92', '#494C65'];
 
 export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, onOpenReceipt }) => {
   const {
@@ -275,9 +275,6 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
       <div className="flex items-center justify-between gap-2">
         <div className="hidden md:block">
           <h1 className="text-2xl font-bold tracking-tight">Spending</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Track Indonesian rupiah (IDR) across wallets, budgets, and reports.
-          </p>
         </div>
 
         {/* Mobile Month Switcher on the left, clean actions on the right */}
@@ -353,7 +350,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
 
       {/* Clean Single-Row Sub-Tabs + Desktop Month Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="grid grid-cols-4 sm:flex items-center gap-1 apple-segmented w-full sm:w-auto">
+        <div className="grid grid-cols-4 sm:flex items-center gap-1 segmented-track w-full sm:w-auto">
           {(
             [
               { id: 'transactions', label: 'Log' },
@@ -366,7 +363,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
               key={t.id}
               type="button"
               onClick={() => setSubTab(t.id)}
-              className={`apple-segmented-btn text-center !px-2 sm:!px-4 ${
+              className={`segmented-btn text-center !px-2 sm:!px-4 ${
                 subTab === t.id ? 'active' : ''
               }`}
             >
@@ -399,22 +396,22 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
       {/* SUB-TAB 1: TRANSACTIONS */}
       {subTab === 'transactions' && (
         <div className="space-y-3.5">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            <div className="card p-4">
-              <p className="text-[11px] font-medium text-[var(--text-muted)]">Spent</p>
-              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5 text-state-danger">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="bento-orange rounded-[20px] p-4">
+              <p className="text-[11px] font-semibold opacity-75">Spent</p>
+              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5">
                 {formatIDR(monthTotals.expense)}
               </p>
             </div>
-            <div className="card p-4">
-              <p className="text-[11px] font-medium text-[var(--text-muted)]">Income</p>
-              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5 text-state-success">
+            <div className="bento-lime rounded-[20px] p-4">
+              <p className="text-[11px] font-semibold opacity-75">Income</p>
+              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5">
                 {formatIDR(monthTotals.income)}
               </p>
             </div>
-            <div className="hidden sm:block card p-4">
-              <p className="text-[11px] font-medium text-[var(--text-muted)]">Net</p>
-              <p className="text-base sm:text-lg hero-amount mt-0.5">
+            <div className="hidden sm:block bento-wisteria rounded-[20px] p-4">
+              <p className="text-[11px] font-semibold opacity-75">Net</p>
+              <p className="text-base sm:text-lg font-bold tabular-nums mt-0.5">
                 {formatIDR(monthTotals.net, { signed: true })}
               </p>
             </div>
@@ -430,9 +427,9 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                 className="!py-2 !text-xs"
                 options={[
                   { value: 'all', label: 'All types' },
-                  { value: 'expense', label: 'Expenses', dotColor: '#DC2626' },
-                  { value: 'income', label: 'Income', dotColor: '#16A34A' },
-                  { value: 'transfer', label: 'Transfers', dotColor: '#D97706' },
+                  { value: 'expense', label: 'Expenses', dotColor: '#DA935D' },
+                  { value: 'income', label: 'Income', dotColor: '#DDDE68' },
+                  { value: 'transfer', label: 'Transfers', dotColor: '#A5B2EB' },
                 ]}
               />
             </div>
@@ -754,8 +751,8 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                     }}
                     itemStyle={{ color: 'var(--text-primary)' }}
                   />
-                  <Bar dataKey="Expense" fill="var(--primary)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="Income" fill="var(--state-success)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Expense" fill="#DA935D" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Income" fill="#DDDE68" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -922,8 +919,8 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                   onChange={(v) => setNewCatKind(v as CategoryKind)}
                   className="!py-2 !text-sm"
                   options={[
-                    { value: 'expense', label: 'Expense', dotColor: '#DC2626' },
-                    { value: 'income', label: 'Income', dotColor: '#16A34A' },
+                    { value: 'expense', label: 'Expense', dotColor: '#DA935D' },
+                    { value: 'income', label: 'Income', dotColor: '#DDDE68' },
                   ]}
                 />
               </div>

@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="lifehubEmber" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FF7A00" />
-      <stop offset="100%" stop-color="#E04E0C" />
+    <linearGradient id="lifehubRock" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#494C65" />
+      <stop offset="100%" stop-color="#2B2D3B" />
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="16" fill="url(#lifehubEmber)" />
-  <path d="M20.5 16.5H30V40H44.5V48H20.5V16.5Z" fill="#FFFFFF" />
-  <circle cx="42" cy="22" r="5" fill="#FFF1E6" />
+  <rect width="64" height="64" rx="16" fill="url(#lifehubRock)" />
+  <path d="M20.5 16.5H30V40H44.5V48H20.5V16.5Z" fill="#A5B2EB" />
+  <circle cx="42" cy="22" r="5" fill="#DDDE68" />
 </svg>

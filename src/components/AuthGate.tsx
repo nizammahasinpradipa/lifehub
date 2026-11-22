@@ -264,7 +264,7 @@ export const AuthGate: React.FC = () => {
         {/* Main Account Card */}
         <div className="card p-6 space-y-4">
           {mode !== 'recover' && (
-            <div className="grid grid-cols-2 gap-1 apple-segmented" style={{ backgroundColor: 'var(--bg-subtle)' }}>
+            <div className="grid grid-cols-2 gap-1 segmented-track" style={{ backgroundColor: 'var(--bg-subtle)' }}>
               <button
                 type="button"
                 onClick={() => {
@@ -272,7 +272,7 @@ export const AuthGate: React.FC = () => {
                   setError(null);
                   setInfoMsg(null);
                 }}
-                className={`apple-segmented-btn ${mode === 'signin' ? 'active' : ''}`}
+                className={`segmented-btn ${mode === 'signin' ? 'active' : ''}`}
               >
                 Sign In
               </button>
@@ -283,7 +283,7 @@ export const AuthGate: React.FC = () => {
                   setError(null);
                   setInfoMsg(null);
                 }}
-                className={`apple-segmented-btn ${mode === 'signup' ? 'active' : ''}`}
+                className={`segmented-btn ${mode === 'signup' ? 'active' : ''}`}
               >
                 Create Account
               </button>
