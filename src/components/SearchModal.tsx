@@ -127,10 +127,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 backdrop-blur-[2px] pt-10 md:pt-20 px-4">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 backdrop-blur-[2px] pt-10 md:pt-20 px-4"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-xl rounded-2xl border shadow-2xl overflow-hidden animate-modal"
-        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+        className="w-full max-w-xl rounded-3xl border shadow-2xl overflow-hidden animate-modal"
+        style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Global Search"
       >
         <div className="flex items-center gap-3 px-4 py-3.5 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <Search className="w-5 h-5 text-zinc-400 shrink-0" />

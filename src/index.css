@@ -2,95 +2,121 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Map utility scales cleanly into the Modern-Retro Botanical palette (zero cold blue-grays) */
 @theme {
   --color-teal-300: #d5e4a8;
   --color-teal-400: #b8cf7a;
   --color-teal-500: #709446;
   --color-teal-600: #3d6329;
   --color-teal-700: #233e1e;
+
+  /* Warm olive-tinted neutrals replacing default cold zinc grays (WCAG AA compliant) */
+  --color-zinc-50: #f7f6eb;
+  --color-zinc-100: #efeddc;
+  --color-zinc-200: #e2dfc9;
+  --color-zinc-300: #cbc8b0;
+  --color-zinc-400: #6e725e;
+  --color-zinc-500: #595e4b;
+  --color-zinc-600: #434837;
+  --color-zinc-700: #2f3a2a;
+  --color-zinc-800: #213022;
+  --color-zinc-900: #172318;
+  --color-zinc-950: #0f1911;
 }
 
 /* ==========================================================================
    Modern-Retro Botanical Wallet Theme (Olive Sage · Cream · Forest · Mustard)
-   Inspired by Paperpillar's Modern-Retro Wallet UI Exploration
    ========================================================================== */
 
 :root {
   --bg-canvas: #e9ead2;
   --bg-canvas-top: #cfd29f;
   --bg-canvas-bottom: #f6f5ea;
-  --bg-surface: rgba(252, 251, 244, 0.94);
+  --bg-surface: rgba(252, 251, 244, 0.95);
   --bg-surface-solid: #fcfbf4;
-  --bg-glass: rgba(255, 253, 244, 0.84);
+  --bg-glass: rgba(255, 253, 244, 0.88);
   --bg-chartreuse: #dfe1a6;
   --bg-forest: #233e1e;
   --bg-subtle: #f1efe0;
-  --border-subtle: rgba(35, 62, 30, 0.11);
-  --border-glass: rgba(255, 255, 255, 0.72);
-  --border-strong: rgba(35, 62, 30, 0.22);
+  --border-subtle: rgba(35, 62, 30, 0.12);
+  --border-glass: rgba(255, 255, 255, 0.78);
+  --border-strong: rgba(35, 62, 30, 0.24);
 
   --text-primary: #1d2418;
   --text-hero: #2b0a1b;
-  --text-secondary: #535847;
-  --text-muted: #707460;
+  --text-secondary: #484d3d;
+  --text-muted: #595e4b;
 
   --accent: #233e1e;
   --accent-hover: #1b3117;
   --accent-grad-from: #709446;
   --accent-grad-to: #1e5227;
-  --accent-soft: rgba(112, 148, 70, 0.18);
+  --accent-soft: rgba(112, 148, 70, 0.2);
   --accent-text: #233e1e;
 
   --pill-sage: #c3d48e;
   --pill-sage-text: #1c2c16;
   --pill-mustard: #f4c95d;
   --pill-mustard-text: #2b1808;
-  --currency-amber: #e59a38;
+  --currency-amber: #d9821f;
   --wavy-terracotta: #d9af8b;
 
-  --shadow-card: 0 10px 28px -8px rgba(35, 62, 30, 0.1), 0 2px 6px rgba(35, 62, 30, 0.04);
+  /* Motion tokens */
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 130ms;
+  --dur-base: 190ms;
+  --dur-sheet: 250ms;
+
+  --shadow-card: 0 10px 26px -10px rgba(35, 62, 30, 0.12), 0 1px 3px rgba(35, 62, 30, 0.05);
+  --shadow-card-hover: 0 14px 32px -10px rgba(35, 62, 30, 0.16), 0 2px 6px rgba(35, 62, 30, 0.06);
 }
 
 .dark {
   --bg-canvas: #121e15;
   --bg-canvas-top: #182b1c;
   --bg-canvas-bottom: #0d1610;
-  --bg-surface: rgba(25, 39, 28, 0.94);
+  --bg-surface: rgba(25, 39, 28, 0.95);
   --bg-surface-solid: #19271c;
-  --bg-glass: rgba(31, 49, 34, 0.86);
+  --bg-glass: rgba(31, 49, 34, 0.88);
   --bg-chartreuse: #2c3e24;
   --bg-forest: #0e1d11;
   --bg-subtle: #213325;
-  --border-subtle: rgba(223, 225, 166, 0.14);
-  --border-glass: rgba(223, 225, 166, 0.2);
-  --border-strong: rgba(223, 225, 166, 0.26);
+  --border-subtle: rgba(223, 225, 166, 0.16);
+  --border-glass: rgba(223, 225, 166, 0.22);
+  --border-strong: rgba(223, 225, 166, 0.3);
 
   --text-primary: #f6f4e8;
   --text-hero: #faf8ec;
-  --text-secondary: #b7bfa8;
-  --text-muted: #8b947d;
+  --text-secondary: #c5cdb7;
+  --text-muted: #9fa98f;
 
   --accent: #b8cf7a;
   --accent-hover: #cbe090;
   --accent-grad-from: #8bb355;
   --accent-grad-to: #4d7a31;
-  --accent-soft: rgba(184, 207, 122, 0.16);
+  --accent-soft: rgba(184, 207, 122, 0.18);
   --accent-text: #c9de8d;
 
   --pill-sage: #38522d;
-  --pill-sage-text: #e6f0c8;
+  --pill-sage-text: #eef5d8;
   --pill-mustard: #eab948;
   --pill-mustard-text: #201507;
   --currency-amber: #f4c95d;
   --wavy-terracotta: #a78363;
 
-  --shadow-card: 0 12px 30px -10px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 12px 28px -10px rgba(0, 0, 0, 0.48);
+  --shadow-card-hover: 0 16px 34px -10px rgba(0, 0, 0, 0.6);
 }
 
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+html {
+  scroll-padding-top: 72px;
+  scroll-padding-bottom: 96px;
 }
 
 html,
@@ -106,11 +132,44 @@ body,
   background-attachment: fixed;
   color: var(--text-primary);
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Native Android feel: prevent accidental text selection on buttons/nav/chrome while keeping text inputs & notes selectable */
+/* Browser surfaces themed from the palette (Impeccable craft floor) */
+::selection {
+  background-color: var(--pill-sage);
+  color: var(--pill-sage-text);
+}
+
+input,
+textarea {
+  caret-color: var(--currency-amber);
+}
+
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+/* Visible, accessible keyboard focus indicator (WCAG 2.2 AA) */
+:focus-visible {
+  outline: 2px solid var(--accent-grad-from);
+  outline-offset: 2px;
+}
+
+.input-field:focus-visible {
+  outline: none;
+}
+
+/* Native Android feel: prevent accidental text selection on chrome while keeping content/inputs selectable */
 body {
   -webkit-user-select: none;
   user-select: none;
@@ -149,18 +208,28 @@ body.keyboard-open .mobile-bottom-chrome {
   font-variant-numeric: tabular-nums;
 }
 
-/* Signature frosted cream glass card with subtle olive ambient shadow */
+/* Signature frosted cream glass card with disciplined elevation */
 .card {
   background-color: var(--bg-surface);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-glass);
   box-shadow: var(--shadow-card);
-  border-radius: 22px;
+  border-radius: 20px;
+  transition: box-shadow var(--dur-base) var(--ease-out-expo), transform var(--dur-fast) var(--ease-out-expo);
 }
 
 .dark .card {
   border-color: var(--border-subtle);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  button.card:hover,
+  a.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
 }
 
 /* Frosted Hero Wallet / Balance Card */
@@ -173,21 +242,38 @@ body.keyboard-open .mobile-bottom-chrome {
   border-radius: 24px;
 }
 
-/* Retro Chartreuse Highlight Card (for key metrics / transfer / amount blocks) */
+.dark .card-glass-hero {
+  border-color: var(--border-subtle);
+}
+
+/* Retro Chartreuse Highlight Card */
 .card-chartreuse {
   background-color: var(--bg-chartreuse);
   border: 1px solid var(--border-glass);
   box-shadow: var(--shadow-card);
-  border-radius: 22px;
+  border-radius: 20px;
+}
+
+.dark .card-chartreuse {
+  border-color: var(--border-subtle);
+  box-shadow: none;
 }
 
 /* Deep Pine Forest Banner / Featured Card */
 .card-forest {
   background: linear-gradient(135deg, #274421 0%, #183015 100%);
   color: #fbfbf4;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 12px 26px -8px rgba(17, 45, 25, 0.35);
-  border-radius: 22px;
+  border-radius: 20px;
+  transition: transform var(--dur-fast) var(--ease-out-expo), filter var(--dur-fast) ease;
+}
+
+@media (hover: hover) {
+  button.card-forest:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+  }
 }
 
 /* Chunky Espresso-Plum Hero Numerals */
@@ -210,9 +296,10 @@ body.keyboard-open .mobile-bottom-chrome {
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.5rem 0.875rem;
-  transition: all 160ms ease;
+  min-height: 36px;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
   cursor: pointer;
-  color: rgba(251, 251, 244, 0.75);
+  color: rgba(251, 251, 244, 0.78);
 }
 
 .retro-segmented-btn:hover {
@@ -234,7 +321,7 @@ body.keyboard-open .mobile-bottom-chrome {
   padding: 0.65rem 0.95rem;
   font-size: 0.9375rem;
   color: var(--text-primary);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   outline: none;
 }
 
@@ -263,7 +350,7 @@ body.keyboard-open .mobile-bottom-chrome {
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 6px 16px -4px rgba(30, 82, 39, 0.35);
   cursor: pointer;
-  transition: filter 150ms ease, transform 120ms ease, opacity 150ms ease;
+  transition: filter var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo), opacity var(--dur-fast) ease;
 }
 
 .dark .btn-primary {
@@ -271,11 +358,14 @@ body.keyboard-open .mobile-bottom-chrome {
   font-weight: 700;
 }
 
-.btn-primary:hover {
-  filter: brightness(1.06);
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
 }
 
-.btn-primary:active {
+.btn-primary:active:not(:disabled) {
   transform: scale(0.98);
 }
 
@@ -290,7 +380,7 @@ body.keyboard-open .mobile-bottom-chrome {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0.5rem 1.1rem;
   border-radius: 9999px;
   background-color: var(--pill-sage);
@@ -299,11 +389,14 @@ body.keyboard-open .mobile-bottom-chrome {
   font-size: 0.8125rem;
   border: none;
   cursor: pointer;
-  transition: filter 150ms ease, transform 120ms ease;
+  transition: filter var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo);
 }
 
-.btn-sage:hover {
-  filter: brightness(0.96);
+@media (hover: hover) {
+  .btn-sage:hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+  }
 }
 
 .btn-sage:active {
@@ -316,7 +409,7 @@ body.keyboard-open .mobile-bottom-chrome {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0.5rem 1.1rem;
   border-radius: 9999px;
   background-color: var(--pill-mustard);
@@ -325,11 +418,14 @@ body.keyboard-open .mobile-bottom-chrome {
   font-size: 0.8125rem;
   border: none;
   cursor: pointer;
-  transition: filter 150ms ease, transform 120ms ease;
+  transition: filter var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo);
 }
 
-.btn-mustard:hover {
-  filter: brightness(0.97);
+@media (hover: hover) {
+  .btn-mustard:hover {
+    filter: brightness(0.97);
+    transform: translateY(-1px);
+  }
 }
 
 .btn-mustard:active {
@@ -341,7 +437,7 @@ body.keyboard-open .mobile-bottom-chrome {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0.5rem 0.95rem;
   border-radius: 9999px;
   background-color: var(--bg-subtle);
@@ -350,15 +446,23 @@ body.keyboard-open .mobile-bottom-chrome {
   font-size: 0.8125rem;
   border: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo);
 }
 
-.btn-secondary:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .btn-secondary:hover:not(:disabled) {
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+  }
 }
 
-.btn-secondary:active {
+.btn-secondary:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-ghost {
@@ -375,7 +479,7 @@ body.keyboard-open .mobile-bottom-chrome {
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
 }
 
 .btn-ghost:hover {
@@ -401,9 +505,13 @@ body.keyboard-open .mobile-bottom-chrome {
     linear-gradient(155deg, #112d19 0%, #244020 48%, #4e5624 100%);
 }
 
-/* Safe area padding for Android / iOS bottom tabs */
+/* Safe area padding for Android / iOS bottom tabs & top notches */
 .pb-safe {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -415,7 +523,13 @@ body.keyboard-open .mobile-bottom-chrome {
   scrollbar-width: none;
 }
 
-/* Smooth subtle scrollbar */
+/* Reading measure helper for notes & emails */
+.prose-measure {
+  max-width: 68ch;
+  overflow-wrap: anywhere;
+}
+
+/* Smooth themed scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -455,7 +569,7 @@ body.keyboard-open .mobile-bottom-chrome {
 @keyframes pageFade {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
@@ -464,13 +578,25 @@ body.keyboard-open .mobile-bottom-chrome {
 }
 
 .animate-modal {
-  animation: modalIn 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modalIn var(--dur-base) var(--ease-out-expo);
 }
 
 .animate-sheet {
-  animation: sheetUp 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: sheetUp var(--dur-sheet) var(--ease-out-expo);
 }
 
 .animate-page {
-  animation: pageFade 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: pageFade var(--dur-base) var(--ease-out-expo);
+}
+
+/* Respect prefers-reduced-motion across all animations & transitions (WCAG / UI-UX Pro Max CRITICAL) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

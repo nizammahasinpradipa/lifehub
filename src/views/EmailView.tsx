@@ -702,7 +702,7 @@ export const EmailView: React.FC = () => {
                   </div>
 
                   {/* Plain-text Email Body */}
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap break-words max-h-[48vh] overflow-y-auto pr-1 text-zinc-800 dark:text-zinc-200">
+                  <div className="prose-measure selectable text-sm leading-[1.65] whitespace-pre-wrap break-words max-h-[48vh] overflow-y-auto pr-1 text-[var(--text-primary)]">
                     {selectedMessage.bodyText}
                   </div>
                 </div>

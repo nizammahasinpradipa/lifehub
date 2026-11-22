@@ -212,19 +212,16 @@ export const NotesView: React.FC = () => {
       {/* SUB-TAB 1: DAILY JOURNAL (N2, N3) */}
       {subTab === 'journal' && (
         <div className="card p-5 sm:p-6 space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-teal-700 dark:text-teal-400">
-                {journalDate === today ? 'Today' : formatShortDate(journalDate)}
-              </p>
-              <h2 className="text-lg font-semibold mt-0.5">{formatFullDate(journalDate)}</h2>
-            </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-lg font-bold tracking-tight">
+              {journalDate === today ? `Today · ${formatFullDate(journalDate)}` : formatFullDate(journalDate)}
+            </h2>
 
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setJournalDate((d) => addDaysToDateString(d, -1))}
-                className="btn-secondary !min-h-[36px] !px-2.5"
+                className="btn-secondary !min-h-[40px] !px-2.5 shrink-0"
                 aria-label="Previous day"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -234,7 +231,8 @@ export const NotesView: React.FC = () => {
                 value={journalDate}
                 max={today}
                 onChange={(e) => e.target.value && setJournalDate(e.target.value)}
-                className="input-field !w-auto !py-1.5 !text-xs"
+                className="input-field !w-auto !py-1.5 !text-xs flex-1 sm:flex-none"
+                aria-label="Choose journal date"
               />
               <button
                 type="button"
@@ -243,7 +241,7 @@ export const NotesView: React.FC = () => {
                   if (next <= today) setJournalDate(next);
                 }}
                 disabled={journalDate >= today}
-                className="btn-secondary !min-h-[36px] !px-2.5 disabled:opacity-40"
+                className="btn-secondary !min-h-[40px] !px-2.5 disabled:opacity-40 shrink-0"
                 aria-label="Next day"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -252,7 +250,7 @@ export const NotesView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setJournalDate(today)}
-                  className="btn-ghost !text-xs text-teal-700 dark:text-teal-400"
+                  className="btn-ghost !text-xs text-teal-700 dark:text-teal-400 shrink-0"
                 >
                   Today
                 </button>
@@ -528,6 +526,14 @@ export const NotesView: React.FC = () => {
                       const m = MOODS.find((x) => x.value === val);
                       return m ? `${val}/5 (${m.label})` : val;
                     }}
+                    contentStyle={{
+                      backgroundColor: 'var(--bg-surface-solid)',
+                      borderColor: 'var(--border-subtle)',
+                      borderRadius: '14px',
+                      color: 'var(--text-primary)',
+                      fontSize: '12px',
+                    }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
                   />
                   <Line
                     type="monotone"

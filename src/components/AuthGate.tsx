@@ -194,7 +194,7 @@ export const AuthGate: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 retro-botanical-bg">
+    <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-10 retro-botanical-bg">
       <div className="w-full max-w-md space-y-5 animate-modal">
         {/* Brand Header (inspired by the cream squircle badge over botanical forest) */}
         <div className="flex flex-col items-center text-center space-y-2.5">

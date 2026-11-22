@@ -139,13 +139,13 @@ export const HomeView: React.FC<HomeViewProps> = ({ onQuickAdd, onOpenAI, onOpen
       {/* Greeting */}
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-medium text-[var(--text-muted)]">{formatFullDate(today)}</p>
-          <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight mt-0.5">
+          <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">
             {getGreeting(data.user.timezone)}
             {data.user.display_name && data.user.display_name !== 'Owner'
               ? `, ${data.user.display_name}`
               : ''}
           </h1>
+          <p className="text-xs font-medium text-[var(--text-muted)] mt-0.5">{formatFullDate(today)}</p>
         </div>
       </div>
 

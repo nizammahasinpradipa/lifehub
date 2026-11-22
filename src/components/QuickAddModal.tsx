@@ -166,6 +166,9 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
         className="w-full max-w-lg rounded-t-3xl md:rounded-3xl border shadow-2xl max-h-[88dvh] overflow-y-auto animate-sheet md:animate-modal pb-safe"
         style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Quick Add"
       >
         <div className="md:hidden w-10 h-1 rounded-full bg-black/15 dark:bg-white/20 mx-auto mt-3" />
         <div className="flex items-center justify-between px-5 pt-3.5 md:pt-4 pb-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>

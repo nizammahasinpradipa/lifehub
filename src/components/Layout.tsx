@@ -186,7 +186,13 @@ export const Layout: React.FC<LayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-dvh flex flex-col md:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:bg-[#233E1E] focus:text-[#FBFBF4] focus:text-sm focus:font-semibold"
+      >
+        Skip to main content
+      </a>
       {/* Desktop Left Sidebar */}
       <aside
         className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 border-r px-4 py-5 select-none backdrop-blur-md"
@@ -243,6 +249,7 @@ export const Layout: React.FC<LayoutProps> = ({
                 key={id}
                 type="button"
                 onClick={() => setActiveTab(id)}
+                aria-current={active ? 'page' : undefined}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
                   active
                     ? 'bg-[#233E1E] text-[#FBFBF4] dark:bg-[#C3D48E] dark:text-[#162613] shadow-sm'
@@ -310,7 +317,7 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* Clean Minimal Mobile Top Bar */}
       <header
-        className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 h-14 border-b backdrop-blur-md"
+        className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 min-h-[56px] pt-safe border-b backdrop-blur-md"
         style={{
           backgroundColor: 'color-mix(in srgb, var(--bg-surface) 92%, transparent)',
           borderColor: 'var(--border-subtle)',
@@ -324,17 +331,17 @@ export const Layout: React.FC<LayoutProps> = ({
         <button
           type="button"
           onClick={onOpenSearch}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-zinc-500 border"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-full text-xs font-semibold text-[var(--text-secondary)] border cursor-pointer"
           style={{ backgroundColor: 'var(--bg-subtle)', borderColor: 'var(--border-subtle)' }}
           aria-label="Search everything"
         >
-          <Search className="w-3.5 h-3.5" />
+          <Search className="w-3.5 h-3.5" aria-hidden="true" />
           Search
         </button>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 md:pl-64 pb-28 md:pb-12">
+      <main id="main-content" className="flex-1 md:pl-64 pb-28 md:pb-12">
         <div key={activeTab} className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-page">
           {children}
         </div>
@@ -371,6 +378,7 @@ export const Layout: React.FC<LayoutProps> = ({
               <button
                 key={id}
                 type="button"
+                aria-current={active ? 'page' : undefined}
                 onClick={() => {
                   haptic('tap');
                   setMoreOpen(false);
@@ -431,6 +439,9 @@ export const Layout: React.FC<LayoutProps> = ({
             className="w-full rounded-t-3xl border-t p-5 pb-safe space-y-4 animate-sheet max-h-[85dvh] overflow-y-auto"
             style={{ backgroundColor: 'var(--bg-surface-solid)', borderColor: 'var(--border-subtle)' }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="More options"
           >
             <div className="w-10 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700 mx-auto" />
 

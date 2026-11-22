@@ -209,6 +209,16 @@ function localSyncApiPlugin() {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), localSyncApiPlugin()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'charts-vendor': ['recharts'],
+          'supabase-vendor': ['@supabase/supabase-js'],
+        },
+      },
+    },
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,

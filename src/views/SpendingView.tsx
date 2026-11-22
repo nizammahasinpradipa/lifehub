@@ -661,7 +661,17 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                           <Cell key={entry.name} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(val: number) => formatIDR(val)} />
+                      <Tooltip
+                        formatter={(val: number) => formatIDR(val)}
+                        contentStyle={{
+                          backgroundColor: 'var(--bg-surface-solid)',
+                          borderColor: 'var(--border-subtle)',
+                          borderRadius: '14px',
+                          color: 'var(--text-primary)',
+                          fontSize: '12px',
+                        }}
+                        itemStyle={{ color: 'var(--text-primary)' }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -695,7 +705,17 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                     <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.15} />
                     <XAxis type="number" tickFormatter={(v) => formatIDR(v, { compact: true })} fontSize={11} />
                     <YAxis type="category" dataKey="name" width={90} fontSize={12} />
-                    <Tooltip formatter={(val: number) => formatIDR(val)} />
+                    <Tooltip
+                      formatter={(val: number) => formatIDR(val)}
+                      contentStyle={{
+                        backgroundColor: 'var(--bg-surface-solid)',
+                        borderColor: 'var(--border-subtle)',
+                        borderRadius: '14px',
+                        color: 'var(--text-primary)',
+                        fontSize: '12px',
+                      }}
+                      itemStyle={{ color: 'var(--text-primary)' }}
+                    />
                     <Bar dataKey="amount" fill="#233E1E" radius={[0, 10, 10, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -715,7 +735,17 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
                   <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.15} />
                   <XAxis dataKey="month" fontSize={12} />
                   <YAxis tickFormatter={(v) => formatIDR(v, { compact: true })} fontSize={11} width={72} />
-                  <Tooltip formatter={(val: number) => formatIDR(val)} />
+                  <Tooltip
+                    formatter={(val: number) => formatIDR(val)}
+                    contentStyle={{
+                      backgroundColor: 'var(--bg-surface-solid)',
+                      borderColor: 'var(--border-subtle)',
+                      borderRadius: '14px',
+                      color: 'var(--text-primary)',
+                      fontSize: '12px',
+                    }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
+                  />
                   <Bar dataKey="Expense" fill="#233E1E" radius={[8, 8, 0, 0]} />
                   <Bar dataKey="Income" fill="#C3D48E" radius={[8, 8, 0, 0]} />
                 </BarChart>

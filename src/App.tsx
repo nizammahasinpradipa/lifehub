@@ -1,25 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { LifeHubProvider, useLifeHub } from './store/LifeHubContext';
 import { Layout } from './components/Layout';
 import { QuickAddModal, type QuickAddTab } from './components/QuickAddModal';
-import { SearchModal } from './components/SearchModal';
-import { AIAssistantModal } from './components/AIAssistantModal';
-import { ReceiptScanModal } from './components/ReceiptScanModal';
 import { ToastContainer } from './components/Toast';
 import { AuthGate } from './components/AuthGate';
 import { AppLogo } from './components/AppLogo';
 import { HomeView } from './views/HomeView';
-import { TasksView } from './views/TasksView';
-import { SpendingView } from './views/SpendingView';
-import { NotesView } from './views/NotesView';
-import { EmailView } from './views/EmailView';
-import { SocialsView } from './views/SocialsView';
-import { SettingsView } from './views/SettingsView';
+
+// Route-level & modal-level code splitting for faster Android cold start
+const TasksView = lazy(() => import('./views/TasksView').then((m) => ({ default: m.TasksView })));
+const SpendingView = lazy(() => import('./views/SpendingView').then((m) => ({ default: m.SpendingView })));
+const NotesView = lazy(() => import('./views/NotesView').then((m) => ({ default: m.NotesView })));
+const EmailView = lazy(() => import('./views/EmailView').then((m) => ({ default: m.EmailView })));
+const SocialsView = lazy(() => import('./views/SocialsView').then((m) => ({ default: m.SocialsView })));
+const SettingsView = lazy(() => import('./views/SettingsView').then((m) => ({ default: m.SettingsView })));
+const SearchModal = lazy(() => import('./components/SearchModal').then((m) => ({ default: m.SearchModal })));
+const AIAssistantModal = lazy(() => import('./components/AIAssistantModal').then((m) => ({ default: m.AIAssistantModal })));
+const ReceiptScanModal = lazy(() => import('./components/ReceiptScanModal').then((m) => ({ default: m.ReceiptScanModal })));
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
+
+const ViewSkeleton: React.FC = () => (
+  <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading section">
+    <div className="h-8 w-40 rounded-full" style={{ backgroundColor: 'var(--bg-subtle)' }} />
+    <div className="card p-6 h-36" />
+    <div className="card p-6 h-52" />
+  </div>
+);
 
 const LifeHubShell: React.FC = () => {
   const { activeTab, authReady, isUnlocked } = useLifeHub();
@@ -74,12 +84,12 @@ const LifeHubShell: React.FC = () => {
   if (!authReady) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
+        className="min-h-dvh flex items-center justify-center"
         style={{ backgroundColor: 'var(--bg-canvas)' }}
       >
         <div className="flex flex-col items-center gap-3">
-          <AppLogo className="w-11 h-11 opacity-90" />
-          <p className="text-xs text-zinc-500">Checking verification...</p>
+          <AppLogo className="w-12 h-12 opacity-95" />
+          <p className="text-xs font-medium text-[var(--text-muted)]">Checking account...</p>
         </div>
       </div>
     );
@@ -101,26 +111,28 @@ const LifeHubShell: React.FC = () => {
       onOpenAI={() => setAiOpen(true)}
       onOpenReceipt={() => setReceiptOpen(true)}
     >
-      {activeTab === 'home' && (
-        <HomeView
-          onQuickAdd={openQuickAdd}
-          onOpenAI={() => setAiOpen(true)}
-          onOpenReceipt={() => setReceiptOpen(true)}
-        />
-      )}
-      {activeTab === 'tasks' && <TasksView />}
-      {activeTab === 'spending' && (
-        <SpendingView
-          onQuickAddExpense={() => openQuickAdd('expense')}
-          onOpenReceipt={() => setReceiptOpen(true)}
-        />
-      )}
-      {activeTab === 'notes' && <NotesView />}
-      {activeTab === 'email' && <EmailView />}
-      {activeTab === 'socials' && <SocialsView />}
-      {activeTab === 'settings' && (
-        <SettingsView canInstallPwa={Boolean(installPrompt)} onInstallPwa={handleInstallPwa} />
-      )}
+      <Suspense fallback={<ViewSkeleton />}>
+        {activeTab === 'home' && (
+          <HomeView
+            onQuickAdd={openQuickAdd}
+            onOpenAI={() => setAiOpen(true)}
+            onOpenReceipt={() => setReceiptOpen(true)}
+          />
+        )}
+        {activeTab === 'tasks' && <TasksView />}
+        {activeTab === 'spending' && (
+          <SpendingView
+            onQuickAddExpense={() => openQuickAdd('expense')}
+            onOpenReceipt={() => setReceiptOpen(true)}
+          />
+        )}
+        {activeTab === 'notes' && <NotesView />}
+        {activeTab === 'email' && <EmailView />}
+        {activeTab === 'socials' && <SocialsView />}
+        {activeTab === 'settings' && (
+          <SettingsView canInstallPwa={Boolean(installPrompt)} onInstallPwa={handleInstallPwa} />
+        )}
+      </Suspense>
 
       <QuickAddModal
         open={quickAddOpen}
@@ -129,9 +141,13 @@ const LifeHubShell: React.FC = () => {
         onOpenAI={() => setAiOpen(true)}
         onOpenReceipt={() => setReceiptOpen(true)}
       />
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <AIAssistantModal open={aiOpen} onClose={() => setAiOpen(false)} />
-      <ReceiptScanModal open={receiptOpen} onClose={() => setReceiptOpen(false)} />
+
+      <Suspense fallback={null}>
+        {searchOpen && <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />}
+        {aiOpen && <AIAssistantModal open={aiOpen} onClose={() => setAiOpen(false)} />}
+        {receiptOpen && <ReceiptScanModal open={receiptOpen} onClose={() => setReceiptOpen(false)} />}
+      </Suspense>
+
       <ToastContainer />
     </Layout>
   );
