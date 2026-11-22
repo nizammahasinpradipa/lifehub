@@ -667,17 +667,72 @@ export const Layout: React.FC<LayoutProps> = ({
           setDragOffsetX(0);
         }}
         className={`flex-1 overflow-x-hidden pb-32 md:pb-12 transition-[padding] duration-300 ${
-          sidebarPinned ? 'md:pl-[272px]' : 'md:px-12'
+          sidebarPinned ? 'md:pl-[272px] md:pr-6' : 'md:px-16 lg:px-20'
         }`}
       >
         <div
           key={activeTab}
-          className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-9 ${pageAnimClass}`}
+          className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8 ${pageAnimClass}`}
           style={{
             transform: dragOffsetX !== 0 ? `translateX(${dragOffsetX}px)` : undefined,
             transition: isSwiping ? 'none' : 'transform 260ms var(--ease-calm)',
           }}
         >
+          {/* Quiet Desktop Utility Strip (balances wide PC viewport while hover sidebar is tucked away) */}
+          <div className="hidden md:flex items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={openDesktopSidebar}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors hover:border-[var(--border-strong)] cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activeSwatch }} />
+                <span>{TAB_TITLES[activeTab]}</span>
+              </button>
+              <div className="px-1">{renderSyncBadge()}</div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenSearch}
+                className="inline-flex items-center gap-2.5 px-3.5 py-1.5 min-h-[36px] rounded-full text-xs font-medium border transition-colors hover:border-[var(--border-strong)] cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>Search anything...</span>
+                <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-subtle)] font-sans">⌘K</kbd>
+              </button>
+              <button
+                type="button"
+                onClick={onOpenAI}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 min-h-[36px] rounded-full text-xs font-semibold cursor-pointer transition-transform active:scale-95"
+                style={{ backgroundColor: 'rgba(154, 217, 242, 0.2)', color: 'var(--text-primary)' }}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#9AD9F2]" />
+                Ask AI
+              </button>
+              <button
+                type="button"
+                onClick={onQuickAdd}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 min-h-[36px] rounded-full text-xs font-semibold cursor-pointer transition-transform active:scale-95"
+                style={{ backgroundColor: activeSwatch, color: '#1D1F2A' }}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                New
+              </button>
+            </div>
+          </div>
+
           {children}
         </div>
       </main>

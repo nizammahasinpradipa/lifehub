@@ -184,6 +184,9 @@ export const TasksView: React.FC = () => {
     notify('Project created', 'success');
   };
 
+  const openCount = useMemo(() => parentTasks.filter((t) => t.status === 'todo').length, [parentTasks]);
+  const doneCount = useMemo(() => parentTasks.filter((t) => t.status === 'done').length, [parentTasks]);
+
   const parentPromptTask = parentCompletePromptId
     ? activeTasks.find((t) => t.id === parentCompletePromptId)
     : null;
@@ -201,6 +204,9 @@ export const TasksView: React.FC = () => {
           New Project
         </button>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="lg:col-span-8 space-y-4">
 
       {/* Inline New Project Form */}
       {showAddProject && (
@@ -500,6 +506,72 @@ export const TasksView: React.FC = () => {
           </button>
         </div>
       )}
+      </div>
+
+      {/* Desktop Right Summary & Projects Column */}
+      <aside className="hidden lg:block lg:col-span-4 space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bento-lavender rounded-[20px] p-4">
+            <p className="text-[11px] font-semibold opacity-75">Open</p>
+            <p className="text-2xl font-bold tabular-nums mt-1">{openCount}</p>
+          </div>
+          <div className="bento-lime rounded-[20px] p-4">
+            <p className="text-[11px] font-semibold opacity-75">Completed</p>
+            <p className="text-2xl font-bold tabular-nums mt-1">{doneCount}</p>
+          </div>
+        </div>
+
+        <div className="card p-4 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-[var(--text-muted)]">Projects</h2>
+            <button
+              type="button"
+              onClick={() => setShowAddProject((s) => !s)}
+              className="text-xs font-semibold hover:underline cursor-pointer"
+              style={{ color: 'var(--primary)' }}
+            >
+              + New
+            </button>
+          </div>
+          <div className="space-y-1">
+            <button
+              type="button"
+              onClick={() => setSelectedProjectId(null)}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+              style={{
+                backgroundColor: selectedProjectId === null ? 'var(--accent-soft)' : 'transparent',
+                color: selectedProjectId === null ? 'var(--text-primary)' : 'var(--text-secondary)',
+              }}
+            >
+              <span>All Projects</span>
+              <span className="tabular-nums text-[var(--text-muted)]">{openCount}</span>
+            </button>
+            {activeProjects.map((p) => {
+              const active = selectedProjectId === p.id;
+              const count = parentTasks.filter((t) => t.status === 'todo' && t.project_id === p.id).length;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setSelectedProjectId(active ? null : p.id)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+                  style={{
+                    backgroundColor: active ? 'var(--accent-soft)' : 'transparent',
+                    color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  }}
+                >
+                  <span className="inline-flex items-center gap-2 truncate">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+                    <span className="truncate">{p.name}</span>
+                  </span>
+                  <span className="tabular-nums text-[var(--text-muted)]">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </aside>
+      </div>
 
       {/* PRD Acceptance Criterion: Ask before auto-completing parent task when last subtask finishes */}
       {parentPromptTask && (

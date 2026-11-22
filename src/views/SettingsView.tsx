@@ -150,13 +150,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported';
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6">
       <div className="hidden md:block">
         <h1 className="text-2xl font-bold tracking-tight">Settings &amp; Sync</h1>
-        <p className="text-xs text-zinc-500 mt-0.5">
-          Manage local persistence, PC ↔ Android syncing, appearance, reminders, and backups.
-        </p>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
       {/* Signed-in Account & Security */}
       <section className="card p-5 space-y-4">
@@ -666,6 +665,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ canInstallPwa, onIns
           )}
         </div>
       </section>
+      </div>
     </div>
   );
 };

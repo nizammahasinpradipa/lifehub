@@ -558,7 +558,7 @@ export const SpendingView: React.FC<SpendingViewProps> = ({ onQuickAddExpense, o
           <p className="text-xs text-zinc-500">
             Set monthly IDR limits per expense category. Calm alerts appear at 80% and 100%.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {expenseCategories.map((cat) => {
               const spent = spentByCategory.get(cat.id) || 0;
               const budget = budgetsForMonth.get(cat.id);

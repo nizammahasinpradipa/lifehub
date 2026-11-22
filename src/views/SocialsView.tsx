@@ -409,7 +409,7 @@ export const SocialsView: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {visibleLinks.map((item) => {
             const meta = PLATFORM_MAP.get(item.platform) || PLATFORMS[PLATFORMS.length - 1];
             const isSelected = selectedIds.includes(item.id);
